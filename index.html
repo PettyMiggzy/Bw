@@ -16,88 +16,94 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Bagel+Fat+One&family=Caveat:wght@500;700&family=DM+Sans:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
 
 <!-- Leaflet for the smoke sessions map -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 
 <style>
 :root {
-  /* — ink (warm near-black, not pure void) — */
-  --ink:        #0a0d09;
-  --ink-2:      #131611;
-  --ink-3:      #1c201a;
-  --ink-soft:   #232723;
+  /* — voids — */
+  --ink:        #07140c;
+  --ink-2:      #0d1f12;
+  --ink-3:      #14291a;
+  --ink-soft:   #1c3422;
+  --void:       var(--ink);
+  --void-2:     var(--ink-2);
+  --void-3:     var(--ink-3);
 
-  /* — forest (cannabis green, deep + restrained — not bright lime) — */
+  /* — cannabis green (loud, alive, the brand) — */
+  --bud:        #4cff7a;
+  --bud-2:      #78ff9a;
+  --bud-deep:   #15803d;
+  --bud-glow:   #b6ffce;
   --forest:     #1e3a2a;
   --forest-2:   #2c5840;
   --forest-deep:#0f1f14;
   --forest-mist:#54756a;
+  --green:      var(--bud);
+  --green-2:    var(--bud-2);
+  --green-deep: var(--bud-deep);
 
-  /* — brass (the W medallion's home — aged gold, not yellow neon) — */
-  --brass:      #b8923e;
-  --brass-2:    #d4b366;
-  --brass-deep: #7a5e1a;
-  --brass-pale: #e8d8a8;
+  /* — fire gold (the W medallion) — */
+  --gold:       #ffc738;
+  --gold-2:     #ffd96a;
+  --gold-deep:  #b8870c;
+  --gold-pale:  #ffe8a8;
+  --brass:      var(--gold);
+  --brass-2:    var(--gold-2);
+  --brass-deep: var(--gold-deep);
+  --brass-pale: var(--gold-pale);
 
-  /* — bone (warm whites, like aged paper) — */
-  --bone:       #efe6d2;
-  --bone-2:     #d4c8a8;
+  /* — ember (the BURN — burnt sienna with kick) — */
+  --ember:      #ff5a1f;
+  --ember-2:    #ff8042;
+  --ember-deep: #b8350a;
+
+  /* — cream / paper — */
+  --bone:       #f8f5e8;
+  --bone-2:     #ddd4ba;
   --bone-dim:   #a89e80;
-  --bone-faint: #6e6552;
+  --bone-faint: #6a6248;
 
-  /* — ember (single rusty accent for fire/burn moments — burnt sienna, not safety orange) — */
-  --ember:      #c4501f;
-  --ember-2:    #e07644;
-  --ember-deep: #7a2e0a;
+  /* — purple smoke (atmosphere accent) — */
+  --purple-deep:   #2a1545;
+  --purple-mid:    #4a1f7a;
+  --purple-glow:   #b06bd6;
+  --purple-soft:   #d4afff;
+  --purple-smoke:  #7a3aa8;
 
-  /* — hairlines — */
-  --line:       rgba(184,146,62,0.18);
-  --line-2:     rgba(239,230,210,0.08);
-
-  /* — typography — */
-  --f-serif:    'Fraunces', 'Times New Roman', serif;       /* headlines, drop caps, pull quotes */
-  --f-sans:     'Inter', system-ui, -apple-system, sans-serif;  /* body */
-  --f-mono:     'JetBrains Mono', 'Courier New', monospace; /* labels, data, captions */
-
-  /* aliases kept for backwards-compat with old var refs */
-  --f-display:  var(--f-serif);
-  --f-massive:  var(--f-serif);
-  --f-head:     var(--f-serif);
-  --f-body:     var(--f-sans);
-  --void:       var(--ink);
-  --void-2:     var(--ink-2);
-  --void-3:     var(--ink-3);
-  --gold:       var(--brass);
-  --gold-2:     var(--brass-2);
-  --gold-deep:  var(--brass-deep);
-  --green:      var(--forest-mist);
-  --green-2:    var(--forest-2);
-  --green-deep: var(--forest-deep);
-  --ember-deep: var(--ember-deep);
-  --purple-soft:   var(--bone-2);
-  --purple-glow:   var(--brass-2);
-  --purple-smoke:  var(--forest);
-  --purple-deep:   var(--ink);
-  --purple-mid:    var(--forest-2);
-
+  /* — hairlines + text — */
+  --line:       rgba(255,199,56,0.22);
+  --line-2:     rgba(76,255,122,0.16);
   --text:       var(--bone);
   --text-dim:   var(--bone-2);
   --text-faint: var(--bone-faint);
 
-  /* — radius (restrained — no more bouncy 44px) — */
-  --r-xs: 4px;
-  --r-sm: 8px;
-  --r-md: 12px;
-  --r-lg: 18px;
-  --r-xl: 24px;
+  /* — typography (CHUNKY weed-meme) — */
+  --f-display: 'Bowlby One', 'Impact', sans-serif;       /* loud chunky headlines */
+  --f-rounded: 'Bagel Fat One', 'Bowlby One', sans-serif; /* bubbly secondary headlines */
+  --f-action:  'Caveat', 'Marker Felt', cursive;          /* handwritten/graffiti accents */
+  --f-sans:    'DM Sans', system-ui, sans-serif;          /* body */
+  --f-mono:    'JetBrains Mono', monospace;               /* data + kickers */
+  --f-serif:   var(--f-display);  /* alias kept */
+  --f-massive: var(--f-display);
+  --f-head:    var(--f-display);
+  --f-body:    var(--f-sans);
 
-  /* — shadows (refined, less neon glow) — */
+  /* — radius (chunky-friendly) — */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --r-xl: 32px;
+
+  /* — shadows (offset comic-book shadows for chunk + glow shadows for fire) — */
   --sh-1: 0 8px 24px rgba(0,0,0,0.45);
-  --sh-2: 0 18px 48px rgba(0,0,0,0.55);
-  --sh-3: 0 30px 80px rgba(0,0,0,0.65);
-  --sh-fire: 0 12px 40px rgba(196,80,31,0.18);
+  --sh-2: 6px 6px 0 var(--ink);   /* comic offset */
+  --sh-3: 8px 8px 0 var(--ink);
+  --sh-fire: 0 0 28px rgba(255,90,31,0.45), 0 0 60px rgba(255,90,31,0.18);
+  --sh-bud:  0 0 28px rgba(76,255,122,0.40), 0 0 60px rgba(76,255,122,0.15);
 }
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
@@ -245,65 +251,74 @@ a, button, [role="button"], input, textarea, select, label {
   position: sticky; top: 0;
   z-index: 40;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 28px;
-  background: rgba(10,13,9,0.88);
+  padding: 14px 24px;
+  background: rgba(7,20,12,0.92);
   backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--line-2);
+  border-bottom: 3px solid var(--bud-deep);
 }
 .nav-brand {
   display: flex; align-items: center; gap: 12px;
-  font-family: var(--f-serif);
+  font-family: var(--f-display);
   font-weight: 400;
-  font-size: 19px;
-  letter-spacing: 0;
-  color: var(--bone);
+  font-size: 18px;
+  letter-spacing: 1px;
+  color: var(--gold-2);
   text-decoration: none;
+  text-shadow: 2px 2px 0 var(--ink);
+  text-transform: uppercase;
 }
-.nav-brand em { font-style: italic; color: var(--brass-2); font-weight: 400; }
+.nav-brand em { font-style: normal; color: var(--bud); }
 .nav-brand img { width: 36px; height: 36px; }
 .nav-brand .sub {
-  color: var(--bone-faint);
+  color: var(--bone-2);
   font-family: var(--f-mono);
   font-size: 9px;
   letter-spacing: 2px;
   text-transform: uppercase;
+  text-shadow: none;
 }
 .nav-links { display: flex; gap: 4px; align-items: center; }
 .nav-link {
-  font-family: var(--f-mono);
-  font-size: 10px;
-  letter-spacing: 2.5px;
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: 12px;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: var(--bone-dim);
+  color: var(--bone);
   text-decoration: none;
   padding: 8px 14px;
   border-radius: var(--r-xs);
   transition: color 0.18s ease;
 }
-.nav-link:hover { color: var(--brass-2); }
+.nav-link:hover { color: var(--bud); }
 .nav-link.buy {
-  background: var(--brass-2);
-  color: var(--ink);
-  font-weight: 700;
-  margin-left: 8px;
+  background: var(--ember);
+  color: var(--bone);
+  border: 2px solid var(--ink);
+  margin-left: 10px;
   padding: 8px 16px;
   border-radius: 999px;
+  box-shadow: 4px 4px 0 var(--ink);
 }
-.nav-link.buy:hover { background: var(--brass-pale); }
+.nav-link.buy:hover {
+  background: var(--ember-2);
+  transform: translate(-1px,-1px);
+  box-shadow: 5px 5px 0 var(--ink);
+}
 @media (max-width: 700px) {
-  .nav { padding: 12px 16px; }
-  .nav-brand { font-size: 15px; gap: 10px; }
+  .nav { padding: 10px 14px; }
+  .nav-brand { font-size: 14px; gap: 10px; }
   .nav-brand img { width: 30px; height: 30px; }
   .nav-brand .sub { display: none; }
   .nav-link:not(.buy) { display: none; }
 }
 
-/* === HERO — editorial luxury cover === */
+/* === HERO — chunky stoner-pop, loud + fun === */
 .hero {
   position: relative;
   z-index: 2;
   min-height: 100vh;
-  padding: 80px 24px 60px;
+  padding: 70px 24px 60px;
   max-width: 1240px;
   margin: 0 auto;
   display: flex;
@@ -312,110 +327,117 @@ a, button, [role="button"], input, textarea, select, label {
   align-items: center;
   text-align: center;
 }
-.hero-masthead {
-  display: flex; flex-direction: column; align-items: center; gap: 14px;
-  margin-bottom: 36px;
-  font-family: var(--f-mono);
-  font-size: 10px;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  color: var(--bone-faint);
-}
-.hero-masthead .rule {
-  width: 60px; height: 1px; background: var(--brass-deep);
-}
-.hero-masthead .meta {
-  display: flex; gap: 16px; align-items: center;
-  flex-wrap: wrap; justify-content: center;
-}
-.hero-masthead .meta .dot { color: var(--brass-deep); }
-.hero-masthead .meta .live {
-  display: inline-flex; align-items: center; gap: 6px;
-  color: var(--forest-mist);
-}
-.hero-masthead .meta .live::before {
-  content: ''; width: 5px; height: 5px;
-  background: var(--forest-mist);
-  border-radius: 50%;
-  box-shadow: 0 0 8px var(--forest-mist);
+/* halftone dot overlay — pulp comic / vintage rolling paper texture */
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(255,199,56,0.06) 1px, transparent 1.5px);
+  background-size: 14px 14px;
+  pointer-events: none;
+  z-index: 0;
+  mix-blend-mode: screen;
 }
 
-.hero-chapter-mark {
-  font-family: var(--f-serif);
-  font-style: italic;
-  font-weight: 300;
-  font-size: clamp(14px, 1.6vw, 20px);
-  color: var(--bone-dim);
-  letter-spacing: 1px;
-  margin-bottom: 8px;
+.hero-stamp {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--f-mono);
+  font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--bud);
+  background: rgba(76,255,122,0.08);
+  border: 1px solid var(--bud);
+  padding: 8px 16px;
+  border-radius: 999px;
+  margin-bottom: 24px;
+  box-shadow: var(--sh-bud);
+  position: relative; z-index: 2;
 }
-.hero-chapter-mark .num {
-  font-style: normal;
-  font-weight: 700;
-  color: var(--brass-2);
-  letter-spacing: 4px;
+.hero-stamp::before {
+  content: '';
+  width: 8px; height: 8px;
+  background: var(--bud);
+  border-radius: 50%;
+  box-shadow: 0 0 12px var(--bud);
+  animation: bud-blink 1.5s ease-in-out infinite;
 }
+@keyframes bud-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 
 .hero h1 {
-  font-family: var(--f-serif);
-  font-weight: 300;
-  font-variation-settings: "opsz" 144, "SOFT" 0;
-  font-size: clamp(58px, 11vw, 168px);
-  line-height: 0.92;
-  letter-spacing: -3px;
-  margin: 0 0 6px;
-  color: var(--bone);
-  font-style: normal;
-  max-width: 14ch;
-}
-.hero h1 em {
-  font-style: italic;
+  font-family: var(--f-display);
   font-weight: 400;
-  color: var(--brass-2);
-  letter-spacing: -2px;
+  font-size: clamp(64px, 13vw, 200px);
+  line-height: 0.88;
+  letter-spacing: -3px;
+  margin: 0;
+  color: var(--gold-2);
+  text-shadow:
+    -4px -4px 0 var(--ink),
+     4px -4px 0 var(--ink),
+    -4px  4px 0 var(--ink),
+     4px  4px 0 var(--ink),
+    12px 12px 0 var(--ember),
+    0 0 70px rgba(255,199,56,0.4);
+  position: relative; z-index: 2;
+  text-transform: uppercase;
 }
-.hero-standfirst {
-  font-family: var(--f-serif);
-  font-weight: 300;
-  font-style: italic;
-  font-size: clamp(17px, 2vw, 24px);
-  line-height: 1.5;
-  color: var(--bone-dim);
-  max-width: 38ch;
-  margin: 28px auto 14px;
-  position: relative;
-}
-.hero-standfirst::before,
-.hero-standfirst::after {
-  content: '';
+.hero h1 .second {
   display: block;
-  width: 36px; height: 1px;
-  background: var(--brass-deep);
-  margin: 18px auto;
+  color: var(--bud);
+  text-shadow:
+    -4px -4px 0 var(--ink),
+     4px -4px 0 var(--ink),
+    -4px  4px 0 var(--ink),
+     4px  4px 0 var(--ink),
+    12px 12px 0 var(--ember-deep),
+    0 0 70px rgba(76,255,122,0.4);
+  margin-top: 6px;
 }
+
+.hero-graffiti {
+  font-family: var(--f-action);
+  font-weight: 700;
+  font-size: clamp(24px, 3.5vw, 40px);
+  color: var(--ember-2);
+  transform: rotate(-3deg);
+  margin: 18px 0 6px;
+  text-shadow: 3px 3px 0 var(--ink);
+  position: relative; z-index: 2;
+}
+
+.hero-tagline {
+  font-family: var(--f-sans);
+  font-weight: 500;
+  font-size: clamp(16px, 1.7vw, 20px);
+  line-height: 1.55;
+  color: var(--bone);
+  max-width: 56ch;
+  margin: 12px auto 26px;
+  position: relative; z-index: 2;
+}
+.hero-tagline strong { color: var(--gold-2); font-weight: 700; }
+.hero-tagline em { color: var(--bud); font-style: normal; font-weight: 700; }
 
 .hero-feature {
   position: relative;
-  width: clamp(280px, 38vw, 460px);
-  margin: 36px auto 28px;
+  width: clamp(260px, 36vw, 420px);
+  margin: 12px auto 28px;
   aspect-ratio: 1 / 1;
-  border-radius: 50%;            /* round medallion treatment, frames the W properly */
+  border-radius: 50%;
   overflow: hidden;
+  border: 6px solid var(--ink);
   box-shadow:
-    0 0 0 1px var(--brass-deep),
-    0 0 0 6px var(--ink-2),
-    0 0 0 7px var(--brass-deep),
-    0 30px 80px rgba(0,0,0,0.7),
-    0 0 60px rgba(196,80,31,0.20);
+    0 0 0 4px var(--gold-2),
+    0 0 0 10px var(--ink),
+    var(--sh-fire);
+  z-index: 2;
 }
 .hero-feature::before {
-  content: ''; position: absolute; inset: -8px;
-  background: conic-gradient(from 0deg, transparent, var(--brass-2), transparent 30%, transparent 70%, var(--ember-2), transparent);
+  content: ''; position: absolute; inset: -16px;
+  background: conic-gradient(from 0deg, var(--bud), var(--gold-2), var(--ember), var(--bud-2), var(--gold), var(--bud));
   border-radius: 50%;
   z-index: -1;
-  filter: blur(18px);
-  opacity: 0.55;
-  animation: aura-spin 14s linear infinite;
+  filter: blur(20px);
+  opacity: 0.6;
+  animation: aura-spin 9s linear infinite;
 }
 @keyframes aura-spin { to { transform: rotate(360deg); } }
 .hero-feature video {
@@ -425,78 +447,110 @@ a, button, [role="button"], input, textarea, select, label {
 }
 
 .hero-pills {
-  display: flex; gap: 8px; flex-wrap: wrap;
+  display: flex; gap: 10px; flex-wrap: wrap;
   justify-content: center;
-  margin: 8px 0 26px;
+  margin: 0 0 24px;
+  position: relative; z-index: 2;
 }
 .hero-pill {
   display: inline-flex; align-items: center; gap: 8px;
-  background: transparent;
-  border: 1px solid var(--line);
+  background: var(--ink-2);
+  border: 2px solid var(--gold-deep);
   border-radius: 999px;
-  padding: 6px 14px;
+  padding: 8px 16px;
   font-family: var(--f-mono);
-  font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
-  color: var(--bone-dim);
+  font-weight: 700;
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--gold-2);
 }
-.hero-pill .clk { color: var(--brass-2); margin-left: 4px; }
+.hero-pill .clk { color: var(--bud); margin-left: 4px; }
+.hero-pill.bud { color: var(--bud); border-color: var(--bud-deep); }
+.hero-pill.bud::before {
+  content: ''; width: 7px; height: 7px;
+  background: var(--bud); border-radius: 50%;
+  box-shadow: 0 0 8px var(--bud);
+}
 
 .hero-cta {
   display: flex; gap: 14px; flex-wrap: wrap;
   justify-content: center;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
+  position: relative; z-index: 2;
 }
+
 @media (max-width: 700px) {
-  .hero { padding: 60px 18px 48px; min-height: auto; }
-  .hero-standfirst { margin: 22px auto 10px; }
-  .hero-feature { margin: 28px auto 22px; }
+  .hero { padding: 50px 16px 40px; min-height: auto; }
+  .hero h1 {
+    text-shadow:
+      -3px -3px 0 var(--ink), 3px -3px 0 var(--ink),
+      -3px  3px 0 var(--ink), 3px  3px 0 var(--ink),
+      8px 8px 0 var(--ember);
+    letter-spacing: -1.5px;
+  }
+  .hero h1 .second {
+    text-shadow:
+      -3px -3px 0 var(--ink), 3px -3px 0 var(--ink),
+      -3px  3px 0 var(--ink), 3px  3px 0 var(--ink),
+      8px 8px 0 var(--ember-deep);
+  }
+  .hero-feature {
+    border-width: 4px;
+    box-shadow: 0 0 0 3px var(--gold-2), 0 0 0 7px var(--ink), var(--sh-fire);
+  }
 }
 .btn {
-  font-family: var(--f-sans);
-  font-weight: 500;
-  font-size: 13px;
-  letter-spacing: 1.5px;
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: 14px;
+  letter-spacing: 1px;
   text-transform: uppercase;
   text-decoration: none;
-  padding: 16px 28px;
-  border-radius: var(--r-sm);
-  transition: all 0.2s ease;
+  padding: 18px 32px;
+  border-radius: 999px;
+  transition: all 0.18s cubic-bezier(0.16, 0.84, 0.44, 1);
   display: inline-flex; align-items: center; gap: 10px;
-  border: 1px solid transparent;
+  border: 3px solid var(--ink);
   cursor: pointer;
 }
 .btn-primary {
-  background: var(--brass-2);
-  color: var(--ink);
-  border-color: var(--brass-2);
+  background: var(--ember);
+  color: var(--bone);
+  box-shadow: 6px 6px 0 var(--ink), 0 0 30px rgba(255,90,31,0.4);
 }
 .btn-primary:hover {
-  background: var(--brass-pale);
-  border-color: var(--brass-pale);
-  transform: translateY(-1px);
-  box-shadow: 0 14px 30px rgba(184,146,62,0.30);
+  background: var(--ember-2);
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0 var(--ink), 0 0 40px rgba(255,90,31,0.55);
+}
+.btn-primary:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--ink);
 }
 .btn-ghost {
-  background: transparent;
-  color: var(--bone);
-  border-color: var(--brass-deep);
+  background: var(--bud);
+  color: var(--ink);
+  box-shadow: 6px 6px 0 var(--ink);
 }
 .btn-ghost:hover {
-  border-color: var(--brass-2);
-  color: var(--brass-2);
-  transform: translateY(-1px);
+  background: var(--bud-glow);
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0 var(--ink);
+}
+.btn-ghost:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--ink);
 }
 
 /* === CA pill === */
 .ca-pill {
   display: inline-flex; align-items: center; gap: 12px;
   background: var(--ink-2);
-  border: 1px solid var(--line);
+  border: 2px solid var(--gold-deep);
   border-radius: 999px;
   padding: 10px 10px 10px 22px;
   font-family: var(--f-mono);
   font-size: 12px;
-  color: var(--bone-dim);
+  color: var(--bone-2);
   max-width: 92vw;
   backdrop-filter: blur(14px);
 }
@@ -612,63 +666,55 @@ a, button, [role="button"], input, textarea, select, label {
 .section {
   position: relative; z-index: 2;
   max-width: 1140px; margin: 0 auto;
-  padding: 140px 24px;
+  padding: 100px 24px;
 }
 .section-tag {
+  display: inline-flex; align-items: center; gap: 14px;
   font-family: var(--f-mono);
-  font-size: 10px; letter-spacing: 4px;
+  font-size: 11px; letter-spacing: 4px;
   text-transform: uppercase;
-  color: var(--bone-faint);
-  margin-bottom: 24px;
-  display: flex; align-items: center; gap: 14px;
+  font-weight: 700;
+  color: var(--bud);
+  margin-bottom: 18px;
 }
 .section-tag::before {
-  content: ''; width: 48px; height: 1px;
-  background: var(--brass-deep);
+  content: ''; width: 32px; height: 3px;
+  background: var(--bud);
+  border-radius: 2px;
 }
 .section h2 {
-  font-family: var(--f-serif);
-  font-weight: 300;
-  font-variation-settings: "opsz" 144;
-  font-size: clamp(40px, 6.5vw, 88px);
-  line-height: 1.0;
-  letter-spacing: -1.5px;
-  margin-bottom: 32px;
-  color: var(--bone);
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: clamp(40px, 8vw, 96px);
+  line-height: 0.95;
+  letter-spacing: -2px;
+  margin-bottom: 28px;
+  color: var(--gold-2);
+  text-transform: uppercase;
+  text-shadow: 6px 6px 0 var(--ink), 0 0 50px rgba(255,199,56,0.25);
 }
 .section h2 em {
-  font-style: italic;
-  font-weight: 400;
-  color: var(--brass-2);
+  font-style: normal;
+  color: var(--bud);
+  text-shadow: 6px 6px 0 var(--ink), 0 0 50px rgba(76,255,122,0.3);
 }
 .section h2 .ember {
+  font-style: normal;
   color: var(--ember-2);
-  font-style: italic;
-  font-weight: 400;
+  text-shadow: 6px 6px 0 var(--ink), 0 0 50px rgba(255,90,31,0.35);
 }
 .section h2 .smoke {
-  color: var(--forest-mist);
-  font-style: italic;
-  font-weight: 400;
+  font-style: normal;
+  color: var(--purple-soft);
+  text-shadow: 6px 6px 0 var(--ink), 0 0 50px rgba(176,107,214,0.3);
 }
 .section p.lead {
-  font-family: var(--f-serif);
-  font-weight: 300;
-  font-style: italic;
-  font-size: clamp(17px, 1.9vw, 22px);
-  color: var(--bone-2);
-  max-width: 56ch;
-  line-height: 1.6;
-}
-.section p.lead.dropcap::first-letter {
-  font-family: var(--f-serif);
-  font-weight: 700;
-  font-style: normal;
-  font-size: 3.4em;
-  line-height: 0.85;
-  float: left;
-  margin: 6px 12px 0 -2px;
-  color: var(--brass-2);
+  font-family: var(--f-sans);
+  font-weight: 500;
+  font-size: clamp(16px, 1.8vw, 20px);
+  color: var(--bone);
+  max-width: 60ch;
+  line-height: 1.65;
 }
 
 /* === BANNER VIDEO — cinematic section divider === */
@@ -1286,8 +1332,450 @@ a, button, [role="button"], input, textarea, select, label {
   color: var(--green);
 }
 /* ============================================================
-   MOBILE SWEEP — tighten the whole site on small screens
+   ░░ FOMO COMPONENTS ░░
    ============================================================ */
+
+/* === 🔥 LIVE TRADE TICKER (top sticky bar) === */
+.ticker-bar {
+  position: relative; z-index: 41;
+  background: var(--ink-2);
+  border-bottom: 2px solid var(--bud-deep);
+  overflow: hidden;
+  height: 38px;
+  display: flex; align-items: center;
+}
+.ticker-label {
+  flex-shrink: 0;
+  background: var(--bud);
+  color: var(--ink);
+  font-family: var(--f-display);
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 0 14px;
+  height: 100%;
+  display: flex; align-items: center;
+  border-right: 2px solid var(--ink);
+  text-transform: uppercase;
+}
+.ticker-label::before {
+  content: '';
+  width: 8px; height: 8px;
+  background: var(--ink);
+  border-radius: 50%;
+  margin-right: 8px;
+  animation: bud-blink 1.2s infinite;
+}
+.ticker-track {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  position: relative;
+}
+.ticker-track-inner {
+  display: inline-block;
+  animation: ticker-scroll 60s linear infinite;
+  padding-left: 100%;
+}
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+.ticker-item {
+  display: inline-block;
+  padding: 0 28px;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--bone);
+  letter-spacing: 0.5px;
+}
+.ticker-item .amt { color: var(--gold-2); font-weight: 700; }
+.ticker-item .addr { color: var(--bud); }
+.ticker-item .burn { color: var(--ember-2); font-weight: 700; }
+.ticker-item .quip { color: var(--bone-dim); font-style: italic; }
+
+/* === 🌡️ HIGH LEVEL METER === */
+.meter-section {
+  position: relative; z-index: 2;
+  max-width: 760px;
+  margin: 30px auto 60px;
+  padding: 0 20px;
+}
+.meter-card {
+  background: var(--ink-2);
+  border: 3px solid var(--ink);
+  border-radius: var(--r-xl);
+  padding: 28px 28px 24px;
+  box-shadow: var(--sh-2);
+  position: relative;
+  overflow: hidden;
+}
+.meter-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(76,255,122,0.10), transparent 60%);
+  pointer-events: none;
+}
+.meter-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 18px;
+  position: relative;
+}
+.meter-header .lbl {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--bone-dim);
+}
+.meter-header .state {
+  font-family: var(--f-display);
+  font-size: clamp(20px, 3vw, 32px);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 0 var(--ink);
+}
+.meter-state-cold    { color: #ff4a5c; }
+.meter-state-buzzed  { color: #ffd93d; }
+.meter-state-toasted { color: var(--ember-2); }
+.meter-state-baked   { color: var(--bud); }
+.meter-state-blazed  { color: var(--bud-glow); text-shadow: 2px 2px 0 var(--ink), 0 0 24px rgba(76,255,122,0.6); }
+.meter-state-zooted  {
+  background: linear-gradient(90deg, #ff4a5c, var(--ember-2), var(--gold-2), var(--bud), #b06bd6);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  animation: zooted-shift 3s linear infinite;
+}
+@keyframes zooted-shift { 0%, 100% { filter: hue-rotate(0deg); } 50% { filter: hue-rotate(40deg); } }
+
+.meter-bar {
+  position: relative;
+  height: 36px;
+  background: var(--ink);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 2px solid var(--ink-3);
+}
+.meter-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff4a5c 0%, #ffd93d 25%, var(--ember-2) 45%, var(--bud) 70%, var(--bud-glow) 100%);
+  width: 0%;
+  transition: width 1.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+  box-shadow: inset 0 0 18px rgba(255,255,255,0.25);
+}
+.meter-needle {
+  position: absolute;
+  top: -6px; bottom: -6px;
+  width: 4px;
+  background: var(--bone);
+  border-radius: 2px;
+  box-shadow: 0 0 12px var(--bone), 0 0 4px var(--ink);
+  transition: left 1.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+  left: 0%;
+  z-index: 2;
+}
+.meter-marks {
+  display: flex; justify-content: space-between;
+  margin-top: 10px;
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: var(--bone-faint);
+  text-transform: uppercase;
+}
+.meter-pulse {
+  font-family: var(--f-mono); font-size: 11px;
+  color: var(--bone-dim);
+  margin-top: 14px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+.meter-pulse .val { color: var(--bud); font-weight: 700; }
+
+/* === ⏰ WAKE & BAKE banner (4:20 elevated) === */
+.wakebake-banner {
+  display: none;
+  background: linear-gradient(135deg, var(--bud-deep), var(--bud), var(--bud-glow));
+  color: var(--ink);
+  text-align: center;
+  padding: 12px 20px;
+  font-family: var(--f-display);
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-bottom: 3px solid var(--ink);
+  position: relative; z-index: 30;
+  animation: wakebake-pulse 2s ease-in-out infinite;
+}
+.wakebake-banner.active { display: block; }
+.wakebake-banner .em { background: var(--ink); color: var(--bud); padding: 2px 8px; border-radius: 4px; margin: 0 4px; }
+@keyframes wakebake-pulse {
+  0%, 100% { background-position: 0%; }
+  50% { background-position: 100%; filter: brightness(1.1); }
+}
+
+/* === 💨 SMOKE SIGNAL (whale alert) — full-screen overlay === */
+.smoke-signal {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.5);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.smoke-signal.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: auto;
+}
+.smoke-signal-card {
+  background: var(--ink-2);
+  border: 4px solid var(--gold-2);
+  border-radius: var(--r-xl);
+  padding: 32px 40px;
+  text-align: center;
+  box-shadow: var(--sh-3), 0 0 80px rgba(255,199,56,0.5);
+  max-width: 90vw;
+}
+.smoke-signal-emoji { font-size: 64px; margin-bottom: 12px; line-height: 1; animation: whale-bob 0.6s ease-in-out infinite alternate; }
+@keyframes whale-bob { from { transform: translateY(-3px); } to { transform: translateY(3px); } }
+.smoke-signal-title {
+  font-family: var(--f-display);
+  font-size: clamp(22px, 4vw, 36px);
+  color: var(--gold-2);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-shadow: 4px 4px 0 var(--ink);
+  margin-bottom: 8px;
+}
+.smoke-signal-sub {
+  font-family: var(--f-mono);
+  font-size: 13px;
+  color: var(--bud);
+  letter-spacing: 1px;
+}
+.smoke-signal-amt { color: var(--ember-2); font-weight: 700; }
+
+/* === 🏆 LEADERBOARD === */
+.leaderboard-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  margin-top: 36px;
+}
+@media (max-width: 900px) { .leaderboard-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 520px) { .leaderboard-grid { grid-template-columns: 1fr; } }
+.leader-card {
+  background: var(--ink-2);
+  border: 3px solid var(--ink);
+  border-radius: var(--r-lg);
+  padding: 22px 18px;
+  text-align: center;
+  box-shadow: var(--sh-2);
+  position: relative;
+  transition: transform 0.18s ease;
+}
+.leader-card:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--ink); }
+.leader-card .crown { font-size: 36px; margin-bottom: 8px; }
+.leader-card .title {
+  font-family: var(--f-display);
+  font-size: 14px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold-2);
+  margin-bottom: 6px;
+  text-shadow: 2px 2px 0 var(--ink);
+}
+.leader-card .subtitle {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: var(--bone-dim);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.leader-card .addr {
+  font-family: var(--f-mono);
+  font-size: 13px;
+  color: var(--bud);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.leader-card .amt {
+  font-family: var(--f-display);
+  font-size: 18px;
+  color: var(--ember-2);
+}
+.leader-card.empty .addr,
+.leader-card.empty .amt { color: var(--bone-faint); font-style: italic; }
+
+/* === 📰 CHRONIC NEWS — bottom sticky ticker === */
+.news-ticker {
+  background: var(--ink-2);
+  border-top: 2px solid var(--bud-deep);
+  border-bottom: 2px solid var(--bud-deep);
+  height: 34px;
+  display: flex; align-items: center;
+  overflow: hidden;
+}
+.news-ticker .label {
+  flex-shrink: 0;
+  background: var(--purple-mid);
+  color: var(--bone);
+  font-family: var(--f-display);
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 0 12px;
+  height: 100%;
+  display: flex; align-items: center;
+  text-transform: uppercase;
+}
+.news-ticker .track {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.news-ticker .track-inner {
+  display: inline-block;
+  animation: ticker-scroll 80s linear infinite;
+  padding-left: 100%;
+}
+.news-ticker .item {
+  display: inline-block;
+  padding: 0 32px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  color: var(--bone);
+}
+
+/* === 🎧 420 MUSIC floating button === */
+.music-fab {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  width: 56px; height: 56px;
+  background: var(--bud);
+  color: var(--ink);
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  font-size: 24px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  z-index: 50;
+  box-shadow: 4px 4px 0 var(--ink), 0 0 24px rgba(76,255,122,0.4);
+  transition: all 0.2s ease;
+}
+.music-fab:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--ink), 0 0 32px rgba(76,255,122,0.6); }
+.music-fab.playing { background: var(--ember); animation: spin-slow 4s linear infinite; }
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+.music-panel {
+  position: fixed;
+  bottom: 92px; right: 24px;
+  width: 320px; max-width: calc(100vw - 48px);
+  background: var(--ink-2);
+  border: 3px solid var(--ink);
+  border-radius: var(--r-lg);
+  padding: 14px;
+  z-index: 50;
+  box-shadow: var(--sh-2);
+  transform: scale(0.9) translateY(20px);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+.music-panel.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto; }
+.music-panel .head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px;
+  font-family: var(--f-display); font-size: 13px;
+  color: var(--bud); letter-spacing: 1px; text-transform: uppercase;
+}
+.music-panel .head .close { background: none; border: none; color: var(--bone-dim); cursor: pointer; font-size: 18px; }
+.music-panel iframe { width: 100%; border: 0; border-radius: var(--r-sm); }
+
+/* === 🌿 PASS THE BLUNT === */
+.blunt-widget {
+  display: inline-flex; align-items: center; gap: 12px;
+  background: rgba(76,255,122,0.08);
+  border: 2px solid var(--bud-deep);
+  border-radius: 999px;
+  padding: 8px 16px 8px 8px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  color: var(--bone);
+  letter-spacing: 1px;
+}
+.blunt-widget .ico {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--bud);
+  color: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.blunt-widget .lbl { color: var(--bud); font-weight: 700; }
+.blunt-widget .who { color: var(--gold-2); }
+
+/* === 🔍 strain-lookup enhancement === */
+.strain-lookup-modal {
+  position: fixed; inset: 0;
+  background: rgba(7,20,12,0.85);
+  backdrop-filter: blur(8px);
+  z-index: 90;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.strain-lookup-modal.open { opacity: 1; pointer-events: auto; }
+.strain-lookup-card {
+  background: var(--ink-2);
+  border: 4px solid var(--ink);
+  border-radius: var(--r-xl);
+  padding: 28px;
+  max-width: 540px; width: 100%;
+  max-height: 80vh; overflow-y: auto;
+  box-shadow: var(--sh-3);
+  position: relative;
+}
+.strain-lookup-card .close-btn {
+  position: absolute; top: 12px; right: 12px;
+  background: none; border: none; color: var(--bone-dim);
+  font-size: 24px; cursor: pointer;
+}
+.strain-lookup-card h3 {
+  font-family: var(--f-display);
+  font-size: clamp(24px, 4vw, 36px);
+  color: var(--gold-2);
+  text-transform: uppercase;
+  text-shadow: 3px 3px 0 var(--ink);
+  margin-bottom: 6px;
+}
+.strain-lookup-card .type-pill {
+  display: inline-block;
+  background: var(--bud);
+  color: var(--ink);
+  font-family: var(--f-display);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.strain-lookup-card .desc { font-size: 14px; line-height: 1.6; color: var(--bone); margin-bottom: 14px; }
+.strain-lookup-card .row-label {
+  font-family: var(--f-mono); font-size: 10px;
+  color: var(--bud); letter-spacing: 2px; text-transform: uppercase;
+  margin-top: 14px; margin-bottom: 6px;
+}
+.strain-lookup-card .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.strain-lookup-card .tag {
+  background: var(--ink); color: var(--bone);
+  border: 1px solid var(--gold-deep);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+}
 @media (max-width: 700px) {
   /* Sections — less crushing padding */
   .section { padding: 72px 18px; }
@@ -1333,6 +1821,45 @@ a, button, [role="button"], input, textarea, select, label {
   .ritual-grid { gap: 16px; }
   .steps { gap: 14px; }
 }
+/* ============================================================
+   MOBILE SWEEP — tighten the whole site on small screens
+   ============================================================ */
+@media (max-width: 700px) {
+  .section { padding: 72px 18px; }
+  .burn-section { padding: 72px 16px; }
+  .swarm { padding: 60px 18px 40px; }
+  .section h2 { margin-bottom: 20px; }
+  .burn-card { padding: 36px 22px; border-radius: var(--r-lg); }
+  .burn-card h2 { font-size: 36px; letter-spacing: 2px; }
+  .burn-stat { padding: 18px 12px; }
+  .burn-stat-value { font-size: 22px; }
+  .burn-progress { height: 14px; }
+  .ritual { padding: 28px 22px; }
+  .ritual-num { font-size: 42px; }
+  .streets-section { padding: 60px 18px; }
+  .swarm-link { padding: 24px 28px; min-width: 130px; }
+  .meter-card { padding: 20px 18px; }
+  .meter-header { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .leaderboard-grid { gap: 12px; }
+  .leader-card { padding: 18px 14px; }
+  .leader-card .crown { font-size: 28px; }
+  .leader-card .title { font-size: 12px; }
+  .ticker-bar { height: 32px; }
+  .ticker-label { font-size: 10px; padding: 0 10px; }
+  .ticker-item { font-size: 11px; padding: 0 20px; }
+  .music-fab { width: 48px; height: 48px; font-size: 20px; bottom: 16px; right: 16px; }
+  .music-panel { right: 16px; bottom: 76px; }
+}
+
+@media (max-width: 480px) {
+  .section { padding: 60px 16px; }
+  .burn-section { padding: 60px 14px; }
+  .burn-card { padding: 28px 18px; }
+  .burn-card h2 { font-size: 30px; }
+  .burn-stat-value { font-size: 18px; }
+  .ritual-grid { gap: 14px; }
+  .steps { gap: 12px; }
+}
 </style>
 </head>
 <body>
@@ -1351,6 +1878,21 @@ a, button, [role="button"], input, textarea, select, label {
 <div class="vignette"></div>
 <div class="smoke-layer" id="smokeLayer"></div>
 
+<!-- WAKE & BAKE banner — auto-shows at 4:20 windows -->
+<div class="wakebake-banner" id="wakebakeBanner">
+  🌅 IT'S <span class="em">4:20</span> SOMEWHERE — WAKE & BAKE WINDOW OPEN — <span class="em">DOUBLE BURN MULTIPLIER</span> 🌅
+</div>
+
+<!-- 🔥 LIVE TRADE TICKER -->
+<div class="ticker-bar">
+  <div class="ticker-label">🔥 LIVE</div>
+  <div class="ticker-track">
+    <div class="ticker-track-inner" id="tickerInner">
+      <span class="ticker-item">⏳ <span class="quip">awaiting launch — first trades hit this ticker the moment the contract drops</span></span>
+    </div>
+  </div>
+</div>
+
 <!-- TRIBUTE BAR -->
 <div class="tribute-bar">
   🔥 <strong>TRIBUTE TO $WEEDSTA ON SOLANA</strong> · NOT AFFILIATED · OG: <a href="https://weedsta.space" target="_blank" rel="noopener">weedsta.space</a> · This is the Monad ritual 🔥
@@ -1360,14 +1902,14 @@ a, button, [role="button"], input, textarea, select, label {
 <nav class="nav">
   <a class="nav-brand" href="/">
     <img src="/assets/logo-transparent.png" alt="" />
-    <span>Burning <em>$Weedsta</em></span>
+    <span>BURNING <em>$WEEDSTA</em></span>
   </a>
   <div class="nav-links">
     <a class="nav-link" href="#ritual">Ritual</a>
     <a class="nav-link" href="#burn">Burn</a>
     <a class="nav-link" href="#sessions">Sessions</a>
     <a class="nav-link" href="#strains">Strains</a>
-    <a class="nav-link buy" id="navBuyBtn" href="#" target="_blank" rel="noopener">Buy $BW</a>
+    <a class="nav-link buy" id="navBuyBtn" href="#" target="_blank" rel="noopener">🔥 Buy $BW</a>
   </div>
 </nav>
 
@@ -1381,29 +1923,20 @@ a, button, [role="button"], input, textarea, select, label {
   <div class="px-item"><span class="px-label">Burned</span><span class="px-value" id="pxBurned">—</span></div>
 </div>
 
-<!-- HERO — editorial luxury cover -->
+<!-- HERO — loud, chunky, weed-meme -->
 <header class="hero">
-  <div class="hero-masthead">
-    <div class="rule"></div>
-    <div class="meta">
-      <span>The Tribute Series</span>
-      <span class="dot">·</span>
-      <span class="live">Live on Monad</span>
-      <span class="dot">·</span>
-      <span>Chain 143</span>
-      <span class="dot">·</span>
-      <span>MMXXVI</span>
-    </div>
-  </div>
+  <div class="hero-stamp">🟢 LIT ON MONAD · CHAIN 143</div>
 
-  <div class="hero-chapter-mark">Chapter <span class="num">II</span></div>
+  <h1>
+    BURNING
+    <span class="second">$WEEDSTA</span>
+  </h1>
 
-  <h1>Burning<br/><em>$Weedsta</em></h1>
+  <div class="hero-graffiti">~ the smoke that came after ~</div>
 
-  <p class="hero-standfirst">
-    $Weedsta on Solana lit the first joint. We heard it from Monad —
-    this is the second hit, hotter and faster. Every transfer feeds
-    the fire. Supply only goes down.
+  <p class="hero-tagline">
+    $Weedsta on Sol lit the first joint. <strong>We hit it from Monad.</strong>
+    Every transfer feeds the fire. No mint, no add, <em>just smoke</em>.
   </p>
 
   <div class="hero-feature">
@@ -1413,13 +1946,13 @@ a, button, [role="button"], input, textarea, select, label {
   </div>
 
   <div class="hero-pills">
-    <span class="hero-pill" id="countdown">Next 4:20 <span class="clk" id="countdownClk">—</span></span>
-    <span class="hero-pill">100% Burn Mechanic</span>
+    <span class="hero-pill" id="countdown">▸ Next 4:20 <span class="clk" id="countdownClk">—</span></span>
+    <span class="hero-pill bud">100% Burn Mechanic</span>
     <span class="hero-pill">No Mint · No Add</span>
   </div>
 
   <div class="hero-cta">
-    <a class="btn btn-primary" id="heroBuyBtn" href="#" target="_blank" rel="noopener">Buy $BW on nad.fun →</a>
+    <a class="btn btn-primary" id="heroBuyBtn" href="#" target="_blank" rel="noopener">🔥 Buy $BW on nad.fun</a>
     <a class="btn btn-ghost" href="#ritual">Read the Ritual</a>
   </div>
 
@@ -1429,6 +1962,32 @@ a, button, [role="button"], input, textarea, select, label {
     <button id="copyCA" disabled>Copy</button>
   </div>
 </header>
+
+<!-- 🌡️ HIGH LEVEL METER -->
+<section class="meter-section">
+  <div class="meter-card">
+    <div class="meter-header">
+      <div class="lbl">▸ THE HIGH LEVEL ▸</div>
+      <div class="state meter-state-cold" id="meterState">STONE COLD</div>
+    </div>
+    <div class="meter-bar">
+      <div class="meter-fill" id="meterFill" style="width: 0%"></div>
+      <div class="meter-needle" id="meterNeedle" style="left: 0%"></div>
+    </div>
+    <div class="meter-marks">
+      <span>COLD</span><span>BUZZED</span><span>TOASTED</span><span>BAKED</span><span>BLAZED</span><span>ZOOTED 🚀</span>
+    </div>
+    <div class="meter-pulse" id="meterPulse">
+      awaiting launch · gauge fills when the chart starts moving
+    </div>
+    <div style="margin-top: 18px; text-align: center;">
+      <div class="blunt-widget" id="bluntWidget">
+        <div class="ico">🌿</div>
+        <div><span class="lbl">PASSING THE BLUNT TO:</span> <span class="who" id="bluntHolder">— awaiting first holder —</span></div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- BURN COUNTER -->
 <section class="burn-section" id="burn">
@@ -1455,6 +2014,43 @@ a, button, [role="button"], input, textarea, select, label {
     </div>
     <div class="burn-progress"><div class="burn-progress-fill" id="burnFill"></div></div>
     <div class="burn-progress-label" id="burnLabel">awaiting launch · counter goes live with the contract</div>
+  </div>
+</section>
+
+<!-- 🏆 LEADERBOARD -->
+<section class="section" id="leaderboard">
+  <div class="section-tag reveal">▸ The Hall of Heads ▸</div>
+  <h2 class="reveal">Top of the <em>cypher</em>.</h2>
+  <p class="lead reveal">Updates every 5 min from chain. Get on it — only the loyal hold positions, only the loud hold titles.</p>
+  <div class="leaderboard-grid reveal-group">
+    <div class="leader-card empty">
+      <div class="crown">👑</div>
+      <div class="title">The Kingpin</div>
+      <div class="subtitle">Biggest Bag</div>
+      <div class="addr">— awaiting —</div>
+      <div class="amt">—</div>
+    </div>
+    <div class="leader-card empty">
+      <div class="crown">🔥</div>
+      <div class="title">The Torch</div>
+      <div class="subtitle">Most Burned</div>
+      <div class="addr">— awaiting —</div>
+      <div class="amt">—</div>
+    </div>
+    <div class="leader-card empty">
+      <div class="crown">💨</div>
+      <div class="title">The Roller</div>
+      <div class="subtitle">Most Sessions</div>
+      <div class="addr">— awaiting —</div>
+      <div class="amt">—</div>
+    </div>
+    <div class="leader-card empty">
+      <div class="crown">🧠</div>
+      <div class="title">The Head</div>
+      <div class="subtitle">Longest Holder</div>
+      <div class="addr">— awaiting —</div>
+      <div class="amt">—</div>
+    </div>
   </div>
 </section>
 
@@ -1625,6 +2221,51 @@ a, button, [role="button"], input, textarea, select, label {
     </a>
   </div>
 </section>
+
+<!-- 💨 SMOKE SIGNAL (whale alert) -->
+<div class="smoke-signal" id="smokeSignal">
+  <div class="smoke-signal-card">
+    <div class="smoke-signal-emoji" id="smokeSignalEmoji">🐋</div>
+    <div class="smoke-signal-title" id="smokeSignalTitle">WHALE LIT UP A FAT ONE</div>
+    <div class="smoke-signal-sub">
+      <span id="smokeSignalAddr">0x...</span> · <span class="smoke-signal-amt" id="smokeSignalAmt">— $BW</span>
+    </div>
+  </div>
+</div>
+
+<!-- 🔍 STRAIN LOOKUP MODAL -->
+<div class="strain-lookup-modal" id="strainLookupModal">
+  <div class="strain-lookup-card" id="strainLookupCard">
+    <button class="close-btn" id="strainLookupClose" aria-label="Close">×</button>
+    <h3 id="strainLookupName">Loading…</h3>
+    <span class="type-pill" id="strainLookupType">—</span>
+    <div class="desc" id="strainLookupDesc">—</div>
+    <div class="row-label">Effects</div>
+    <div class="tag-row" id="strainLookupEffects"></div>
+    <div class="row-label">Flavors</div>
+    <div class="tag-row" id="strainLookupFlavors"></div>
+  </div>
+</div>
+
+<!-- 🎧 420 MUSIC -->
+<button class="music-fab" id="musicFab" aria-label="420 vibes">🎧</button>
+<div class="music-panel" id="musicPanel">
+  <div class="head">
+    <span>▸ 420 vibes</span>
+    <button class="close" id="musicClose">×</button>
+  </div>
+  <iframe id="musicFrame" height="152" allow="autoplay; encrypted-media" loading="lazy" src=""></iframe>
+</div>
+
+<!-- 📰 CHRONIC NEWS ticker (bottom) -->
+<div class="news-ticker">
+  <div class="label">📰 CHRONIC NEWS</div>
+  <div class="track">
+    <div class="track-inner" id="newsTrack">
+      <span class="item">loading the culture…</span>
+    </div>
+  </div>
+</div>
 
 <!-- FOOTER -->
 <footer class="footer">
@@ -2363,6 +3004,277 @@ function bootSessions() {
 }
 loadStrains();
 bootSessions();
+
+/* ============================================================
+   ░░ FOMO FEATURES ░░
+   ============================================================ */
+
+// === 🔥 TRADE TICKER ===
+// Stoner-themed phrasing pool that wraps real trades
+const TICKER_QUIPS = {
+  buy: ['passes it to the left', 'rolling another fat one', 'just sparked it', 'topping up the bowl', 'crowd hits it', 'lighting up', 'gas-pedal puff'],
+  burn: ['that\'s a fat blunt', 'goodnight forever', 'gone to the ozone', 'sent to 0xdead', 'smoke signal up', 'permanent ash'],
+  sell: ['couch lock incoming', 'someone sneezing', 'paper hands jenga', 'rolled it too tight'],
+};
+function pickQuip(kind) { const a = TICKER_QUIPS[kind] || []; return a[(Math.random() * a.length) | 0] || ''; }
+function shortAddr(a) { return a.slice(0, 6) + '…' + a.slice(-4); }
+
+async function fetchRecentTrades() {
+  // Will become real via DexScreener once the pair exists. For now returns [].
+  // When TOKEN is set, this hits:
+  //   https://api.dexscreener.com/latest/dex/tokens/{TOKEN}
+  // and pulls .pairs[0].txns.h1 etc.
+  if (!TOKEN) return [];
+  try {
+    const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${TOKEN}`);
+    const j = await r.json();
+    const pair = j?.pairs?.[0];
+    if (!pair) return [];
+    // DexScreener doesn't give us per-trade events in this endpoint — we'd need
+    // their websocket or scan logs. For launch we'll render aggregate signals.
+    const events = [];
+    const buys = pair.txns?.h1?.buys || 0;
+    const sells = pair.txns?.h1?.sells || 0;
+    events.push({ kind: 'buy', text: `${buys} buys last hour` });
+    events.push({ kind: 'sell', text: `${sells} sells last hour` });
+    return events;
+  } catch { return []; }
+}
+
+function renderTicker(events) {
+  const inner = document.getElementById('tickerInner');
+  if (!events || !events.length) {
+    inner.innerHTML = `<span class="ticker-item">⏳ <span class="quip">awaiting launch — first trades hit this ticker the moment the contract drops</span></span>`;
+    return;
+  }
+  const html = events.concat(events).map(e => {
+    const icon = e.kind === 'burn' ? '🔥' : e.kind === 'sell' ? '📉' : '🌿';
+    const cls = e.kind === 'burn' ? 'burn' : e.kind === 'buy' ? 'amt' : '';
+    return `<span class="ticker-item">${icon} <span class="${cls}">${escapeHtml(e.text)}</span> · <span class="quip">${pickQuip(e.kind)}</span></span>`;
+  }).join('');
+  inner.innerHTML = html;
+}
+
+async function refreshTicker() {
+  const events = await fetchRecentTrades();
+  renderTicker(events);
+}
+refreshTicker();
+setInterval(refreshTicker, 60_000);
+
+// === 🌡️ HIGH LEVEL METER ===
+const METER_STATES = [
+  { min: 0,   label: 'STONE COLD', cls: 'meter-state-cold' },
+  { min: 20,  label: 'BUZZED',     cls: 'meter-state-buzzed' },
+  { min: 40,  label: 'TOASTED',    cls: 'meter-state-toasted' },
+  { min: 60,  label: 'BAKED',      cls: 'meter-state-baked' },
+  { min: 80,  label: 'BLAZED',     cls: 'meter-state-blazed' },
+  { min: 95,  label: 'ZOOTED 🚀',  cls: 'meter-state-zooted' },
+];
+function getMeterState(pct) {
+  for (let i = METER_STATES.length - 1; i >= 0; i--) {
+    if (pct >= METER_STATES[i].min) return METER_STATES[i];
+  }
+  return METER_STATES[0];
+}
+function setHighLevel(pct, pulseText) {
+  pct = Math.max(0, Math.min(100, pct));
+  const fill = document.getElementById('meterFill');
+  const needle = document.getElementById('meterNeedle');
+  const state = document.getElementById('meterState');
+  const pulse = document.getElementById('meterPulse');
+  fill.style.width = pct + '%';
+  needle.style.left = pct + '%';
+  const s = getMeterState(pct);
+  state.className = 'state ' + s.cls;
+  state.textContent = s.label;
+  if (pulseText) pulse.innerHTML = pulseText;
+}
+async function refreshMeter() {
+  if (!TOKEN) {
+    setHighLevel(0, 'awaiting launch · gauge fills when the chart starts moving');
+    return;
+  }
+  try {
+    const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${TOKEN}`);
+    const j = await r.json();
+    const pair = j?.pairs?.[0];
+    if (!pair) return;
+    const buys  = Number(pair.txns?.h1?.buys || 0);
+    const sells = Number(pair.txns?.h1?.sells || 0);
+    const volH1 = Number(pair.volume?.h1 || 0);
+    const ch24  = Number(pair.priceChange?.h24 || 0);
+    // ratio: 0 if all sells, 1 if all buys
+    const total = buys + sells;
+    const ratio = total > 0 ? buys / total : 0.5;
+    // momentum bonus from 24h change
+    const momentum = Math.max(-1, Math.min(1, ch24 / 50));
+    // volume kicker: log-scaled
+    const volKick = Math.min(1, Math.log10(Math.max(1, volH1)) / 5);
+    // combine: ratio dominant, momentum + volume push it up/down
+    const score = ratio * 70 + momentum * 20 + volKick * 30;
+    setHighLevel(score, `<span class="val">${buys}</span> buys vs <span class="val">${sells}</span> sells · 24h <span class="val">${ch24 >= 0 ? '+' : ''}${ch24.toFixed(1)}%</span>`);
+  } catch (e) { console.warn('[meter]', e); }
+}
+refreshMeter();
+setInterval(refreshMeter, 30_000);
+
+// === ⏰ WAKE & BAKE EVENT — show banner when within 4h20m of 4:20 PM local ===
+function checkWakeBake() {
+  const banner = document.getElementById('wakebakeBanner');
+  const now = new Date();
+  const local420 = new Date(now);
+  local420.setHours(16, 20, 0, 0); // 4:20 PM
+  const windowEnd = new Date(local420.getTime() + (4 * 60 + 20) * 60 * 1000); // +4h20m
+  if (now >= local420 && now <= windowEnd) {
+    banner.classList.add('active');
+    document.body.classList.add('wakebake-mode');
+  } else {
+    banner.classList.remove('active');
+    document.body.classList.remove('wakebake-mode');
+  }
+}
+checkWakeBake();
+setInterval(checkWakeBake, 60_000);
+
+// === 💨 SMOKE SIGNAL — full-screen whale-alert pop ===
+function smokeSignal({ emoji = '🐋', title = 'WHALE LIT UP A FAT ONE', addr = '0x...', amt = '— $BW' } = {}) {
+  const el = document.getElementById('smokeSignal');
+  document.getElementById('smokeSignalEmoji').textContent = emoji;
+  document.getElementById('smokeSignalTitle').textContent = title;
+  document.getElementById('smokeSignalAddr').textContent = addr;
+  document.getElementById('smokeSignalAmt').textContent = amt;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 4500);
+}
+// Click-to-dismiss
+document.getElementById('smokeSignal').addEventListener('click', () => {
+  document.getElementById('smokeSignal').classList.remove('show');
+});
+// Teaser pop on load for preview mode (1.5s after page load if no token)
+if (!TOKEN) {
+  setTimeout(() => smokeSignal({
+    emoji: '🌅', title: 'PREVIEW MODE',
+    addr: 'live whale alerts activate at launch',
+    amt: 'STAY READY'
+  }), 1800);
+}
+
+// === 🏆 LEADERBOARD — placeholder updates from chain (post-launch) ===
+async function refreshLeaderboard() {
+  // TODO post-launch: pull top holders via Alchemy alchemy_getAssetTransfers + sort by balance
+  // For now: leaves the empty cards as-is
+  if (!TOKEN) return;
+}
+refreshLeaderboard();
+setInterval(refreshLeaderboard, 5 * 60_000);
+
+// === 🌿 PASS THE BLUNT — largest holder of last 5 min ===
+let _bluntCurrent = null;
+async function refreshBlunt() {
+  if (!TOKEN) return;
+  // Post-launch: query top holders, pick the largest, show
+  // For now: stays in awaiting state
+}
+refreshBlunt();
+setInterval(refreshBlunt, 60_000);
+
+// === 📰 CHRONIC NEWS — RSS via free public CORS proxy ===
+async function loadChronicNews() {
+  const track = document.getElementById('newsTrack');
+  try {
+    // Use rss2json — free, no key, CORS-friendly
+    const feeds = [
+      'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent('https://www.leafly.com/news/feed'),
+    ];
+    const r = await fetch(feeds[0]);
+    const j = await r.json();
+    if (j.status !== 'ok' || !j.items) throw new Error('rss empty');
+    const items = j.items.slice(0, 8);
+    const html = items.concat(items).map(it =>
+      `<span class="item">🌿 ${escapeHtml(it.title)}</span>`
+    ).join('');
+    track.innerHTML = html;
+  } catch (e) {
+    console.warn('[news]', e);
+    track.innerHTML = `<span class="item">🌿 The streets stay loud — culture feed coming online soon</span>`;
+  }
+}
+loadChronicNews();
+setInterval(loadChronicNews, 30 * 60_000);
+
+// === 🔍 STRAIN LOOKUP — search any strain via the free Cannabis API ===
+const STRAIN_API_BASE = 'https://the-cannabis-api.vercel.app/api/strains';
+async function lookupStrain(name) {
+  try {
+    const r = await fetch(`${STRAIN_API_BASE}/getStrainsByName/${encodeURIComponent(name)}`);
+    const j = await r.json();
+    if (!Array.isArray(j) || !j.length) return null;
+    return j[0];
+  } catch { return null; }
+}
+function openStrainLookupModal(strain) {
+  document.getElementById('strainLookupName').textContent = strain.name || strain.strainName || '?';
+  const type = strain.type || strain.strainType || 'hybrid';
+  const tEl = document.getElementById('strainLookupType');
+  tEl.textContent = type;
+  tEl.style.background = type.toLowerCase().includes('ind') ? '#b06bd6' : type.toLowerCase().includes('sat') ? 'var(--ember)' : 'var(--bud)';
+  document.getElementById('strainLookupDesc').textContent = strain.description || strain.desc || 'No description available.';
+  const effects = (strain.effects || '').split(',').map(s => s.trim()).filter(Boolean);
+  const flavors = (strain.flavor || strain.flavors || strain.flavour || strain.flavours || '').split(',').map(s => s.trim()).filter(Boolean);
+  document.getElementById('strainLookupEffects').innerHTML = effects.map(e => `<span class="tag">${escapeHtml(e)}</span>`).join('') || '<span class="tag" style="opacity:0.5;">none listed</span>';
+  document.getElementById('strainLookupFlavors').innerHTML = flavors.map(f => `<span class="tag">${escapeHtml(f)}</span>`).join('') || '<span class="tag" style="opacity:0.5;">none listed</span>';
+  document.getElementById('strainLookupModal').classList.add('open');
+}
+document.getElementById('strainLookupClose').addEventListener('click', () =>
+  document.getElementById('strainLookupModal').classList.remove('open')
+);
+document.getElementById('strainLookupModal').addEventListener('click', (e) => {
+  if (e.target.id === 'strainLookupModal') e.currentTarget.classList.remove('open');
+});
+// Wire up the existing strain search to ALSO try the API when no local match
+const strainSearchEl = document.getElementById('strainSearch');
+if (strainSearchEl) {
+  let lookupTimer;
+  strainSearchEl.addEventListener('keydown', async (e) => {
+    if (e.key !== 'Enter') return;
+    const q = strainSearchEl.value.trim();
+    if (!q || q.length < 2) return;
+    // Already filters local list — Enter triggers deep API lookup
+    const strain = await lookupStrain(q);
+    if (strain) openStrainLookupModal(strain);
+  });
+}
+
+// === 🎧 420 MUSIC FAB ===
+const LOFI_URL = 'https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1&controls=1&modestbranding=1'; // lofi girl
+const fab = document.getElementById('musicFab');
+const panel = document.getElementById('musicPanel');
+const musicFrame = document.getElementById('musicFrame');
+let musicOpen = false;
+fab.addEventListener('click', () => {
+  musicOpen = !musicOpen;
+  if (musicOpen) {
+    musicFrame.src = LOFI_URL;
+    panel.classList.add('open');
+    fab.classList.add('playing');
+    fab.textContent = '🔊';
+  } else {
+    musicFrame.src = '';
+    panel.classList.remove('open');
+    fab.classList.remove('playing');
+    fab.textContent = '🎧';
+  }
+});
+document.getElementById('musicClose').addEventListener('click', () => {
+  musicOpen = false;
+  musicFrame.src = '';
+  panel.classList.remove('open');
+  fab.classList.remove('playing');
+  fab.textContent = '🎧';
+});
+
+console.log('[bw] FOMO features online');
 </script>
 
 </body>
