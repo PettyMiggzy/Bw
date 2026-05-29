@@ -109,7 +109,7 @@ nav{display:flex;align-items:center;justify-content:space-between;gap:12px;paddi
 .script{font-family:var(--font-script);color:var(--ember);font-size:clamp(18px,5vw,30px);margin:14px 0 6px;transform:rotate(-2deg)}
 .lead{max-width:620px;margin:14px auto 0;color:var(--dim);font-size:15px}
 .lead b{color:var(--green)} .lead em{color:var(--gold);font-style:normal}
-.hero-art{margin:28px auto 0;max-width:380px;border-radius:24px;overflow:hidden;position:relative;
+.hero-art{margin:28px auto 0;max-width:600px;border-radius:24px;overflow:hidden;position:relative;
   border:1px solid var(--line);box-shadow:0 0 0 1px rgba(245,207,87,.15),0 24px 70px rgba(107,52,168,.4)}
 .hero-art video{width:100%;display:block}
 .cta{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:26px}
@@ -157,23 +157,30 @@ h2.sec .g{color:var(--green)} h2.sec .o{color:var(--ember)}
 .card p{font-size:14px;color:var(--dim)}
 .card p b{color:var(--green)}
 
-/* ---------- MENU / STRAIN ---------- */
-.menu{display:grid;grid-template-columns:1fr;gap:16px}
-.strain{background:linear-gradient(160deg,rgba(107,52,168,.25),rgba(12,18,12,.9));border:1px solid rgba(168,92,255,.35);
-  border-radius:22px;padding:24px;position:relative;overflow:hidden}
-.strain::before{content:"THE HOUSE STRAIN";position:absolute;top:14px;right:-34px;transform:rotate(34deg);background:var(--ember);
-  color:#1a0800;font-family:var(--font-display);font-size:9px;letter-spacing:.12em;padding:5px 40px}
-.strain h3{font-family:var(--font-hero);color:var(--green);font-size:34px;line-height:1;margin-bottom:4px}
-.strain .tag{color:var(--gold);font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px}
-.strain ul{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px}
-.strain li{display:flex;flex-direction:column;background:rgba(7,10,7,.45);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
-.strain li span{color:var(--dim);font-size:10px;letter-spacing:.12em;text-transform:uppercase}
-.strain li b{color:var(--text);font-family:var(--font-display);font-size:14px}
-
-/* ---------- BANNER VIDEO ---------- */
-.bannervid{max-width:1100px;margin:0 auto;padding:0 18px}
-.bannervid .frame{border-radius:20px;overflow:hidden;border:1px solid var(--line);box-shadow:0 0 50px rgba(107,52,168,.35)}
-.bannervid video{width:100%;display:block}
+/* ---------- INTERACTIVE MENU BOARD ---------- */
+.board{background:linear-gradient(160deg,rgba(107,52,168,.22),rgba(12,18,12,.92));border:1px solid rgba(168,92,255,.35);
+  border-radius:22px;overflow:hidden;box-shadow:0 0 50px rgba(107,52,168,.28)}
+.board-tabs{display:flex;border-bottom:1px solid var(--line)}
+.board-tabs .tab{flex:1;background:transparent;border:0;border-right:1px solid var(--line);color:var(--dim);cursor:pointer;
+  font-family:var(--font-display);font-size:11px;letter-spacing:.04em;padding:14px 6px;transition:color .2s,background .2s}
+.board-tabs .tab:last-child{border-right:0}
+.board-tabs .tab.on{color:#1a0800;background:linear-gradient(180deg,var(--gold),var(--gold2))}
+.board-tabs .tab:not(.on):active{background:rgba(82,255,143,.08)}
+.board-stage{position:relative}
+.slide{display:none;grid-template-columns:1fr;animation:slidein .45s ease}
+.slide.on{display:grid}
+@keyframes slidein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.slide-img{position:relative;overflow:hidden}
+.slide-img img,.slide-img video{width:100%;display:block;object-fit:cover;aspect-ratio:1/.78}
+.slide-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(12,18,12,.9))}
+.slide-info{padding:22px}
+.slide-name{font-family:var(--font-hero);font-size:34px;line-height:1;margin-bottom:4px}
+.slide-name.g{color:var(--green)} .slide-name.o{color:var(--ember)}
+.slide-tag{color:var(--gold);font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px}
+.slide-lore{font-size:14px;color:var(--dim);margin-bottom:14px} .slide-lore b{color:var(--green)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips span{font-size:11px;letter-spacing:.04em;color:var(--text);background:rgba(7,10,7,.55);
+  border:1px solid var(--line);border-radius:20px;padding:6px 12px;font-family:var(--font-display)}
 
 /* ---------- JOIN ---------- */
 .steps{display:grid;gap:14px}
@@ -212,9 +219,10 @@ footer .trib a{color:var(--ember);text-decoration:underline}
 
 @media(min-width:760px){
   .cards{grid-template-columns:repeat(2,1fr)}
-  .menu{grid-template-columns:1fr}
   .burn-grid{grid-template-columns:repeat(4,1fr)}
-  .hero-art{max-width:440px}
+  .hero-art{max-width:680px}
+  .slide.on{grid-template-columns:1fr 1fr;align-items:stretch}
+  .slide-img img,.slide-img video{height:100%;aspect-ratio:auto}
 }
 </style>
 </head>
@@ -260,8 +268,8 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   <div class="script">~ the smoke that came after ~</div>
   <p class="lead"><b>$Weedsta on Sol lit the first joint.</b> We hit it from Monad. Every transfer feeds the fire — no mint, no add, <em>just smoke</em>.</p>
   <div class="hero-art">
-    <video autoplay muted loop playsinline poster="/assets/hero-poster-v2.jpg">
-      <source src="/assets/hero-loop-v2.mp4" type="video/mp4" />
+    <video autoplay muted loop playsinline poster="/assets/hero-chronic-banner.jpg">
+      <source src="/assets/banner-loop-v2.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cta">
@@ -310,31 +318,49 @@ footer .trib a{color:var(--ember);text-decoration:underline}
 <section id="menu">
   <div class="kick">▸ Today on the board</div>
   <h2 class="sec">THE <span class="o">MENU</span></h2>
-  <p class="sub">One product. One strain. Grown on Monad, cured in fire.</p>
-  <div class="menu">
-    <div class="strain rv">
-      <h3>$CHRONIC</h3>
-      <div class="tag">Deflationary Indica · Chain 143 · 1B genesis</div>
-      <ul>
-        <li><span>Type</span><b>100% Burn</b></li>
-        <li><span>Supply</span><b>↓ Only</b></li>
-        <li><span>Mint</span><b>None</b></li>
-        <li><span>Effect</span><b>Euphoric Ash</b></li>
-        <li><span>Launch</span><b>nad.fun</b></li>
-        <li><span>Lineage</span><b>$Weedsta ✕ Monad</b></li>
-      </ul>
+  <p class="sub">Tap the board. One strain, two operators — grown on Monad, cured in fire.</p>
+  <div class="board rv">
+    <div class="board-tabs">
+      <button class="tab on" data-k="chronic">$CHRONIC</button>
+      <button class="tab" data-k="plug">THE PLUG</button>
+      <button class="tab" data-k="enforcer">THE ENFORCER</button>
+    </div>
+    <div class="board-stage">
+      <!-- $CHRONIC -->
+      <article class="slide on" data-k="chronic">
+        <div class="slide-img">
+          <video autoplay muted loop playsinline poster="/assets/hero-chronic-banner.jpg"><source src="/assets/banner-loop-v2.mp4" type="video/mp4" /></video>
+        </div>
+        <div class="slide-info">
+          <h3 class="slide-name g">$CHRONIC</h3>
+          <div class="slide-tag">The House Strain · Deflationary · Chain 143</div>
+          <p class="slide-lore">Grown on the bonding curve, cured in fire. Every transfer feeds the burn — supply only ever goes one way. <b>Down.</b></p>
+          <div class="chips"><span>100% Burn</span><span>↓ Supply</span><span>No Mint</span><span>1B Genesis</span><span>nad.fun</span></div>
+        </div>
+      </article>
+      <!-- THE PLUG -->
+      <article class="slide" data-k="plug">
+        <div class="slide-img"><img src="/assets/char-plug.jpg" alt="The Plug" loading="lazy" /></div>
+        <div class="slide-info">
+          <h3 class="slide-name o">THE PLUG</h3>
+          <div class="slide-tag">Supply Side · Never Sells</div>
+          <p class="slide-lore">Crown on his head, mask on his face, purple smoke at his back. Born in the silence between two heartbeats of the curve. He turns supply into smoke. <b>He never sells — he only burns.</b></p>
+          <div class="chips"><span>Crowned</span><span>Field Grown</span><span>Smoke Up</span></div>
+        </div>
+      </article>
+      <!-- THE ENFORCER -->
+      <article class="slide" data-k="enforcer">
+        <div class="slide-img"><img src="/assets/char-enforcer.jpg" alt="The Enforcer" loading="lazy" /></div>
+        <div class="slide-info">
+          <h3 class="slide-name g">THE ENFORCER</h3>
+          <div class="slide-tag">Security · The DEA Are Scenery</div>
+          <p class="slide-lore">Iced out, strapped, posted on the armored truck. The cruisers don't follow him — <b>they're decoration.</b> He keeps the smoke moving and the snitches walking.</p>
+          <div class="chips"><span>Armored</span><span>Iced Out</span><span>Untouchable</span></div>
+        </div>
+      </article>
     </div>
   </div>
 </section>
-
-<!-- BANNER VID -->
-<div class="bannervid rv">
-  <div class="frame">
-    <video autoplay muted loop playsinline poster="/assets/banner-poster-v2.jpg">
-      <source src="/assets/banner-loop-v2.mp4" type="video/mp4" />
-    </video>
-  </div>
-</div>
 
 <!-- JOIN -->
 <section id="join">
@@ -448,6 +474,15 @@ if(inWin){el.innerHTML='<span class="now">OPEN NOW</span>';return;}
 let diff=Math.max(0,next420()-now);const hh=Math.floor(diff/3.6e6),mm=Math.floor(diff%3.6e6/6e4),ss=Math.floor(diff%6e4/1e3);
 el.textContent=`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;}
 setInterval(tickCD,1000);tickCD();
+
+/* ===== interactive menu board ===== */
+document.querySelectorAll('.board-tabs .tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    const k=t.dataset.k;
+    document.querySelectorAll('.board-tabs .tab').forEach(x=>x.classList.toggle('on',x===t));
+    document.querySelectorAll('.board-stage .slide').forEach(s=>s.classList.toggle('on',s.dataset.k===k));
+  });
+});
 
 /* ===== reveal on scroll ===== */
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.12});
