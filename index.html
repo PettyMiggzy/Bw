@@ -426,7 +426,6 @@ a, button, [role="button"], input, textarea, select, label {
   display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
   position: relative; z-index: 1;
 }
-@media (max-width: 520px) { .burn-stats { grid-template-columns: 1fr; } }
 .burn-stat {
   background: linear-gradient(160deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
   border: 1px solid rgba(212,175,55,0.25);
@@ -756,34 +755,29 @@ a, button, [role="button"], input, textarea, select, label {
   transform: translateY(-1px);
 }
 
-/* === FALL-IN-PLACE reveal === */
+/* === reveal — simple, mobile-safe === */
 .reveal {
   opacity: 0;
-  transform: translateY(-90px) rotateX(20deg) scale(0.92);
-  transform-origin: center top;
-  transition:
-    opacity 0.9s cubic-bezier(0.16, 0.84, 0.44, 1),
-    transform 1.05s cubic-bezier(0.18, 0.89, 0.32, 1.18);
+  transform: translateY(28px);
+  transition: opacity 0.7s cubic-bezier(0.22, 0.61, 0.36, 1),
+              transform 0.8s cubic-bezier(0.22, 0.61, 0.36, 1);
   will-change: transform, opacity;
 }
-.reveal.in { opacity: 1; transform: translateY(0) rotateX(0) scale(1); }
+.reveal.in { opacity: 1; transform: translateY(0); }
 
-/* Stagger children of a .reveal-group */
 .reveal-group > * {
   opacity: 0;
-  transform: translateY(-60px) scale(0.94);
-  transition:
-    opacity 0.75s cubic-bezier(0.16, 0.84, 0.44, 1),
-    transform 0.85s cubic-bezier(0.18, 0.89, 0.32, 1.18);
-  will-change: transform, opacity;
+  transform: translateY(22px);
+  transition: opacity 0.6s cubic-bezier(0.22, 0.61, 0.36, 1),
+              transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 .reveal-group.in > * { opacity: 1; transform: none; }
 .reveal-group.in > *:nth-child(1) { transition-delay: 0ms; }
-.reveal-group.in > *:nth-child(2) { transition-delay: 90ms; }
-.reveal-group.in > *:nth-child(3) { transition-delay: 180ms; }
-.reveal-group.in > *:nth-child(4) { transition-delay: 270ms; }
-.reveal-group.in > *:nth-child(5) { transition-delay: 360ms; }
-.reveal-group.in > *:nth-child(6) { transition-delay: 450ms; }
+.reveal-group.in > *:nth-child(2) { transition-delay: 80ms; }
+.reveal-group.in > *:nth-child(3) { transition-delay: 160ms; }
+.reveal-group.in > *:nth-child(4) { transition-delay: 240ms; }
+.reveal-group.in > *:nth-child(5) { transition-delay: 320ms; }
+.reveal-group.in > *:nth-child(6) { transition-delay: 400ms; }
 
 @media (prefers-reduced-motion: reduce) {
   .reveal, .reveal-group > * { transition: none !important; transform: none !important; opacity: 1 !important; }
@@ -1115,6 +1109,54 @@ a, button, [role="button"], input, textarea, select, label {
   background: rgba(75,255,137,0.08);
   border: 1px solid rgba(75,255,137,0.25);
   color: var(--green);
+}
+/* ============================================================
+   MOBILE SWEEP — tighten the whole site on small screens
+   ============================================================ */
+@media (max-width: 700px) {
+  /* Sections — less crushing padding */
+  .section { padding: 72px 18px; }
+  .burn-section { padding: 72px 16px; }
+  .swarm { padding: 60px 18px 40px; }
+
+  /* Headings — already clamped, but tighten margins */
+  .section h2 { margin-bottom: 20px; }
+  .section p.lead { font-size: 15px; }
+
+  /* Burn card — tighter inner padding */
+  .burn-card { padding: 36px 22px; border-radius: var(--r-lg); }
+  .burn-card h2 { font-size: 38px; letter-spacing: 4px; }
+  .burn-stat { padding: 18px 12px; }
+  .burn-stat-value { font-size: 22px; }
+  .burn-progress { height: 14px; }
+
+  /* Ritual cards — tighter */
+  .ritual { padding: 28px 22px; }
+  .ritual-num { font-size: 42px; }
+
+  /* Streets section padding */
+  .streets-section { padding: 60px 18px; }
+
+  /* Swarm cards */
+  .swarm-link { padding: 24px 28px; min-width: 130px; }
+
+  /* Nav — collapse links a bit */
+  .nav { padding: 12px 14px; }
+  .nav-brand { font-size: 13px; }
+  .nav-brand img { width: 28px; height: 28px; }
+  .nav-link { font-size: 11px; padding: 6px 8px; }
+  /* Hide secondary nav-links on small screens (keep Buy CTA always) */
+  .nav-link:not(.buy) { display: none; }
+}
+
+@media (max-width: 480px) {
+  .section { padding: 60px 16px; }
+  .burn-section { padding: 60px 14px; }
+  .burn-card { padding: 28px 18px; }
+  .burn-card h2 { font-size: 32px; letter-spacing: 3px; }
+  .burn-stat-value { font-size: 18px; }
+  .ritual-grid { gap: 16px; }
+  .steps { gap: 14px; }
 }
 </style>
 </head>
@@ -1621,11 +1663,38 @@ if (TOKEN) {
   setInterval(refreshBurnCounter, 25_000);
 }
 
-/* ===== scroll reveal — handles both .reveal and .reveal-group ===== */
-const io = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
-}, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
-document.querySelectorAll('.reveal, .reveal-group').forEach(el => io.observe(el));
+/* ===== scroll reveal — bulletproofed
+   - threshold 0: fires when ANY pixel enters viewport
+   - rootMargin: 50px earlier so it triggers before the user sees the empty state
+   - Fallback: if any element is unrevealed AND already on-screen after 1.2s, force-reveal it
+   - Fallback: if IntersectionObserver isn't supported, reveal everything immediately
+   =========================================================== */
+const REVEAL_SELECTOR = '.reveal, .reveal-group';
+function forceRevealVisible() {
+  document.querySelectorAll(REVEAL_SELECTOR).forEach(el => {
+    if (el.classList.contains('in')) return;
+    const r = el.getBoundingClientRect();
+    // If any part of the element is in (or above) the viewport bottom, reveal it
+    if (r.top < window.innerHeight + 80) el.classList.add('in');
+  });
+}
+if ('IntersectionObserver' in window) {
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0, rootMargin: '0px 0px -50px 0px' });
+  document.querySelectorAll(REVEAL_SELECTOR).forEach(el => io.observe(el));
+  // Failsafe: catch anything the observer missed (large elements that never reach threshold)
+  setTimeout(forceRevealVisible, 1200);
+  window.addEventListener('scroll', forceRevealVisible, { passive: true });
+} else {
+  // No IO support → just reveal everything
+  document.querySelectorAll(REVEAL_SELECTOR).forEach(el => el.classList.add('in'));
+}
 
 /* ===========================================================
    420 COUNTDOWN — next 4:20 PM in user's local time
