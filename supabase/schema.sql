@@ -19,8 +19,7 @@ create table if not exists bw_sessions (
   expires_at  timestamptz not null default (now() + interval '4 hours 20 minutes')
 );
 
-create index if not exists bw_sessions_active_idx on bw_sessions (expires_at)
-  where expires_at > now();
+create index if not exists bw_sessions_active_idx on bw_sessions (expires_at desc);
 create index if not exists bw_sessions_device_idx on bw_sessions (device_fp, created_at desc);
 
 create table if not exists bw_session_joins (
