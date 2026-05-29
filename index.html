@@ -630,6 +630,34 @@ a, button, [role="button"], input, textarea, select, label {
 }
 .footer .tribute-line a { color: var(--gold-2); text-decoration: none; }
 
+/* Builder credit — discreet artisan stamp */
+.footer .built-by {
+  margin-top: 18px;
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--f-mono); font-size: 10px;
+  letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--text-faint);
+}
+.footer .built-by .stamp { color: var(--gold-deep); }
+.footer .built-by a.dm-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(212,175,55,0.06);
+  border: 1px solid var(--gold-deep);
+  color: var(--gold-2);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-family: var(--f-mono); font-size: 10px; font-weight: 700;
+  letter-spacing: 1.5px;
+  text-decoration: none;
+  transition: all 0.15s;
+}
+.footer .built-by a.dm-btn:hover {
+  background: rgba(212,175,55,0.14);
+  border-color: var(--gold);
+  color: var(--gold-2);
+  transform: translateY(-1px);
+}
+
 /* === FALL-IN-PLACE reveal === */
 .reveal {
   opacity: 0;
@@ -1262,6 +1290,10 @@ a, button, [role="button"], input, textarea, select, label {
   <div class="tribute-line">
     Tribute to <a href="https://weedsta.space" target="_blank" rel="noopener">$Weedsta on Solana</a>. Not affiliated. Built by Monad heads with full respect to the OGs.
   </div>
+  <div class="built-by">
+    <span class="stamp">✦</span> a king petty build
+    <a class="dm-btn" href="https://t.me/kingpetty317" target="_blank" rel="noopener">DM →</a>
+  </div>
 </footer>
 
 <div class="toast" id="toast">copied 🔥</div>
@@ -1342,8 +1374,8 @@ const RPCS = [
     setTimeout(() => el.remove(), 900);
   }
 
-  // close when video ends OR after 5.5s max (whichever first)
-  const timeout = setTimeout(close, 5500);
+  // close when video ends OR after 12s max (whichever first) — full 10s video + 2s buffer
+  const timeout = setTimeout(close, 12_000);
   if (vid) {
     vid.addEventListener('ended', () => { clearTimeout(timeout); close(); });
     // also catch autoplay block (mobile) — let the user click through
