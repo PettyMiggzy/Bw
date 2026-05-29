@@ -16,75 +16,98 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;700;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 
 <!-- Leaflet for the smoke sessions map -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 
 <style>
 :root {
-  /* — voids (deeper black for premium feel) — */
-  --void:      #050208;
-  --void-2:    #0c0610;
-  --void-3:    #150c1c;
+  /* — ink (warm near-black, not pure void) — */
+  --ink:        #0a0d09;
+  --ink-2:      #131611;
+  --ink-3:      #1c201a;
+  --ink-soft:   #232723;
 
-  /* — purples (the new luxury primary) — */
-  --purple-deep:    #1a0830;
-  --purple-mid:     #4a1f7a;
-  --purple-glow:    #9a5dd6;
-  --purple-soft:    #be96e6;
-  --purple-smoke:   #7a3aa8;
+  /* — forest (cannabis green, deep + restrained — not bright lime) — */
+  --forest:     #1e3a2a;
+  --forest-2:   #2c5840;
+  --forest-deep:#0f1f14;
+  --forest-mist:#54756a;
 
-  /* — gold (brand mark) — */
-  --gold:      #d4af37;
-  --gold-2:    #f2cc4f;
-  --gold-deep: #8a6a14;
+  /* — brass (the W medallion's home — aged gold, not yellow neon) — */
+  --brass:      #b8923e;
+  --brass-2:    #d4b366;
+  --brass-deep: #7a5e1a;
+  --brass-pale: #e8d8a8;
 
-  /* — green (live indicators only, used sparingly) — */
-  --green:     #4bff89;
-  --green-2:   #00d957;
-  --green-deep:#0a5c2a;
+  /* — bone (warm whites, like aged paper) — */
+  --bone:       #efe6d2;
+  --bone-2:     #d4c8a8;
+  --bone-dim:   #a89e80;
+  --bone-faint: #6e6552;
 
-  /* — ember (fire / burn moments only) — */
-  --ember:     #ff6322;
-  --ember-2:   #ffb347;
-  --ember-deep:#a0290a;
+  /* — ember (single rusty accent for fire/burn moments — burnt sienna, not safety orange) — */
+  --ember:      #c4501f;
+  --ember-2:    #e07644;
+  --ember-deep: #7a2e0a;
 
-  /* — text — */
-  --text:      #f8f1da;
-  --text-dim:  #c8bd9a;
-  --text-faint:#776c52;
-  --line:      rgba(212,175,55,0.18);
+  /* — hairlines — */
+  --line:       rgba(184,146,62,0.18);
+  --line-2:     rgba(239,230,210,0.08);
 
   /* — typography — */
-  --f-display: 'Cinzel Decorative', serif;        /* only for the brand wordmark */
-  --f-massive: 'Audiowide', 'Cinzel', serif;      /* huge cinematic H1 */
-  --f-head:    'Cinzel', serif;
-  --f-body:    'Space Grotesk', system-ui, sans-serif;
-  --f-mono:    'Space Mono', monospace;
+  --f-serif:    'Fraunces', 'Times New Roman', serif;       /* headlines, drop caps, pull quotes */
+  --f-sans:     'Inter', system-ui, -apple-system, sans-serif;  /* body */
+  --f-mono:     'JetBrains Mono', 'Courier New', monospace; /* labels, data, captions */
 
-  /* — radius scale (premium = bigger) — */
-  --r-xs: 8px;
-  --r-sm: 14px;
-  --r-md: 22px;
-  --r-lg: 32px;
-  --r-xl: 44px;
+  /* aliases kept for backwards-compat with old var refs */
+  --f-display:  var(--f-serif);
+  --f-massive:  var(--f-serif);
+  --f-head:     var(--f-serif);
+  --f-body:     var(--f-sans);
+  --void:       var(--ink);
+  --void-2:     var(--ink-2);
+  --void-3:     var(--ink-3);
+  --gold:       var(--brass);
+  --gold-2:     var(--brass-2);
+  --gold-deep:  var(--brass-deep);
+  --green:      var(--forest-mist);
+  --green-2:    var(--forest-2);
+  --green-deep: var(--forest-deep);
+  --ember-deep: var(--ember-deep);
+  --purple-soft:   var(--bone-2);
+  --purple-glow:   var(--brass-2);
+  --purple-smoke:  var(--forest);
+  --purple-deep:   var(--ink);
+  --purple-mid:    var(--forest-2);
 
-  /* — shadow scale (layered purple glow) — */
-  --sh-1: 0 12px 28px rgba(5,1,15,0.45), 0 0 18px rgba(154,93,214,0.10);
-  --sh-2: 0 24px 58px rgba(5,1,15,0.55), 0 0 32px rgba(154,93,214,0.16);
-  --sh-3: 0 36px 96px rgba(5,1,15,0.70), 0 0 52px rgba(154,93,214,0.22);
-  --sh-fire: 0 20px 60px rgba(255,99,34,0.18), 0 0 40px rgba(255,99,34,0.25);
+  --text:       var(--bone);
+  --text-dim:   var(--bone-2);
+  --text-faint: var(--bone-faint);
+
+  /* — radius (restrained — no more bouncy 44px) — */
+  --r-xs: 4px;
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+
+  /* — shadows (refined, less neon glow) — */
+  --sh-1: 0 8px 24px rgba(0,0,0,0.45);
+  --sh-2: 0 18px 48px rgba(0,0,0,0.55);
+  --sh-3: 0 30px 80px rgba(0,0,0,0.65);
+  --sh-fire: 0 12px 40px rgba(196,80,31,0.18);
 }
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body {
-  font-family: var(--f-body);
+  font-family: var(--f-sans);
   font-weight: 400;
   color: var(--text);
-  background: #030106;
+  background: var(--ink);
   overflow-x: hidden;
-  line-height: 1.65;
+  line-height: 1.7;
   min-height: 100vh;
   cursor: url('/assets/bud-cursor.png') 16 16, auto;
   -webkit-font-smoothing: antialiased;
@@ -94,69 +117,61 @@ a, button, [role="button"], input, textarea, select, label {
   cursor: url('/assets/bud-cursor.png') 16 16, pointer;
 }
 
-/* === NEW ambient: single dramatic spotlight + corner vignette === */
+/* === NEW ambient — single warm forest spotlight, restrained === */
 .ambient {
   position: fixed; inset: 0;
   z-index: 0;
   pointer-events: none;
   background:
-    /* top center luxury spotlight — purple→ember bleed */
-    radial-gradient(ellipse 90vw 70vh at 50% -10%, rgba(154,93,214,0.35) 0%, rgba(122,58,168,0.18) 25%, rgba(255,99,34,0.08) 55%, transparent 85%),
-    /* bottom warm glow */
-    radial-gradient(ellipse 60vw 40vh at 50% 110%, rgba(255,99,34,0.18) 0%, rgba(255,99,34,0.05) 35%, transparent 70%),
-    /* faint side accents */
-    radial-gradient(circle at 0% 50%, rgba(74,31,122,0.15) 0%, transparent 30%),
-    radial-gradient(circle at 100% 50%, rgba(154,93,214,0.12) 0%, transparent 30%);
+    /* top-center brass glow, very soft */
+    radial-gradient(ellipse 100vw 50vh at 50% -10%, rgba(184,146,62,0.18) 0%, rgba(184,146,62,0.06) 35%, transparent 75%),
+    /* base forest tone */
+    radial-gradient(ellipse 80vw 60vh at 50% 110%, rgba(30,58,42,0.4) 0%, rgba(30,58,42,0.10) 50%, transparent 80%),
+    /* faint left edge */
+    radial-gradient(ellipse 40vw 80vh at 0% 40%, rgba(15,31,20,0.5) 0%, transparent 60%);
 }
-/* film grain — barely-there noise so the background has texture */
 .grain {
   position: fixed; inset: 0;
   z-index: 1;
   pointer-events: none;
-  opacity: 0.045;
+  opacity: 0.055;
   mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.5 0'/></filter><rect width='180' height='180' filter='url(%23n)'/></svg>");
-  background-size: 180px 180px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.5 0'/></filter><rect width='220' height='220' filter='url(%23n)'/></svg>");
+  background-size: 220px 220px;
 }
-/* corner vignette — pulls focus to center */
 .vignette {
   position: fixed; inset: 0;
   z-index: 1;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.55) 100%);
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.6) 100%);
 }
 
-/* === SMOKE WISPS — calmer, atmospheric === */
+/* === SMOKE — restrained, atmospheric, warm tones === */
 .smoke-layer {
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
   overflow: hidden;
-  opacity: 0.7;
+  opacity: 0.4;
 }
 .wisp {
   position: absolute;
   bottom: -120px;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, rgba(245,235,215,0.55) 0%, rgba(200,190,170,0.25) 38%, transparent 75%);
-  filter: blur(18px);
+  background: radial-gradient(circle at 50% 50%, rgba(239,230,210,0.35) 0%, rgba(212,200,168,0.15) 40%, transparent 75%);
+  filter: blur(28px);
   opacity: 0;
   mix-blend-mode: screen;
   animation: rise-smoke linear infinite;
   will-change: transform, opacity;
 }
-.wisp.tinted-green {
-  background: radial-gradient(circle at 50% 50%, rgba(120,255,170,0.35) 0%, rgba(75,255,137,0.15) 38%, transparent 75%);
-}
-.wisp.tinted-purple {
-  background: radial-gradient(circle at 50% 50%, rgba(190,130,235,0.50) 0%, rgba(155,90,200,0.20) 38%, transparent 75%);
-}
-.wisp.tinted-ember {
-  background: radial-gradient(circle at 50% 50%, rgba(255,180,90,0.35) 0%, rgba(255,99,34,0.15) 38%, transparent 75%);
-}
+.wisp.tinted-green { background: radial-gradient(circle at 50% 50%, rgba(84,117,106,0.30) 0%, rgba(44,88,64,0.12) 40%, transparent 75%); }
+.wisp.tinted-purple { display: none; }
+.wisp.tinted-ember { background: radial-gradient(circle at 50% 50%, rgba(196,80,31,0.22) 0%, rgba(122,46,10,0.10) 40%, transparent 75%); }
+.wisp.tinted-brass { background: radial-gradient(circle at 50% 50%, rgba(184,146,62,0.28) 0%, rgba(122,94,26,0.12) 40%, transparent 75%); }
 @keyframes rise-smoke {
   0%   { transform: translate3d(0, 0, 0) scale(0.4); opacity: 0; }
-  12%  { opacity: 0.75; }
-  60%  { transform: translate3d(60px, -65vh, 0) scale(1.4); opacity: 0.45; }
-  100% { transform: translate3d(-30px, -125vh, 0) scale(1.9); opacity: 0; }
+  15%  { opacity: 0.55; }
+  60%  { transform: translate3d(50px, -65vh, 0) scale(1.5); opacity: 0.35; }
+  100% { transform: translate3d(-30px, -130vh, 0) scale(2.0); opacity: 0; }
 }
 
 /* === SPLASH INTRO === */
@@ -178,7 +193,9 @@ a, button, [role="button"], input, textarea, select, label {
   pointer-events: none;
 }
 .splash .splash-tag {
-  position: absolute; bottom: 8%; left: 50%;
+  position: absolute;
+  bottom: max(15%, calc(env(safe-area-inset-bottom, 0px) + 60px));
+  left: 50%;
   transform: translateX(-50%);
   font-family: var(--f-display); font-weight: 900;
   font-size: clamp(18px, 4vw, 32px); letter-spacing: 4px;
@@ -189,9 +206,13 @@ a, button, [role="button"], input, textarea, select, label {
   z-index: 2;
   text-shadow: 0 0 40px rgba(255,99,34,0.6);
   animation: splash-pulse 1.5s ease-in-out infinite;
+  white-space: nowrap;
+  max-width: 90vw;
 }
 .splash .splash-skip {
-  position: absolute; top: 18px; right: 18px;
+  position: absolute;
+  top: max(18px, calc(env(safe-area-inset-top, 0px) + 14px));
+  right: 18px;
   background: rgba(0,0,0,0.6); color: var(--gold-2);
   border: 1px solid var(--gold-deep);
   font-family: var(--f-mono); font-size: 11px;
@@ -224,175 +245,177 @@ a, button, [role="button"], input, textarea, select, label {
   position: sticky; top: 0;
   z-index: 40;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 22px;
-  background: rgba(5,5,5,0.85);
+  padding: 16px 28px;
+  background: rgba(10,13,9,0.88);
   backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--line-2);
 }
 .nav-brand {
   display: flex; align-items: center; gap: 12px;
-  font-family: var(--f-display);
-  font-weight: 900;
-  font-size: 18px;
-  letter-spacing: 2px;
-  color: var(--gold-2);
+  font-family: var(--f-serif);
+  font-weight: 400;
+  font-size: 19px;
+  letter-spacing: 0;
+  color: var(--bone);
   text-decoration: none;
 }
-.nav-brand img { width: 38px; height: 38px; }
-.nav-brand .sub { color: var(--green); font-family: var(--f-mono); font-size: 10px; letter-spacing: 1px; }
-.nav-links { display: flex; gap: 6px; align-items: center; }
+.nav-brand em { font-style: italic; color: var(--brass-2); font-weight: 400; }
+.nav-brand img { width: 36px; height: 36px; }
+.nav-brand .sub {
+  color: var(--bone-faint);
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.nav-links { display: flex; gap: 4px; align-items: center; }
 .nav-link {
   font-family: var(--f-mono);
-  font-size: 11px;
-  letter-spacing: 1.5px;
+  font-size: 10px;
+  letter-spacing: 2.5px;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--bone-dim);
   text-decoration: none;
   padding: 8px 14px;
-  border-radius: 6px;
-  transition: all 0.15s;
+  border-radius: var(--r-xs);
+  transition: color 0.18s ease;
 }
-.nav-link:hover { color: var(--gold-2); }
+.nav-link:hover { color: var(--brass-2); }
 .nav-link.buy {
-  background: linear-gradient(135deg, var(--ember), var(--ember-deep));
-  color: #fff;
+  background: var(--brass-2);
+  color: var(--ink);
   font-weight: 700;
-  box-shadow: 0 0 18px rgba(255,99,34,0.4);
+  margin-left: 8px;
+  padding: 8px 16px;
+  border-radius: 999px;
 }
-.nav-link.buy:hover { box-shadow: 0 0 30px rgba(255,99,34,0.6); transform: translateY(-1px); }
+.nav-link.buy:hover { background: var(--brass-pale); }
 @media (max-width: 700px) {
-  .nav { padding: 10px 14px; }
-  .nav-brand { font-size: 14px; gap: 10px; }
-  .nav-brand img { width: 32px; height: 32px; }
+  .nav { padding: 12px 16px; }
+  .nav-brand { font-size: 15px; gap: 10px; }
+  .nav-brand img { width: 30px; height: 30px; }
   .nav-brand .sub { display: none; }
   .nav-link:not(.buy) { display: none; }
 }
 
-/* === HERO — asymmetric, premium-cinematic === */
+/* === HERO — editorial luxury cover === */
 .hero {
   position: relative;
   z-index: 2;
-  min-height: 92vh;
-  padding: 90px 24px 60px;
-  max-width: 1320px;
+  min-height: 100vh;
+  padding: 80px 24px 60px;
+  max-width: 1240px;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1.15fr 1fr;
-  gap: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
+  text-align: center;
 }
-@media (max-width: 920px) {
-  .hero { grid-template-columns: 1fr; gap: 30px; min-height: auto; padding: 60px 20px 40px; text-align: center; }
-}
-.hero-text { position: relative; }
-.hero-chapter {
-  display: inline-flex; align-items: center; gap: 12px;
+.hero-masthead {
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  margin-bottom: 36px;
   font-family: var(--f-mono);
-  font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
-  color: var(--purple-soft);
-  padding: 8px 14px;
-  border: 1px solid rgba(154,93,214,0.4);
-  border-radius: 999px;
-  background: rgba(154,93,214,0.06);
-  backdrop-filter: blur(8px);
-  margin-bottom: 26px;
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--bone-faint);
 }
-.hero-chapter::before {
-  content: ''; width: 6px; height: 6px;
-  background: var(--green);
+.hero-masthead .rule {
+  width: 60px; height: 1px; background: var(--brass-deep);
+}
+.hero-masthead .meta {
+  display: flex; gap: 16px; align-items: center;
+  flex-wrap: wrap; justify-content: center;
+}
+.hero-masthead .meta .dot { color: var(--brass-deep); }
+.hero-masthead .meta .live {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--forest-mist);
+}
+.hero-masthead .meta .live::before {
+  content: ''; width: 5px; height: 5px;
+  background: var(--forest-mist);
   border-radius: 50%;
-  box-shadow: 0 0 12px var(--green);
-  animation: chapter-blink 1.6s ease-in-out infinite;
+  box-shadow: 0 0 8px var(--forest-mist);
 }
-@keyframes chapter-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
-}
-.hero h1 {
-  font-family: var(--f-massive);
-  font-weight: 400;
-  font-size: clamp(56px, 9vw, 130px);
-  line-height: 0.88;
-  letter-spacing: -2px;
-  margin-bottom: 14px;
-  background: linear-gradient(180deg, #fff6d8 0%, var(--gold-2) 28%, var(--ember) 72%, var(--ember-deep) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  text-shadow: 0 8px 36px rgba(255,99,34,0.25);
-}
-.hero h1 .wordmark {
-  display: block;
-  font-family: var(--f-display);
-  font-size: 0.46em;
-  letter-spacing: 6px;
-  -webkit-text-fill-color: var(--gold-2);
-  color: var(--gold-2);
-  background: none;
-  margin-top: 10px;
-  text-shadow: 0 0 30px rgba(212,175,55,0.35);
-}
-.hero-tagline {
-  font-family: var(--f-body);
-  font-weight: 300;
-  font-size: clamp(15px, 1.6vw, 19px);
-  line-height: 1.65;
-  color: var(--text-dim);
-  margin: 22px 0 8px;
-  max-width: 54ch;
-}
-@media (max-width: 920px) { .hero-tagline { margin-left: auto; margin-right: auto; } }
-.hero-tagline strong { color: var(--purple-soft); font-weight: 500; }
-.hero-pills {
-  display: flex; gap: 10px; flex-wrap: wrap; margin: 24px 0 32px;
-}
-@media (max-width: 920px) { .hero-pills { justify-content: center; } }
-.hero-pill {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(212,175,55,0.22);
-  border-radius: 999px;
-  padding: 7px 14px;
-  font-family: var(--f-mono);
-  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
-  color: var(--text-dim);
-  backdrop-filter: blur(8px);
-}
-.hero-pill.live {
-  border-color: rgba(75,255,137,0.4);
-  color: var(--green);
-}
-.hero-pill.live::before {
-  content: ''; width: 6px; height: 6px;
-  background: var(--green);
-  border-radius: 50%;
-  box-shadow: 0 0 10px var(--green);
-}
-.hero-pill .clk { color: var(--gold-2); font-weight: 700; margin-left: 4px; }
-.hero-cta {
-  display: flex; gap: 14px; flex-wrap: wrap;
-  margin-bottom: 28px;
-}
-@media (max-width: 920px) { .hero-cta { justify-content: center; } }
 
-/* === HERO FEATURE — burning W medallion === */
+.hero-chapter-mark {
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(14px, 1.6vw, 20px);
+  color: var(--bone-dim);
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.hero-chapter-mark .num {
+  font-style: normal;
+  font-weight: 700;
+  color: var(--brass-2);
+  letter-spacing: 4px;
+}
+
+.hero h1 {
+  font-family: var(--f-serif);
+  font-weight: 300;
+  font-variation-settings: "opsz" 144, "SOFT" 0;
+  font-size: clamp(58px, 11vw, 168px);
+  line-height: 0.92;
+  letter-spacing: -3px;
+  margin: 0 0 6px;
+  color: var(--bone);
+  font-style: normal;
+  max-width: 14ch;
+}
+.hero h1 em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--brass-2);
+  letter-spacing: -2px;
+}
+.hero-standfirst {
+  font-family: var(--f-serif);
+  font-weight: 300;
+  font-style: italic;
+  font-size: clamp(17px, 2vw, 24px);
+  line-height: 1.5;
+  color: var(--bone-dim);
+  max-width: 38ch;
+  margin: 28px auto 14px;
+  position: relative;
+}
+.hero-standfirst::before,
+.hero-standfirst::after {
+  content: '';
+  display: block;
+  width: 36px; height: 1px;
+  background: var(--brass-deep);
+  margin: 18px auto;
+}
+
 .hero-feature {
   position: relative;
+  width: clamp(280px, 38vw, 460px);
+  margin: 36px auto 28px;
   aspect-ratio: 1 / 1;
-  max-width: 540px;
-  margin: 0 auto;
-  border-radius: var(--r-xl);
+  border-radius: 50%;            /* round medallion treatment, frames the W properly */
   overflow: hidden;
-  box-shadow: 0 30px 80px rgba(255,99,34,0.22), 0 0 60px rgba(154,93,214,0.18);
+  box-shadow:
+    0 0 0 1px var(--brass-deep),
+    0 0 0 6px var(--ink-2),
+    0 0 0 7px var(--brass-deep),
+    0 30px 80px rgba(0,0,0,0.7),
+    0 0 60px rgba(196,80,31,0.20);
 }
 .hero-feature::before {
-  content: ''; position: absolute; inset: -2px;
-  background: conic-gradient(from 0deg, var(--ember), var(--gold-2), var(--purple-glow), var(--green), var(--ember));
-  border-radius: var(--r-xl);
+  content: ''; position: absolute; inset: -8px;
+  background: conic-gradient(from 0deg, transparent, var(--brass-2), transparent 30%, transparent 70%, var(--ember-2), transparent);
+  border-radius: 50%;
   z-index: -1;
-  filter: blur(22px);
-  opacity: 0.5;
-  animation: aura-spin 12s linear infinite;
+  filter: blur(18px);
+  opacity: 0.55;
+  animation: aura-spin 14s linear infinite;
 }
 @keyframes aura-spin { to { transform: rotate(360deg); } }
 .hero-feature video {
@@ -400,54 +423,80 @@ a, button, [role="button"], input, textarea, select, label {
   object-fit: cover;
   display: block;
 }
-.hero-feature::after {
-  content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.4) 100%);
-  pointer-events: none;
+
+.hero-pills {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  justify-content: center;
+  margin: 8px 0 26px;
 }
-@media (max-width: 920px) {
-  .hero-feature { max-width: 380px; }
+.hero-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-family: var(--f-mono);
+  font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--bone-dim);
+}
+.hero-pill .clk { color: var(--brass-2); margin-left: 4px; }
+
+.hero-cta {
+  display: flex; gap: 14px; flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+@media (max-width: 700px) {
+  .hero { padding: 60px 18px 48px; min-height: auto; }
+  .hero-standfirst { margin: 22px auto 10px; }
+  .hero-feature { margin: 28px auto 22px; }
 }
 .btn {
-  font-family: var(--f-head);
-  font-weight: 700;
-  font-size: 14px;
+  font-family: var(--f-sans);
+  font-weight: 500;
+  font-size: 13px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
   text-decoration: none;
-  padding: 18px 36px;
-  border-radius: var(--r-md);
-  transition: all 0.25s cubic-bezier(0.16, 0.84, 0.44, 1);
+  padding: 16px 28px;
+  border-radius: var(--r-sm);
+  transition: all 0.2s ease;
   display: inline-flex; align-items: center; gap: 10px;
   border: 1px solid transparent;
   cursor: pointer;
 }
 .btn-primary {
-  background: linear-gradient(135deg, var(--ember), var(--ember-deep));
-  color: #fff;
-  border-color: rgba(255,179,71,0.5);
-  box-shadow: 0 12px 32px rgba(255,99,34,0.35), 0 0 24px rgba(255,99,34,0.25);
+  background: var(--brass-2);
+  color: var(--ink);
+  border-color: var(--brass-2);
 }
-.btn-primary:hover { transform: translateY(-3px); box-shadow: 0 18px 50px rgba(255,99,34,0.5), 0 0 32px rgba(255,99,34,0.4); }
+.btn-primary:hover {
+  background: var(--brass-pale);
+  border-color: var(--brass-pale);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(184,146,62,0.30);
+}
 .btn-ghost {
-  background: rgba(255,255,255,0.04);
-  color: var(--gold-2);
-  border-color: rgba(212,175,55,0.4);
-  backdrop-filter: blur(10px);
+  background: transparent;
+  color: var(--bone);
+  border-color: var(--brass-deep);
 }
-.btn-ghost:hover { background: rgba(212,175,55,0.10); border-color: var(--gold); transform: translateY(-3px); }
+.btn-ghost:hover {
+  border-color: var(--brass-2);
+  color: var(--brass-2);
+  transform: translateY(-1px);
+}
 
 /* === CA pill === */
 .ca-pill {
   display: inline-flex; align-items: center; gap: 12px;
-  background: rgba(12,6,16,0.7);
-  border: 1px solid rgba(212,175,55,0.25);
+  background: var(--ink-2);
+  border: 1px solid var(--line);
   border-radius: 999px;
   padding: 10px 10px 10px 22px;
   font-family: var(--f-mono);
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--bone-dim);
   max-width: 92vw;
   backdrop-filter: blur(14px);
 }
@@ -563,37 +612,63 @@ a, button, [role="button"], input, textarea, select, label {
 .section {
   position: relative; z-index: 2;
   max-width: 1140px; margin: 0 auto;
-  padding: 120px 24px;
+  padding: 140px 24px;
 }
 .section-tag {
   font-family: var(--f-mono);
-  font-size: 11px; letter-spacing: 4px;
+  font-size: 10px; letter-spacing: 4px;
   text-transform: uppercase;
-  color: var(--purple-soft);
-  margin-bottom: 20px;
+  color: var(--bone-faint);
+  margin-bottom: 24px;
   display: flex; align-items: center; gap: 14px;
 }
 .section-tag::before {
-  content: ''; width: 40px; height: 2px;
-  background: linear-gradient(90deg, var(--ember), var(--gold));
+  content: ''; width: 48px; height: 1px;
+  background: var(--brass-deep);
 }
 .section h2 {
-  font-family: var(--f-massive);
-  font-weight: 400;
-  font-size: clamp(40px, 7vw, 84px);
-  line-height: 0.96;
-  letter-spacing: -0.5px;
-  margin-bottom: 28px;
-  color: var(--gold-2);
-  text-shadow: 0 4px 24px rgba(212,175,55,0.18);
-}
-.section h2 .ember { color: var(--ember-2); }
-.section h2 .smoke { color: var(--purple-glow); }
-.section p.lead {
-  font-size: 17px; color: var(--text-dim);
-  max-width: 720px;
-  line-height: 1.75;
+  font-family: var(--f-serif);
   font-weight: 300;
+  font-variation-settings: "opsz" 144;
+  font-size: clamp(40px, 6.5vw, 88px);
+  line-height: 1.0;
+  letter-spacing: -1.5px;
+  margin-bottom: 32px;
+  color: var(--bone);
+}
+.section h2 em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--brass-2);
+}
+.section h2 .ember {
+  color: var(--ember-2);
+  font-style: italic;
+  font-weight: 400;
+}
+.section h2 .smoke {
+  color: var(--forest-mist);
+  font-style: italic;
+  font-weight: 400;
+}
+.section p.lead {
+  font-family: var(--f-serif);
+  font-weight: 300;
+  font-style: italic;
+  font-size: clamp(17px, 1.9vw, 22px);
+  color: var(--bone-2);
+  max-width: 56ch;
+  line-height: 1.6;
+}
+.section p.lead.dropcap::first-letter {
+  font-family: var(--f-serif);
+  font-weight: 700;
+  font-style: normal;
+  font-size: 3.4em;
+  line-height: 0.85;
+  float: left;
+  margin: 6px 12px 0 -2px;
+  color: var(--brass-2);
 }
 
 /* === BANNER VIDEO — cinematic section divider === */
@@ -1285,14 +1360,14 @@ a, button, [role="button"], input, textarea, select, label {
 <nav class="nav">
   <a class="nav-brand" href="/">
     <img src="/assets/logo-transparent.png" alt="" />
-    <span>BURNING $WEEDSTA <span class="sub">on Monad</span></span>
+    <span>Burning <em>$Weedsta</em></span>
   </a>
   <div class="nav-links">
     <a class="nav-link" href="#ritual">Ritual</a>
     <a class="nav-link" href="#burn">Burn</a>
     <a class="nav-link" href="#sessions">Sessions</a>
     <a class="nav-link" href="#strains">Strains</a>
-    <a class="nav-link buy" id="navBuyBtn" href="#" target="_blank" rel="noopener">🔥 Buy $BW</a>
+    <a class="nav-link buy" id="navBuyBtn" href="#" target="_blank" rel="noopener">Buy $BW</a>
   </div>
 </nav>
 
@@ -1306,38 +1381,52 @@ a, button, [role="button"], input, textarea, select, label {
   <div class="px-item"><span class="px-label">Burned</span><span class="px-value" id="pxBurned">—</span></div>
 </div>
 
-<!-- HERO — asymmetric, premium feature layout -->
+<!-- HERO — editorial luxury cover -->
 <header class="hero">
-  <div class="hero-text">
-    <div class="hero-chapter">CHAPTER II · TRIBUTE SERIES</div>
-    <h1>
-      BURNING
-      <span class="wordmark">$WEEDSTA</span>
-    </h1>
-    <p class="hero-tagline">
-      $Weedsta on Solana lit the first joint. We heard it from Monad.
-      <strong>This is the second hit.</strong> Hotter, faster, deflationary.
-      Every transfer burns. Supply only goes down.
-    </p>
-    <div class="hero-pills">
-      <span class="hero-pill live">LIVE ON MONAD</span>
-      <span class="hero-pill" id="countdown">▸ Next 4:20 in <span class="clk" id="countdownClk">—</span></span>
-      <span class="hero-pill">CHAIN ID 143</span>
-    </div>
-    <div class="hero-cta">
-      <a class="btn btn-primary" id="heroBuyBtn" href="#" target="_blank" rel="noopener">🔥 BUY $BW ON NAD.FUN</a>
-      <a class="btn btn-ghost" href="#ritual">READ THE RITUAL</a>
-    </div>
-    <div class="ca-pill">
-      <span class="ca-label">CA</span>
-      <span class="ca-addr pending" id="caAddr">launching soon · check pinned in TG</span>
-      <button id="copyCA" disabled>Copy</button>
+  <div class="hero-masthead">
+    <div class="rule"></div>
+    <div class="meta">
+      <span>The Tribute Series</span>
+      <span class="dot">·</span>
+      <span class="live">Live on Monad</span>
+      <span class="dot">·</span>
+      <span>Chain 143</span>
+      <span class="dot">·</span>
+      <span>MMXXVI</span>
     </div>
   </div>
+
+  <div class="hero-chapter-mark">Chapter <span class="num">II</span></div>
+
+  <h1>Burning<br/><em>$Weedsta</em></h1>
+
+  <p class="hero-standfirst">
+    $Weedsta on Solana lit the first joint. We heard it from Monad —
+    this is the second hit, hotter and faster. Every transfer feeds
+    the fire. Supply only goes down.
+  </p>
+
   <div class="hero-feature">
     <video autoplay muted loop playsinline poster="/assets/hero-poster.jpg">
       <source src="/assets/hero-loop.mp4" type="video/mp4" />
     </video>
+  </div>
+
+  <div class="hero-pills">
+    <span class="hero-pill" id="countdown">Next 4:20 <span class="clk" id="countdownClk">—</span></span>
+    <span class="hero-pill">100% Burn Mechanic</span>
+    <span class="hero-pill">No Mint · No Add</span>
+  </div>
+
+  <div class="hero-cta">
+    <a class="btn btn-primary" id="heroBuyBtn" href="#" target="_blank" rel="noopener">Buy $BW on nad.fun →</a>
+    <a class="btn btn-ghost" href="#ritual">Read the Ritual</a>
+  </div>
+
+  <div class="ca-pill">
+    <span class="ca-label">CA</span>
+    <span class="ca-addr pending" id="caAddr">launching soon · pinned in TG</span>
+    <button id="copyCA" disabled>Copy</button>
   </div>
 </header>
 
@@ -1593,17 +1682,17 @@ const RPCS = [
 /* ===== smoke wisps rising (atmospheric, not manic) ===== */
 (function buildSmoke() {
   const layer = document.getElementById('smokeLayer');
-  const COUNT = 22;
-  const tints = ['', '', 'tinted-green', '', 'tinted-purple', '', '', 'tinted-ember', '', '', '', ''];
+  const COUNT = 18;
+  const tints = ['', '', 'tinted-brass', '', 'tinted-green', '', '', 'tinted-ember', '', '', '', ''];
   for (let i = 0; i < COUNT; i++) {
     const w = document.createElement('div');
     w.className = 'wisp ' + tints[i % tints.length];
-    const size = 100 + Math.random() * 220;
+    const size = 140 + Math.random() * 260;
     w.style.width = size + 'px';
     w.style.height = size + 'px';
     w.style.left = Math.random() * 110 + 'vw';
-    w.style.animationDuration = (16 + Math.random() * 16) + 's';
-    w.style.animationDelay = (-Math.random() * 22) + 's';
+    w.style.animationDuration = (20 + Math.random() * 18) + 's';
+    w.style.animationDelay = (-Math.random() * 26) + 's';
     layer.appendChild(w);
   }
 })();
