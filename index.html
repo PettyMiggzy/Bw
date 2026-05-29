@@ -182,6 +182,23 @@ h2.sec .g{color:var(--green)} h2.sec .o{color:var(--ember)}
 .chips span{font-size:11px;letter-spacing:.04em;color:var(--text);background:rgba(7,10,7,.55);
   border:1px solid var(--line);border-radius:20px;padding:6px 12px;font-family:var(--font-display)}
 
+/* ---------- THE STASH (jar gallery) ---------- */
+.jars{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.jar{position:relative;border-radius:18px;overflow:hidden;border:1px solid var(--line);margin:0;
+  box-shadow:0 10px 40px rgba(0,0,0,.5);transition:transform .2s,border-color .2s,box-shadow .2s}
+.jar img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;transition:transform .5s}
+.jar::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(180deg,rgba(107,52,168,.18) 0%,transparent 30%,rgba(7,10,7,.2) 55%,rgba(7,10,7,.95) 100%);mix-blend-mode:multiply}
+.jar::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.16;mix-blend-mode:overlay;
+  background:radial-gradient(circle at 50% 40%,rgba(82,255,143,.6),transparent 70%)}
+.jar:hover{transform:translateY(-4px);border-color:var(--gold2);box-shadow:0 16px 50px rgba(245,207,87,.2)}
+.jar:hover img{transform:scale(1.08)}
+.jar figcaption{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:14px}
+.jar figcaption b{display:block;font-family:var(--font-display);font-size:15px;color:var(--text);letter-spacing:.02em;line-height:1.1}
+.jar figcaption em{display:block;font-style:normal;font-size:11px;color:var(--green);letter-spacing:.04em;margin-top:3px}
+.jar .house{position:absolute;top:12px;right:12px;z-index:3;background:var(--ember);color:#1a0800;font-family:var(--font-display);
+  font-size:9px;letter-spacing:.1em;padding:5px 10px;border-radius:20px;box-shadow:0 0 16px rgba(255,106,43,.6)}
+
 /* ---------- JOIN ---------- */
 .steps{display:grid;gap:14px}
 .step{display:flex;gap:16px;align-items:flex-start;background:rgba(12,18,12,.7);border:1px solid var(--line);border-radius:16px;padding:18px}
@@ -223,6 +240,7 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   .hero-art{max-width:680px}
   .slide.on{grid-template-columns:1fr 1fr;align-items:stretch}
   .slide-img img,.slide-img video{height:100%;aspect-ratio:auto}
+  .jars{grid-template-columns:repeat(3,1fr)}
 }
 </style>
 </head>
@@ -362,6 +380,21 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   </div>
 </section>
 
+<!-- THE STASH -->
+<section id="stash">
+  <div class="kick">▸ Behind the counter</div>
+  <h2 class="sec">THE <span class="g">STASH</span></h2>
+  <p class="sub">The jar lineup. Every gram on the shelf eventually meets the fire — the only strain that lasts is the one that burns.</p>
+  <div class="jars">
+    <figure class="jar rv"><span class="house">HOUSE</span><img src="/assets/stash-6.jpg" alt="" loading="lazy"><figcaption><b>$CHRONIC #1</b><em>∞ Burn · Deflationary</em></figcaption></figure>
+    <figure class="jar rv"><img src="/assets/stash-1.jpg" alt="" loading="lazy"><figcaption><b>PURPLE CURVE</b><em>Indica · 28% · Couch Lock</em></figcaption></figure>
+    <figure class="jar rv"><img src="/assets/stash-2.jpg" alt="" loading="lazy"><figcaption><b>MONAD KUSH</b><em>Hybrid · 24% · Euphoric</em></figcaption></figure>
+    <figure class="jar rv"><img src="/assets/stash-3.jpg" alt="" loading="lazy"><figcaption><b>BURN OG</b><em>Indica · 26% · Stoned to Ash</em></figcaption></figure>
+    <figure class="jar rv"><img src="/assets/stash-4.jpg" alt="" loading="lazy"><figcaption><b>ASH HAZE</b><em>Sativa · 22% · Cerebral Smoke</em></figcaption></figure>
+    <figure class="jar rv"><img src="/assets/stash-5.jpg" alt="" loading="lazy"><figcaption><b>DEA DIESEL</b><em>Sativa · 25% · Snitch-Free</em></figcaption></figure>
+  </div>
+</section>
+
 <!-- JOIN -->
 <section id="join">
   <div class="kick">▸ Pull up</div>
@@ -388,6 +421,7 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   <div class="fb">BURNING <span class="c">WEEDSTA</span> · $CHRONIC · on Monad</div>
   <div class="caf">CA: <b id="caFoot">launching soon</b></div>
   The smoke that came after.
+  <div class="trib" style="font-size:10px;margin-bottom:6px">Strain photography via <a href="https://openverse.org" target="_blank" rel="noopener">Openverse</a> · Creative Commons</div>
   <div class="trib">Tribute to <a href="https://weedsta.space" target="_blank" rel="noopener">$Weedsta on Solana</a>. Not affiliated. Built by Monad heads with full respect to the OGs.</div>
 </footer>
 
