@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>BURNING WEEDSTA · $CHRONIC · The Smoke That Came After · Monad</title>
+<title>$CHRONIC · A Tribute to $Weedsta · Burn on Monad</title>
 <meta name="description" content="$CHRONIC — the Monad tribute to $Weedsta on Solana. 100% burn mechanic, no mint, no add. Every transfer feeds the fire. Live on Monad mainnet (chain 143)." />
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
 <link rel="apple-touch-icon" href="/assets/favicon-192.png" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://www.burnweedsta.xyz/" />
-<meta property="og:title" content="BURNING WEEDSTA · $CHRONIC on Monad" />
+<meta property="og:title" content="$CHRONIC — Burn on Monad · A Tribute to $Weedsta" />
 <meta property="og:description" content="The smoke that came after. $CHRONIC — 100% burn tribute to $Weedsta on Solana. Live on Monad." />
 <meta property="og:image" content="https://www.burnweedsta.xyz/assets/og-banner-v2.jpg" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="BURNING WEEDSTA · $CHRONIC on Monad" />
+<meta name="twitter:title" content="$CHRONIC — Burn on Monad · A Tribute to $Weedsta" />
 <meta name="twitter:description" content="The smoke that came after. $CHRONIC — 100% burn tribute. Live on Monad." />
 <meta name="twitter:image" content="https://www.burnweedsta.xyz/assets/og-banner-v2.jpg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -157,6 +157,26 @@ h2.sec .g{color:var(--green)} h2.sec .o{color:var(--ember)}
 .card p{font-size:14px;color:var(--dim)}
 .card p b{color:var(--green)}
 
+/* ---------- SMOKE SEASON TRAIL ---------- */
+.trail{position:relative;padding-left:8px}
+.trail-line{position:absolute;left:26px;top:14px;bottom:14px;width:3px;border-radius:3px;
+  background:linear-gradient(180deg,var(--green),var(--gold),var(--ember),var(--smoke));box-shadow:0 0 16px rgba(82,255,143,.4)}
+.season{position:relative;display:flex;gap:18px;align-items:flex-start;padding:0 0 26px 0}
+.season:last-child{padding-bottom:0}
+.dot{position:relative;z-index:2;flex:0 0 auto;width:50px;height:50px;border-radius:50%;display:grid;place-items:center;
+  font-size:22px;background:radial-gradient(circle,var(--panel2),var(--void));border:2px solid var(--gold2);
+  box-shadow:0 0 0 4px var(--void),0 0 22px rgba(245,207,87,.35)}
+.scard{flex:1;background:linear-gradient(180deg,rgba(16,26,18,.85),rgba(10,15,11,.85));border:1px solid var(--line);
+  border-radius:16px;padding:18px 20px;transition:transform .15s,border-color .2s}
+.scard:hover{transform:translateX(4px);border-color:var(--green-dim)}
+.scard .sn{font-family:var(--font-display);font-size:11px;letter-spacing:.18em;color:var(--ember)}
+.scard h3{font-family:var(--font-hero);font-size:26px;line-height:1;color:var(--gold);margin:4px 0 8px}
+.scard p{font-size:14px;color:var(--dim)} .scard p b{color:var(--green)}
+.season[data-s="01"] .dot{border-color:var(--green-dim)}
+.season[data-s="02"] .dot{border-color:var(--ember)}
+.season[data-s="03"] .dot{border-color:var(--gold2)}
+.season[data-s="04"] .dot{border-color:var(--purple)}
+
 /* ---------- INTERACTIVE MENU BOARD ---------- */
 .board{background:linear-gradient(160deg,rgba(107,52,168,.22),rgba(12,18,12,.92));border:1px solid rgba(168,92,255,.35);
   border-radius:22px;overflow:hidden;box-shadow:0 0 50px rgba(107,52,168,.28)}
@@ -252,7 +272,7 @@ footer .trib a{color:var(--ember);text-decoration:underline}
     <source src="/assets/splash-v2.mp4" type="video/mp4" />
   </video>
   <button class="splash-skip" id="splashSkip">skip ✕</button>
-  <div class="splash-tag">BURNING WEEDSTA</div>
+  <div class="splash-tag">$CHRONIC</div>
 </div>
 
 <div class="grain"></div>
@@ -265,7 +285,7 @@ footer .trib a{color:var(--ember);text-decoration:underline}
 
 <!-- NAV -->
 <nav>
-  <a class="brand" href="/"><img src="/assets/coin-logo.png" alt="" /> BURNING&nbsp;<span class="c">WEEDSTA</span></a>
+  <a class="brand" href="/"><img src="/assets/coin-logo.png" alt="" /> <span class="c">$CHRONIC</span></a>
   <a class="nav-buy" id="navBuyBtn" href="#" target="_blank" rel="noopener">🔥 BUY $CHRONIC</a>
 </nav>
 
@@ -282,7 +302,7 @@ footer .trib a{color:var(--ember);text-decoration:underline}
 <!-- HERO -->
 <header class="hero">
   <div class="stamp"><span class="dot"></span> LIT ON MONAD · CHAIN 143 · TICKER <b>$CHRONIC</b></div>
-  <h1><span class="b">BURNING</span><span class="c">$CHRONIC</span></h1>
+  <h1><span class="b">BURN</span><span class="c">$CHRONIC</span></h1>
   <div class="script">~ the smoke that came after ~</div>
   <p class="lead"><b>$Weedsta on Sol lit the first joint.</b> We hit it from Monad. Every transfer feeds the fire — no mint, no add, <em>just smoke</em>.</p>
   <div class="hero-art">
@@ -292,7 +312,7 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   </div>
   <div class="cta">
     <a class="btn btn-fire" id="heroBuyBtn" href="#" target="_blank" rel="noopener">🔥 BUY $CHRONIC ON NAD.FUN</a>
-    <a class="btn btn-ghost" href="#ritual">READ THE RITUAL</a>
+    <a class="btn btn-ghost" href="#season">THE SMOKE SEASON</a>
   </div>
   <div class="ca-pill">CA: <span class="a pending" id="caAddr">launching soon — drops in TG</span>
     <button id="copyCA" disabled>copy</button></div>
@@ -319,16 +339,29 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   </div>
 </section>
 
-<!-- RITUAL -->
-<section id="ritual">
-  <div class="kick">▸ How the fire works</div>
-  <h2 class="sec">THE <span class="g">RITUAL</span></h2>
-  <p class="sub">Four laws. No roadmap fluff, no team tokens, no second-guessing. You either burn or you don't.</p>
-  <div class="cards">
-    <div class="card rv"><div class="rn">I</div><h3>Every Transfer Burns</h3><p>A cut of every move feeds the fire and routes to <b>0xdead</b> — supply only ever goes down. The more it trades, the more it burns.</p></div>
-    <div class="card rv"><div class="rn">II</div><h3>No Mint · No Add</h3><p>Supply is fixed at launch. There is no faucet, no team unlock, no stealth mint. <b>What's gone is gone.</b></p></div>
-    <div class="card rv"><div class="rn">III</div><h3>The Burn Portal</h3><p>Send your own bag to the void on purpose. Public, on-chain, permanent. <b>The loyal feed the smoke themselves.</b></p></div>
-    <div class="card rv"><div class="rn">IV</div><h3>4:20 Double Burn</h3><p>Twice a day the window opens and the burn rate doubles. <b>Wake, bake, incinerate.</b> The heads know when.</p></div>
+<!-- SMOKE SEASON MAP -->
+<section id="season">
+  <div class="kick">▸ The grow → burn cycle</div>
+  <h2 class="sec">SMOKE <span class="g">SEASON</span></h2>
+  <p class="sub">No roadmap fluff. Just the seasons every gram of $CHRONIC moves through — from seed to permanent ash. Follow the trail.</p>
+  <div class="trail">
+    <div class="trail-line"></div>
+    <div class="season rv" data-s="01">
+      <div class="dot">🌱</div>
+      <div class="scard"><span class="sn">SEASON 01</span><h3>SEED</h3><p>$CHRONIC drops on <b>nad.fun</b>. The bonding curve gets planted. First heads pull up and the smoke starts.</p></div>
+    </div>
+    <div class="season rv" data-s="02">
+      <div class="dot">🔥</div>
+      <div class="scard"><span class="sn">SEASON 02</span><h3>BURN</h3><p>Every transfer feeds the fire — routed to <b>0xdead</b>. The 4:20 double-burn windows open daily. Supply only goes one way.</p></div>
+    </div>
+    <div class="season rv" data-s="03">
+      <div class="dot">🌿</div>
+      <div class="scard"><span class="sn">SEASON 03</span><h3>HARVEST</h3><p>Curve fills, $CHRONIC <b>graduates to the DEX</b>. Chart goes live, the stash menu locks in, the burn counter never stops.</p></div>
+    </div>
+    <div class="season rv" data-s="04">
+      <div class="dot">💨</div>
+      <div class="scard"><span class="sn">SEASON 04</span><h3>ETERNAL SMOKE</h3><p>No mint, no add, no end. The supply keeps shrinking, the ash keeps stacking. <b>The smoke that came after — forever.</b></p></div>
+    </div>
   </div>
 </section>
 
@@ -418,7 +451,7 @@ footer .trib a{color:var(--ember);text-decoration:underline}
 </section>
 
 <footer>
-  <div class="fb">BURNING <span class="c">WEEDSTA</span> · $CHRONIC · on Monad</div>
+  <div class="fb"><span class="c">$CHRONIC</span> · a tribute to $Weedsta on Solana · on Monad</div>
   <div class="caf">CA: <b id="caFoot">launching soon</b></div>
   The smoke that came after.
   <div class="trib" style="font-size:10px;margin-bottom:6px">Strain photography via <a href="https://openverse.org" target="_blank" rel="noopener">Openverse</a> · Creative Commons</div>
