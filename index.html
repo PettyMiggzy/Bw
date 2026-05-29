@@ -18,6 +18,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
 
+<!-- Leaflet for the smoke sessions map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
 <style>
 :root {
   --void:      #050505;
@@ -50,6 +53,10 @@ body {
   overflow-x: hidden;
   line-height: 1.6;
   min-height: 100vh;
+  cursor: url('/assets/bud-cursor.svg') 15 15, auto;
+}
+a, button, [role="button"], input, textarea, select, label {
+  cursor: url('/assets/bud-cursor.svg') 15 15, pointer;
 }
 
 /* === ambient background === */
@@ -62,23 +69,33 @@ body {
     radial-gradient(circle at 80% 100%, rgba(75,255,137,0.06) 0%, transparent 50%),
     radial-gradient(circle at 15% 60%, rgba(122,58,168,0.08) 0%, transparent 55%);
 }
-.embers {
+
+/* === SMOKE WISPS RISING === */
+.smoke-layer {
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
   overflow: hidden;
 }
-.ember {
-  position: absolute; width: 3px; height: 3px;
-  background: var(--ember);
+.wisp {
+  position: absolute;
+  bottom: -80px;
   border-radius: 50%;
-  box-shadow: 0 0 8px var(--ember-2);
+  background: radial-gradient(circle at 50% 50%, rgba(245,240,230,0.45) 0%, rgba(200,190,170,0.25) 40%, transparent 75%);
+  filter: blur(14px);
   opacity: 0;
-  animation: rise 9s linear infinite;
+  animation: rise-smoke linear infinite;
+  will-change: transform, opacity;
 }
-@keyframes rise {
-  0%   { transform: translateY(110vh) translateX(0) scale(1); opacity: 0; }
-  10%  { opacity: 0.9; }
-  90%  { opacity: 0.4; }
-  100% { transform: translateY(-10vh) translateX(40px) scale(0.4); opacity: 0; }
+.wisp.tinted-green {
+  background: radial-gradient(circle at 50% 50%, rgba(75,255,137,0.30) 0%, rgba(75,255,137,0.12) 40%, transparent 75%);
+}
+.wisp.tinted-purple {
+  background: radial-gradient(circle at 50% 50%, rgba(155,90,200,0.30) 0%, rgba(122,58,168,0.12) 40%, transparent 75%);
+}
+@keyframes rise-smoke {
+  0%   { transform: translate3d(0, 0, 0) scale(0.5); opacity: 0; }
+  10%  { opacity: 0.65; }
+  50%  { transform: translate3d(40px, -55vh, 0) scale(1.2); opacity: 0.5; }
+  100% { transform: translate3d(-30px, -115vh, 0) scale(1.7); opacity: 0; }
 }
 
 /* === TRIBUTE BANNER (top alert) === */
@@ -524,7 +541,7 @@ body {
 <body>
 
 <div class="ambient"></div>
-<div class="embers" id="embers"></div>
+<div class="smoke-layer" id="smokeLayer"></div>
 
 <!-- TRIBUTE BAR -->
 <div class="tribute-bar">
@@ -700,17 +717,21 @@ const DEAD = '0x000000000000000000000000000000000000dEaD';
 const ZERO = '0x0000000000000000000000000000000000000000';
 const RPC  = 'https://rpc.monad.xyz';
 
-/* ===== embers ===== */
-(function buildEmbers() {
-  const c = document.getElementById('embers');
-  for (let i = 0; i < 18; i++) {
-    const e = document.createElement('div');
-    e.className = 'ember';
-    e.style.left = Math.random() * 100 + 'vw';
-    e.style.animationDelay = (Math.random() * 9) + 's';
-    e.style.animationDuration = (7 + Math.random() * 6) + 's';
-    e.style.transform = `translateY(110vh) scale(${0.5 + Math.random()})`;
-    c.appendChild(e);
+/* ===== smoke wisps rising ===== */
+(function buildSmoke() {
+  const layer = document.getElementById('smokeLayer');
+  const COUNT = 28;
+  const tints = ['', 'tinted-green', 'tinted-purple', '', '', '', 'tinted-green'];   // weighted toward neutral
+  for (let i = 0; i < COUNT; i++) {
+    const w = document.createElement('div');
+    w.className = 'wisp ' + tints[i % tints.length];
+    const size = 60 + Math.random() * 140;     // 60–200px
+    w.style.width = size + 'px';
+    w.style.height = size + 'px';
+    w.style.left = Math.random() * 105 + 'vw';
+    w.style.animationDuration = (14 + Math.random() * 14) + 's';   // 14-28s lazy drift
+    w.style.animationDelay = (-Math.random() * 18) + 's';          // staggered so it's pre-filled at load
+    layer.appendChild(w);
   }
 })();
 
