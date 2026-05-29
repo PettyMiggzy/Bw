@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BURNING $WEEDSTA · The Smoke That Came After · Monad Tribute</title>
+<meta name="description" content="Burning $Weedsta on Monad Chain. A tribute to $Weedsta on Solana. 100% burn. The supply only goes down. Pull up. Light up. Burn." />
+
+<meta property="og:title" content="BURNING $WEEDSTA — on Monad Chain" />
+<meta property="og:description" content="The smoke that came after. 100% burn tribute to $Weedsta on Solana. Live on Monad." />
+<meta property="og:image" content="https://www.burningweedsta.xyz/assets/og-banner.jpg" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+
+<link rel="icon" type="image/png" href="/assets/favicon-192.png" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<style>
+:root {
+  --void:      #050505;
+  --void-2:    #0c0c0c;
+  --void-3:    #141414;
+  --gold:      #d4af37;
+  --gold-2:    #f2cc4f;
+  --gold-deep: #8a6a14;
+  --green:     #4bff89;
+  --green-2:   #00d957;
+  --green-deep:#0a5c2a;
+  --ember:     #ff6322;
+  --ember-2:   #ffb347;
+  --ember-deep:#a0290a;
+  --purple-smoke: #7a3aa8;
+  --text:      #f4ead2;
+  --text-dim:  #b1a989;
+  --text-faint:#666053;
+  --line:      rgba(212,175,55,0.22);
+  --f-display: 'Cinzel Decorative', serif;
+  --f-head:    'Cinzel', serif;
+  --f-mono:    'Space Mono', monospace;
+}
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--f-mono);
+  color: var(--text);
+  background: var(--void);
+  overflow-x: hidden;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* === ambient background === */
+.ambient {
+  position: fixed; inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,99,34,0.10) 0%, transparent 45%),
+    radial-gradient(circle at 80% 100%, rgba(75,255,137,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 15% 60%, rgba(122,58,168,0.08) 0%, transparent 55%);
+}
+.embers {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  overflow: hidden;
+}
+.ember {
+  position: absolute; width: 3px; height: 3px;
+  background: var(--ember);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--ember-2);
+  opacity: 0;
+  animation: rise 9s linear infinite;
+}
+@keyframes rise {
+  0%   { transform: translateY(110vh) translateX(0) scale(1); opacity: 0; }
+  10%  { opacity: 0.9; }
+  90%  { opacity: 0.4; }
+  100% { transform: translateY(-10vh) translateX(40px) scale(0.4); opacity: 0; }
+}
+
+/* === TRIBUTE BANNER (top alert) === */
+.tribute-bar {
+  position: relative; z-index: 50;
+  background: linear-gradient(90deg, var(--ember-deep), var(--gold-deep), var(--ember-deep));
+  color: var(--text);
+  text-align: center;
+  padding: 9px 14px;
+  font-family: var(--f-mono); font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(0,0,0,0.4);
+}
+.tribute-bar strong { color: var(--gold-2); font-weight: 700; }
+.tribute-bar a { color: var(--gold-2); text-decoration: underline; }
+
+/* === NAV === */
+.nav {
+  position: sticky; top: 0;
+  z-index: 40;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 22px;
+  background: rgba(5,5,5,0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--line);
+}
+.nav-brand {
+  display: flex; align-items: center; gap: 12px;
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: 2px;
+  color: var(--gold-2);
+  text-decoration: none;
+}
+.nav-brand img { width: 38px; height: 38px; }
+.nav-brand .sub { color: var(--green); font-family: var(--f-mono); font-size: 10px; letter-spacing: 1px; }
+.nav-links { display: flex; gap: 6px; align-items: center; }
+.nav-link {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+.nav-link:hover { color: var(--gold-2); }
+.nav-link.buy {
+  background: linear-gradient(135deg, var(--ember), var(--ember-deep));
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 0 18px rgba(255,99,34,0.4);
+}
+.nav-link.buy:hover { box-shadow: 0 0 30px rgba(255,99,34,0.6); transform: translateY(-1px); }
+@media (max-width: 700px) {
+  .nav { padding: 10px 14px; }
+  .nav-brand { font-size: 14px; gap: 10px; }
+  .nav-brand img { width: 32px; height: 32px; }
+  .nav-brand .sub { display: none; }
+  .nav-link:not(.buy) { display: none; }
+}
+
+/* === HERO === */
+.hero {
+  position: relative;
+  z-index: 2;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+  padding: 40px 18px 60px;
+  min-height: 92vh;
+}
+.hero-video-wrap {
+  position: relative;
+  width: min(520px, 88vw);
+  margin-bottom: 16px;
+  filter: drop-shadow(0 0 60px rgba(255,99,34,0.4));
+}
+.hero-video-wrap video {
+  width: 100%; height: auto;
+  display: block;
+  border-radius: 12px;
+}
+.hero h1 {
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-size: clamp(40px, 9vw, 92px);
+  line-height: 0.95;
+  letter-spacing: 2px;
+  margin: 16px 0 10px;
+  background: linear-gradient(180deg, var(--gold-2) 30%, var(--ember) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 50px rgba(255,99,34,0.35);
+}
+.hero .subtitle {
+  font-family: var(--f-mono);
+  font-size: 13px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 30px;
+  text-shadow: 0 0 14px rgba(75,255,137,0.45);
+}
+.hero-cta {
+  display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+  margin-bottom: 22px;
+}
+.btn {
+  font-family: var(--f-head);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 14px 28px;
+  border-radius: 8px;
+  transition: all 0.18s;
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--ember), var(--ember-deep));
+  color: #fff;
+  border-color: var(--ember-2);
+  box-shadow: 0 0 30px rgba(255,99,34,0.4);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 40px rgba(255,99,34,0.6); }
+.btn-ghost {
+  background: rgba(212,175,55,0.06);
+  color: var(--gold-2);
+  border-color: var(--gold-deep);
+}
+.btn-ghost:hover { background: rgba(212,175,55,0.14); transform: translateY(-2px); }
+
+/* === CA pill === */
+.ca-pill {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--void-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 8px 8px 18px;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  max-width: 92vw;
+}
+.ca-pill .ca-label { color: var(--green); letter-spacing: 1.5px; }
+.ca-pill .ca-addr { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ca-pill .ca-addr.pending { color: var(--text-faint); font-style: italic; }
+.ca-pill button {
+  font-family: var(--f-mono); font-size: 10px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  background: var(--gold); color: var(--void);
+  border: none; border-radius: 999px; padding: 7px 12px;
+  cursor: pointer; transition: background 0.15s;
+}
+.ca-pill button:hover { background: var(--gold-2); }
+.ca-pill button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* === BURN COUNTER === */
+.burn-section {
+  position: relative; z-index: 2;
+  padding: 70px 18px;
+  text-align: center;
+}
+.burn-card {
+  max-width: 720px; margin: 0 auto;
+  background: linear-gradient(180deg, rgba(20,12,8,0.85), rgba(8,4,2,0.95));
+  border: 2px solid var(--ember-deep);
+  border-radius: 22px;
+  padding: 38px 28px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 60px rgba(255,99,34,0.2), inset 0 0 40px rgba(255,99,34,0.06);
+}
+.burn-card::before {
+  content: ''; position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(circle at 50% 70%, rgba(255,99,34,0.15) 0%, transparent 40%);
+  pointer-events: none; animation: pulse 3.5s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
+.burn-card h2 {
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-size: clamp(28px, 5vw, 44px);
+  letter-spacing: 3px;
+  color: var(--ember-2);
+  margin-bottom: 6px;
+  text-shadow: 0 0 30px rgba(255,99,34,0.6);
+  position: relative; z-index: 1;
+}
+.burn-card .subhead {
+  font-family: var(--f-mono);
+  font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 26px;
+  position: relative; z-index: 1;
+}
+.burn-stats {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  position: relative; z-index: 1;
+}
+@media (max-width: 520px) { .burn-stats { grid-template-columns: 1fr; } }
+.burn-stat {
+  background: rgba(0,0,0,0.5);
+  border: 1px solid var(--gold-deep);
+  border-radius: 12px;
+  padding: 18px 12px;
+}
+.burn-stat-label {
+  font-family: var(--f-mono); font-size: 10px;
+  letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.burn-stat-value {
+  font-family: var(--f-display); font-weight: 900;
+  font-size: clamp(20px, 5vw, 30px);
+  color: var(--ember-2);
+  line-height: 1;
+  text-shadow: 0 0 14px rgba(255,99,34,0.4);
+}
+.burn-stat-value.loading { color: var(--text-faint); font-style: italic; }
+.burn-progress {
+  margin-top: 22px;
+  height: 14px;
+  background: rgba(0,0,0,0.7);
+  border-radius: 8px;
+  border: 1px solid var(--gold-deep);
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+.burn-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--ember-deep), var(--ember), var(--gold-2));
+  width: 0%;
+  transition: width 1.5s ease-out;
+  box-shadow: 0 0 14px rgba(255,99,34,0.7);
+}
+.burn-progress-label {
+  margin-top: 8px;
+  font-family: var(--f-mono); font-size: 11px;
+  color: var(--text-dim); letter-spacing: 1.5px;
+  position: relative; z-index: 1;
+}
+
+/* === SECTION === */
+.section {
+  position: relative; z-index: 2;
+  max-width: 1100px; margin: 0 auto;
+  padding: 70px 20px;
+}
+.section-tag {
+  font-family: var(--f-mono);
+  font-size: 11px; letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 12px;
+}
+.section-tag::before { content: ''; width: 30px; height: 2px; background: var(--ember); }
+.section h2 {
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-size: clamp(32px, 6vw, 56px);
+  line-height: 1.0;
+  letter-spacing: 2px;
+  margin-bottom: 24px;
+  color: var(--gold-2);
+}
+.section h2 .ember { color: var(--ember-2); }
+.section p.lead {
+  font-size: 15px; color: var(--text-dim);
+  max-width: 700px;
+  line-height: 1.75;
+}
+
+/* === BANNER VIDEO SECTION === */
+.banner-section {
+  position: relative; z-index: 2;
+  padding: 30px 0;
+  overflow: hidden;
+}
+.banner-section video {
+  display: block;
+  width: 100%;
+  max-height: 360px;
+  object-fit: cover;
+  filter: drop-shadow(0 0 40px rgba(122,58,168,0.4));
+}
+
+/* === RITUAL (4 doctrines) === */
+.ritual-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 36px;
+}
+@media (max-width: 700px) { .ritual-grid { grid-template-columns: 1fr; } }
+.ritual {
+  background: rgba(20,12,8,0.6);
+  border: 1px solid var(--gold-deep);
+  border-radius: 16px;
+  padding: 24px 22px;
+  transition: all 0.2s;
+  position: relative; overflow: hidden;
+}
+.ritual:hover {
+  border-color: var(--ember);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(255,99,34,0.18);
+}
+.ritual-num {
+  font-family: var(--f-display); font-weight: 900;
+  font-size: 38px;
+  color: var(--ember-deep);
+  line-height: 1; margin-bottom: 10px;
+}
+.ritual h3 {
+  font-family: var(--f-display); font-weight: 900;
+  font-size: 18px;
+  letter-spacing: 1.5px;
+  color: var(--gold-2);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.ritual p { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
+
+/* === JOIN STEPS === */
+.steps {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 36px;
+}
+@media (max-width: 700px) { .steps { grid-template-columns: 1fr; } }
+.step {
+  background: linear-gradient(160deg, var(--void-3), var(--void-2));
+  border: 1px solid var(--green-deep);
+  border-radius: 14px;
+  padding: 22px 20px;
+}
+.step-n {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  background: var(--green-2); color: var(--void);
+  font-family: var(--f-display); font-weight: 900; font-size: 17px;
+  border-radius: 50%;
+  margin-bottom: 12px;
+  box-shadow: 0 0 14px rgba(75,255,137,0.4);
+}
+.step h3 {
+  font-family: var(--f-display); font-weight: 900; font-size: 16px;
+  letter-spacing: 1.5px; color: var(--green);
+  margin-bottom: 6px; text-transform: uppercase;
+}
+.step p { font-size: 13px; color: var(--text-dim); }
+.step a { color: var(--ember-2); }
+
+/* === LINKS === */
+.swarm {
+  position: relative; z-index: 2;
+  text-align: center;
+  padding: 60px 18px 30px;
+  max-width: 800px; margin: 0 auto;
+}
+.swarm h2 {
+  font-family: var(--f-display); font-weight: 900;
+  font-size: clamp(32px, 6vw, 56px);
+  letter-spacing: 2px;
+  margin-bottom: 14px;
+  color: var(--gold-2);
+}
+.swarm h2 .ember { color: var(--ember-2); }
+.swarm p { color: var(--text-dim); margin-bottom: 30px; }
+.swarm-links {
+  display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+}
+.swarm-link {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  background: rgba(20,12,8,0.6);
+  border: 1px solid var(--gold-deep);
+  border-radius: 14px;
+  padding: 22px 32px;
+  text-decoration: none;
+  color: var(--text);
+  font-family: var(--f-head); font-weight: 700;
+  transition: all 0.18s;
+  min-width: 140px;
+}
+.swarm-link:hover {
+  border-color: var(--ember);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(255,99,34,0.25);
+  color: var(--ember-2);
+}
+.swarm-link .ico { font-size: 26px; }
+.swarm-link .label { font-size: 14px; letter-spacing: 2px; }
+.swarm-link .sub { font-family: var(--f-mono); font-size: 10px; color: var(--text-faint); font-weight: 400; }
+
+/* === FOOTER === */
+.footer {
+  position: relative; z-index: 2;
+  border-top: 1px solid var(--line);
+  padding: 32px 20px;
+  text-align: center;
+  font-family: var(--f-mono); font-size: 11px; color: var(--text-faint);
+  line-height: 1.8;
+}
+.footer .ca-foot {
+  color: var(--text-dim);
+  word-break: break-all;
+  margin-top: 6px;
+}
+.footer .ca-foot span { color: var(--gold-2); }
+.footer .tribute-line {
+  margin-top: 14px; padding-top: 14px;
+  border-top: 1px dashed rgba(212,175,55,0.15);
+  color: var(--text-faint);
+}
+.footer .tribute-line a { color: var(--gold-2); text-decoration: none; }
+
+/* === reveal === */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s, transform 0.7s; }
+.reveal.in { opacity: 1; transform: none; }
+
+/* === toast === */
+.toast {
+  position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: linear-gradient(135deg, var(--gold), var(--ember));
+  color: var(--void);
+  font-family: var(--f-mono); font-weight: 700; font-size: 12px;
+  padding: 12px 22px; border-radius: 10px; z-index: 500;
+  transition: transform 0.3s; box-shadow: 0 8px 30px rgba(255,99,34,0.5);
+  letter-spacing: 1px;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="ambient"></div>
+<div class="embers" id="embers"></div>
+
+<!-- TRIBUTE BAR -->
+<div class="tribute-bar">
+  🔥 <strong>TRIBUTE TO $WEEDSTA ON SOLANA</strong> · NOT AFFILIATED · OG: <a href="https://weedsta.space" target="_blank" rel="noopener">weedsta.space</a> · This is the Monad ritual 🔥
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="nav-brand" href="/">
+    <img src="/assets/logo-transparent.png" alt="" />
+    <span>BURNING $WEEDSTA <span class="sub">on Monad</span></span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="#ritual">Ritual</a>
+    <a class="nav-link" href="#burn">Burn</a>
+    <a class="nav-link" href="#join">Join</a>
+    <a class="nav-link buy" id="navBuyBtn" href="#" target="_blank" rel="noopener">🔥 Buy $BW</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-video-wrap">
+    <video autoplay muted loop playsinline poster="/assets/hero-poster.jpg">
+      <source src="/assets/hero-loop.mp4" type="video/mp4" />
+      <img src="/assets/hero-burning-weedsta.png" alt="Burning $Weedsta" />
+    </video>
+  </div>
+  <h1>BURNING $WEEDSTA</h1>
+  <div class="subtitle">▸ THE SMOKE THAT CAME AFTER ▸</div>
+  <div class="hero-cta">
+    <a class="btn btn-primary" id="heroBuyBtn" href="#" target="_blank" rel="noopener">🔥 BUY $BW ON NAD.FUN</a>
+    <a class="btn btn-ghost" href="#ritual">READ THE RITUAL</a>
+  </div>
+  <div class="ca-pill">
+    <span class="ca-label">CA</span>
+    <span class="ca-addr pending" id="caAddr">launching soon · check pinned in TG</span>
+    <button id="copyCA" disabled>Copy</button>
+  </div>
+</header>
+
+<!-- BURN COUNTER -->
+<section class="burn-section" id="burn">
+  <div class="burn-card reveal">
+    <h2>THE BURN</h2>
+    <div class="subhead">▸ supply only goes down ▸ live from chain ▸</div>
+    <div class="burn-stats">
+      <div class="burn-stat">
+        <div class="burn-stat-label">🔥 Burned</div>
+        <div class="burn-stat-value loading" id="stBurned">—</div>
+      </div>
+      <div class="burn-stat">
+        <div class="burn-stat-label">Remaining Supply</div>
+        <div class="burn-stat-value loading" id="stSupply">—</div>
+      </div>
+      <div class="burn-stat">
+        <div class="burn-stat-label">% Incinerated</div>
+        <div class="burn-stat-value loading" id="stPct">—</div>
+      </div>
+      <div class="burn-stat">
+        <div class="burn-stat-label">Holders</div>
+        <div class="burn-stat-value loading" id="stHolders">—</div>
+      </div>
+    </div>
+    <div class="burn-progress"><div class="burn-progress-fill" id="burnFill"></div></div>
+    <div class="burn-progress-label" id="burnLabel">awaiting launch · counter goes live with the contract</div>
+  </div>
+</section>
+
+<!-- BANNER VIDEO -->
+<section class="banner-section">
+  <video autoplay muted loop playsinline poster="/assets/banner-poster.jpg">
+    <source src="/assets/banner-loop.mp4" type="video/mp4" />
+  </video>
+</section>
+
+<!-- THE RITUAL -->
+<section class="section" id="ritual">
+  <div class="section-tag reveal">The Ritual</div>
+  <h2 class="reveal">Every transfer <span class="ember">burns.</span></h2>
+  <p class="lead reveal">$Weedsta on Solana lit the first joint — the resistance, the signal in the noise. We heard it from Monad. This is the second hit. Hotter, faster, deflationary. Every transfer is sacred. Every transfer burns. The supply is the offering. The smoke is the proof. The ash is the chart.</p>
+  <div class="ritual-grid">
+    <div class="ritual reveal">
+      <div class="ritual-num">I</div>
+      <h3>The Supply Burns</h3>
+      <p>Every transfer feeds the fire. No mint. No add. The joint only gets smaller. Until only the loyal remain holding embers.</p>
+    </div>
+    <div class="ritual reveal">
+      <div class="ritual-num">II</div>
+      <h3>The OGs Lit It First</h3>
+      <p>Full respect to $Weedsta on Solana. They woke the streets. We pay tribute by burning on a different chain — never claiming their name, never stealing their fire.</p>
+    </div>
+    <div class="ritual reveal">
+      <div class="ritual-num">III</div>
+      <h3>Monad Is The Altar</h3>
+      <p>200M gas blocks. Sub-second finality. The fastest EVM in production. The burn doesn't lag. The smoke rises clean.</p>
+    </div>
+    <div class="ritual reveal">
+      <div class="ritual-num">IV</div>
+      <h3>Pass The Lighter</h3>
+      <p>Loyal heads pass it on. Tourists get smoked out. The ritual doesn't end. The fire doesn't ask. Light to light, hit to hit.</p>
+    </div>
+  </div>
+</section>
+
+<!-- JOIN -->
+<section class="section" id="join">
+  <div class="section-tag reveal">Join The Ritual</div>
+  <h2 class="reveal">Light <span class="ember">your match.</span></h2>
+  <p class="lead reveal">Three steps. No interview. No application. Just smoke.</p>
+  <div class="steps">
+    <div class="step reveal">
+      <div class="step-n">1</div>
+      <h3>Get A Wallet</h3>
+      <p>MetaMask, Rabby, or Phantom. Add Monad mainnet. Bridge MON via <a href="https://bridge.monad.xyz" target="_blank" rel="noopener">bridge.monad.xyz</a>.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-n">2</div>
+      <h3>Buy On nad.fun</h3>
+      <p>Paste the contract on <a href="https://nad.fun" target="_blank" rel="noopener">nad.fun</a>, swap MON for $BW. Welcome to the smoke.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-n">3</div>
+      <h3>Hold The Fire</h3>
+      <p>Join <a href="https://t.me/burnweedsta" target="_blank" rel="noopener">Telegram</a>. Watch the supply burn. Pass the lighter. The loyal stay forever.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SWARM -->
+<section class="swarm" id="swarm">
+  <h2>Find <span class="ember">the heads.</span></h2>
+  <p>The ritual is loudest where the loyal gather.</p>
+  <div class="swarm-links">
+    <a class="swarm-link" href="https://t.me/burnweedsta" target="_blank" rel="noopener">
+      <span class="ico">✈️</span>
+      <span class="label">TELEGRAM</span>
+      <span class="sub">the cipher</span>
+    </a>
+    <a class="swarm-link" id="xLink" href="#" target="_blank" rel="noopener">
+      <span class="ico">𝕏</span>
+      <span class="label">TWITTER</span>
+      <span class="sub">@burnweedsta</span>
+    </a>
+    <a class="swarm-link" id="buyLink" href="#" target="_blank" rel="noopener">
+      <span class="ico">🔥</span>
+      <span class="label">BUY $BW</span>
+      <span class="sub">nad.fun</span>
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  BURNING $WEEDSTA · on Monad · The smoke that came after.
+  <div class="ca-foot"><span>CA:</span> <span id="caFoot">launching soon</span></div>
+  <div class="tribute-line">
+    Tribute to <a href="https://weedsta.space" target="_blank" rel="noopener">$Weedsta on Solana</a>. Not affiliated. Built by Monad heads with full respect to the OGs.
+  </div>
+</footer>
+
+<div class="toast" id="toast">copied 🔥</div>
+
+<script>
+/* ===========================================================
+   BURN COUNTER + token wiring
+   When King deploys the token, set TOKEN below. Everything
+   else updates automatically.
+   =========================================================== */
+const TOKEN = '';                       // ← paste the BurningWeedsta contract address here after deploy
+const INITIAL_SUPPLY = 1_000_000_000;   // 1B tokens default — adjust to match contract
+const DEAD = '0x000000000000000000000000000000000000dEaD';
+const ZERO = '0x0000000000000000000000000000000000000000';
+const RPC  = 'https://rpc.monad.xyz';
+
+/* ===== embers ===== */
+(function buildEmbers() {
+  const c = document.getElementById('embers');
+  for (let i = 0; i < 18; i++) {
+    const e = document.createElement('div');
+    e.className = 'ember';
+    e.style.left = Math.random() * 100 + 'vw';
+    e.style.animationDelay = (Math.random() * 9) + 's';
+    e.style.animationDuration = (7 + Math.random() * 6) + 's';
+    e.style.transform = `translateY(110vh) scale(${0.5 + Math.random()})`;
+    c.appendChild(e);
+  }
+})();
+
+/* ===== buy link wiring ===== */
+function setBuyLink() {
+  const url = TOKEN ? `https://nad.fun/tokens/${TOKEN}` : 'https://t.me/burnweedsta';
+  document.getElementById('navBuyBtn').href = url;
+  document.getElementById('heroBuyBtn').href = url;
+  document.getElementById('buyLink').href = url;
+  document.getElementById('xLink').href = 'https://x.com/burnweedsta';
+
+  if (TOKEN) {
+    document.getElementById('caAddr').textContent = TOKEN;
+    document.getElementById('caAddr').classList.remove('pending');
+    document.getElementById('caFoot').textContent = TOKEN;
+    document.getElementById('copyCA').disabled = false;
+  }
+}
+setBuyLink();
+
+/* ===== copy CA ===== */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+document.getElementById('copyCA').addEventListener('click', async () => {
+  if (!TOKEN) return;
+  try { await navigator.clipboard.writeText(TOKEN); showToast('contract copied 🔥'); }
+  catch { showToast('copy failed — long-press to select'); }
+});
+
+/* ===== burn counter ===== */
+const fmt = n => {
+  n = Number(n);
+  if (!isFinite(n) || n <= 0) return '—';
+  if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return n.toFixed(0);
+};
+
+async function ethCall(to, data) {
+  const r = await fetch(RPC, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_call', params: [{ to, data }, 'latest'], id: 1 }),
+  });
+  const j = await r.json();
+  return j.result;
+}
+
+async function readSupplyAndBurns() {
+  if (!TOKEN) return null;
+  // totalSupply() selector 0x18160ddd
+  // balanceOf(address) selector 0x70a08231
+  const padAddr = a => '0x70a08231' + '000000000000000000000000' + a.slice(2).toLowerCase();
+  try {
+    const [ts, deadBal, zeroBal] = await Promise.all([
+      ethCall(TOKEN, '0x18160ddd'),
+      ethCall(TOKEN, padAddr(DEAD)),
+      ethCall(TOKEN, padAddr(ZERO)),
+    ]);
+    const totalSupply = BigInt(ts || '0x0');
+    const burnedDead  = BigInt(deadBal || '0x0');
+    const burnedZero  = BigInt(zeroBal || '0x0');
+    // burned (off-supply) = initial - circulating  (where circulating = totalSupply - balances at dead/zero if those count as held)
+    // simpler model: any tokens NOT in totalSupply got burned via _burn().
+    //                tokens AT dead/zero got "sent to burn" but still counted in totalSupply.
+    // We surface both so the number is honest:
+    //   "burned" = (INITIAL × 10^18) - totalSupply + balanceOf(dead) + balanceOf(zero)
+    const initWei = BigInt(INITIAL_SUPPLY) * 10n ** 18n;
+    const totalBurned = (initWei - totalSupply) + burnedDead + burnedZero;
+    return {
+      totalSupplyTokens: Number(totalSupply) / 1e18,
+      burnedTokens:      Math.max(0, Number(totalBurned) / 1e18),
+    };
+  } catch (e) {
+    console.warn('[burn] read failed:', e);
+    return null;
+  }
+}
+
+async function refreshBurnCounter() {
+  const setVal = (id, val, removeLoading = true) => {
+    const el = document.getElementById(id);
+    el.textContent = val;
+    if (removeLoading) el.classList.remove('loading');
+  };
+
+  // 1. on-chain reads (totalSupply + balance of dead/zero)
+  const onchain = await readSupplyAndBurns();
+  if (onchain) {
+    const burned = onchain.burnedTokens;
+    const remaining = onchain.totalSupplyTokens;
+    const pct = (burned / INITIAL_SUPPLY) * 100;
+
+    setVal('stBurned',  fmt(burned));
+    setVal('stSupply',  fmt(remaining));
+    setVal('stPct',     pct.toFixed(2) + '%');
+
+    document.getElementById('burnFill').style.width = Math.min(100, pct) + '%';
+    document.getElementById('burnLabel').textContent =
+      `${fmt(burned)} of ${fmt(INITIAL_SUPPLY)} incinerated · ${pct.toFixed(2)}% gone forever`;
+  }
+
+  // 2. holder count via nad.fun API (cheap, cached)
+  if (TOKEN) {
+    try {
+      const r = await fetch(`https://api.nadapp.net/token/${TOKEN}`, { cache: 'no-cache' });
+      const d = await r.json();
+      const h = d?.token_info?.holder_count || d?.market_info?.holder_count;
+      if (h) setVal('stHolders', Number(h).toLocaleString());
+    } catch {}
+  }
+}
+
+if (TOKEN) {
+  refreshBurnCounter();
+  setInterval(refreshBurnCounter, 25_000);
+}
+
+/* ===== scroll reveal ===== */
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
