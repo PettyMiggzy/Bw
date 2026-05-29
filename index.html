@@ -521,9 +521,38 @@ a, button, [role="button"], input, textarea, select, label {
 }
 .footer .tribute-line a { color: var(--gold-2); text-decoration: none; }
 
-/* === reveal === */
-.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s, transform 0.7s; }
-.reveal.in { opacity: 1; transform: none; }
+/* === FALL-IN-PLACE reveal === */
+.reveal {
+  opacity: 0;
+  transform: translateY(-90px) rotateX(20deg) scale(0.92);
+  transform-origin: center top;
+  transition:
+    opacity 0.9s cubic-bezier(0.16, 0.84, 0.44, 1),
+    transform 1.05s cubic-bezier(0.18, 0.89, 0.32, 1.18);
+  will-change: transform, opacity;
+}
+.reveal.in { opacity: 1; transform: translateY(0) rotateX(0) scale(1); }
+
+/* Stagger children of a .reveal-group */
+.reveal-group > * {
+  opacity: 0;
+  transform: translateY(-60px) scale(0.94);
+  transition:
+    opacity 0.75s cubic-bezier(0.16, 0.84, 0.44, 1),
+    transform 0.85s cubic-bezier(0.18, 0.89, 0.32, 1.18);
+  will-change: transform, opacity;
+}
+.reveal-group.in > * { opacity: 1; transform: none; }
+.reveal-group.in > *:nth-child(1) { transition-delay: 0ms; }
+.reveal-group.in > *:nth-child(2) { transition-delay: 90ms; }
+.reveal-group.in > *:nth-child(3) { transition-delay: 180ms; }
+.reveal-group.in > *:nth-child(4) { transition-delay: 270ms; }
+.reveal-group.in > *:nth-child(5) { transition-delay: 360ms; }
+.reveal-group.in > *:nth-child(6) { transition-delay: 450ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .reveal-group > * { transition: none !important; transform: none !important; opacity: 1 !important; }
+}
 
 /* === toast === */
 .toast {
@@ -536,6 +565,322 @@ a, button, [role="button"], input, textarea, select, label {
   letter-spacing: 1px;
 }
 .toast.show { transform: translateX(-50%) translateY(0); }
+
+/* === LIVE PRICE STRIP (just below nav, only shown post-launch) === */
+.price-strip {
+  display: none;
+  position: sticky; top: 0; z-index: 39;
+  background: rgba(8,8,8,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+  padding: 8px 14px;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+.price-strip::-webkit-scrollbar { display: none; }
+.price-strip.live { display: block; }
+.price-strip .px-item {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-right: 22px;
+  font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.5px;
+}
+.price-strip .px-label { color: var(--text-faint); text-transform: uppercase; font-size: 10px; letter-spacing: 1.5px; }
+.price-strip .px-value { color: var(--gold-2); font-weight: 700; }
+.price-strip .px-value.up   { color: var(--green); }
+.price-strip .px-value.down { color: var(--ember-2); }
+
+/* === 420 COUNTDOWN PILL === */
+.countdown-pill {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: linear-gradient(135deg, rgba(75,255,137,0.12), rgba(122,58,168,0.12));
+  border: 1px solid rgba(75,255,137,0.35);
+  border-radius: 999px;
+  padding: 9px 16px;
+  margin-bottom: 22px;
+  font-family: var(--f-mono);
+  font-size: 11px; letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--green);
+  box-shadow: 0 0 24px rgba(75,255,137,0.18);
+}
+.countdown-pill .lbl { color: var(--text-dim); }
+.countdown-pill .clk { color: var(--gold-2); font-weight: 700; min-width: 70px; text-align: center; }
+.countdown-pill .now { color: var(--ember-2); animation: blink 1.2s steps(2) infinite; }
+@keyframes blink { 0%,49% { opacity: 1; } 50%,100% { opacity: 0.35; } }
+
+/* === STRAIN OF THE DAY === */
+.strain-day-card {
+  max-width: 760px; margin: 0 auto;
+  background:
+    radial-gradient(circle at 80% 20%, rgba(75,255,137,0.10), transparent 50%),
+    linear-gradient(180deg, rgba(20,20,16,0.85), rgba(10,10,8,0.95));
+  border: 2px solid var(--green-deep);
+  border-radius: 20px;
+  padding: 30px 28px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 22px;
+  align-items: center;
+  box-shadow: 0 0 50px rgba(75,255,137,0.12);
+}
+@media (max-width: 640px) { .strain-day-card { grid-template-columns: 1fr; text-align: center; gap: 18px; } }
+.strain-day-card .icon {
+  width: 90px; height: 90px;
+  background: radial-gradient(circle, var(--green-2), var(--green-deep));
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 48px;
+  border: 2px solid var(--gold);
+  flex-shrink: 0;
+  margin: 0 auto;
+}
+.strain-day-card .label {
+  font-family: var(--f-mono); font-size: 10px;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: var(--green); margin-bottom: 4px;
+}
+.strain-day-card h3 {
+  font-family: var(--f-display); font-weight: 900;
+  font-size: clamp(22px, 4vw, 32px);
+  color: var(--gold-2);
+  margin-bottom: 6px; letter-spacing: 1px;
+}
+.strain-day-card .meta {
+  font-family: var(--f-mono); font-size: 12px;
+  color: var(--text-dim); margin-bottom: 10px;
+}
+.strain-day-card .meta .type {
+  display: inline-block;
+  padding: 2px 8px; border-radius: 4px;
+  margin-right: 6px;
+  font-size: 10px; letter-spacing: 1px; text-transform: uppercase; font-weight: 700;
+}
+.strain-day-card .meta .type.indica { background: var(--purple-smoke); color: #fff; }
+.strain-day-card .meta .type.sativa { background: var(--ember); color: var(--void); }
+.strain-day-card .meta .type.hybrid { background: var(--green-2); color: var(--void); }
+.strain-day-card p.desc { font-size: 13px; color: var(--text-dim); line-height: 1.65; margin-bottom: 12px; }
+.strain-day-card .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.strain-day-card .chip {
+  font-family: var(--f-mono); font-size: 10px;
+  padding: 4px 10px; border-radius: 999px;
+  background: rgba(75,255,137,0.08);
+  border: 1px solid rgba(75,255,137,0.25);
+  color: var(--green);
+  letter-spacing: 0.5px;
+}
+
+/* === SMOKE SESSIONS MAP === */
+.sessions-wrap {
+  max-width: 1100px; margin: 0 auto;
+}
+.sessions-counter {
+  text-align: center;
+  font-family: var(--f-mono); font-size: 13px;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 18px;
+}
+.sessions-counter strong {
+  color: var(--gold-2); font-weight: 700;
+  font-family: var(--f-display); font-size: 22px;
+  margin: 0 4px;
+}
+#sessionMap {
+  width: 100%; height: 480px;
+  border-radius: 18px;
+  border: 2px solid var(--green-deep);
+  box-shadow: 0 0 50px rgba(75,255,137,0.12);
+  background: #0a0a0a;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+#sessionMap .leaflet-container { background: #0a0a0a; }
+.leaflet-container { font-family: var(--f-mono); }
+.leaflet-popup-content-wrapper {
+  background: var(--void-2); color: var(--text);
+  border: 1px solid var(--gold-deep);
+  border-radius: 12px; box-shadow: 0 0 30px rgba(75,255,137,0.2);
+}
+.leaflet-popup-tip { background: var(--gold-deep); }
+.leaflet-popup-content { margin: 14px 16px; min-width: 200px; }
+.leaflet-popup-content .pop-strain { font-family: var(--f-display); font-size: 16px; color: var(--green); font-weight: 700; margin-bottom: 4px; }
+.leaflet-popup-content .pop-region { font-size: 11px; color: var(--gold-2); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.leaflet-popup-content .pop-vibe { font-size: 12px; color: var(--text-dim); margin-bottom: 10px; font-style: italic; }
+.leaflet-popup-content .pop-hits { font-size: 11px; color: var(--ember-2); margin-bottom: 8px; }
+.leaflet-popup-content button {
+  width: 100%; padding: 8px;
+  background: var(--green-2); color: var(--void);
+  border: none; border-radius: 6px;
+  font-family: var(--f-mono); font-size: 11px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  cursor: pointer; transition: background 0.15s;
+}
+.leaflet-popup-content button:hover { background: var(--green); }
+.leaflet-popup-content button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.session-form {
+  margin-top: 22px;
+  background: rgba(8,8,8,0.7);
+  border: 1px solid var(--gold-deep);
+  border-radius: 14px;
+  padding: 20px;
+}
+.session-form h4 {
+  font-family: var(--f-display); font-weight: 900;
+  font-size: 16px; letter-spacing: 1.5px;
+  color: var(--gold-2); margin-bottom: 14px;
+}
+.session-form .row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;
+}
+@media (max-width: 600px) { .session-form .row { grid-template-columns: 1fr; } }
+.session-form label {
+  display: block;
+  font-family: var(--f-mono); font-size: 10px; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px;
+}
+.session-form input, .session-form select {
+  width: 100%;
+  background: var(--void); color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: var(--f-mono); font-size: 13px;
+}
+.session-form input:focus, .session-form select:focus {
+  outline: none; border-color: var(--green);
+  box-shadow: 0 0 12px rgba(75,255,137,0.2);
+}
+.session-form .submit {
+  width: 100%;
+  margin-top: 8px;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--green-2), var(--green-deep));
+  color: var(--void);
+  border: none; border-radius: 10px;
+  font-family: var(--f-display); font-weight: 700;
+  font-size: 14px; letter-spacing: 2px; text-transform: uppercase;
+  cursor: pointer; transition: all 0.15s;
+}
+.session-form .submit:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(75,255,137,0.3); }
+.session-form .submit:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+.session-form .hint {
+  font-family: var(--f-mono); font-size: 10px;
+  color: var(--text-faint); margin-top: 8px; line-height: 1.5;
+}
+
+/* === STRAIN INDEX === */
+.strain-index-wrap { max-width: 1100px; margin: 0 auto; }
+.strain-search {
+  width: 100%;
+  max-width: 480px; margin: 0 auto 28px;
+  display: block;
+  background: var(--void-2); color: var(--text);
+  border: 1px solid var(--gold-deep);
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-family: var(--f-mono); font-size: 14px;
+}
+.strain-search:focus {
+  outline: none; border-color: var(--green);
+  box-shadow: 0 0 14px rgba(75,255,137,0.2);
+}
+.strain-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.strain-card {
+  background: rgba(20,20,16,0.6);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.strain-card:hover {
+  border-color: var(--green);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(75,255,137,0.15);
+}
+.strain-card .name {
+  font-family: var(--f-display); font-weight: 900;
+  font-size: 16px; color: var(--gold-2);
+  letter-spacing: 0.5px;
+}
+.strain-card .row {
+  display: flex; align-items: center; gap: 6px; font-size: 11px;
+}
+.strain-card .type {
+  padding: 2px 8px; border-radius: 4px;
+  font-family: var(--f-mono); font-size: 9px;
+  letter-spacing: 1px; text-transform: uppercase; font-weight: 700;
+}
+.strain-card .type.indica { background: var(--purple-smoke); color: #fff; }
+.strain-card .type.sativa { background: var(--ember); color: var(--void); }
+.strain-card .type.hybrid { background: var(--green-2); color: var(--void); }
+.strain-card .thc { color: var(--text-dim); font-family: var(--f-mono); }
+.strain-card .effects {
+  font-family: var(--f-mono); font-size: 10px;
+  color: var(--text-dim); line-height: 1.5;
+}
+.strain-empty {
+  grid-column: 1 / -1;
+  text-align: center; padding: 40px 20px;
+  color: var(--text-faint); font-family: var(--f-mono);
+}
+
+/* Strain modal */
+.strain-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(8px);
+  z-index: 600;
+  display: none;
+  align-items: center; justify-content: center;
+  padding: 18px;
+}
+.strain-modal.show { display: flex; }
+.strain-modal-card {
+  max-width: 540px; width: 100%;
+  max-height: 88vh; overflow-y: auto;
+  background: linear-gradient(180deg, var(--void-3), var(--void));
+  border: 2px solid var(--green);
+  border-radius: 18px;
+  padding: 28px;
+  position: relative;
+  box-shadow: 0 0 60px rgba(75,255,137,0.25);
+}
+.strain-modal-card .close {
+  position: absolute; top: 12px; right: 14px;
+  background: transparent; border: none;
+  color: var(--text-dim); font-size: 24px; cursor: pointer;
+  padding: 4px 10px;
+}
+.strain-modal-card h3 {
+  font-family: var(--f-display); font-weight: 900;
+  font-size: 28px; color: var(--gold-2);
+  margin-bottom: 6px; letter-spacing: 1px;
+}
+.strain-modal-card .meta { margin-bottom: 14px; }
+.strain-modal-card .desc { color: var(--text-dim); font-size: 14px; line-height: 1.7; margin-bottom: 16px; }
+.strain-modal-card .group { margin-bottom: 12px; }
+.strain-modal-card .group-label {
+  font-family: var(--f-mono); font-size: 10px;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--green); margin-bottom: 6px;
+}
+.strain-modal-card .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.strain-modal-card .chip {
+  font-family: var(--f-mono); font-size: 11px;
+  padding: 4px 10px; border-radius: 999px;
+  background: rgba(75,255,137,0.08);
+  border: 1px solid rgba(75,255,137,0.25);
+  color: var(--green);
+}
 </style>
 </head>
 <body>
@@ -557,13 +902,28 @@ a, button, [role="button"], input, textarea, select, label {
   <div class="nav-links">
     <a class="nav-link" href="#ritual">Ritual</a>
     <a class="nav-link" href="#burn">Burn</a>
-    <a class="nav-link" href="#join">Join</a>
+    <a class="nav-link" href="#sessions">Sessions</a>
+    <a class="nav-link" href="#strains">Strains</a>
     <a class="nav-link buy" id="navBuyBtn" href="#" target="_blank" rel="noopener">🔥 Buy $BW</a>
   </div>
 </nav>
 
+<!-- LIVE PRICE STRIP (auto-shows when TOKEN constant is set) -->
+<div class="price-strip" id="priceStrip">
+  <div class="px-item"><span class="px-label">$BW</span><span class="px-value" id="pxPrice">—</span></div>
+  <div class="px-item"><span class="px-label">24h</span><span class="px-value" id="pxChange">—</span></div>
+  <div class="px-item"><span class="px-label">MCap</span><span class="px-value" id="pxMc">—</span></div>
+  <div class="px-item"><span class="px-label">Vol</span><span class="px-value" id="pxVol">—</span></div>
+  <div class="px-item"><span class="px-label">Holders</span><span class="px-value" id="pxHolders">—</span></div>
+  <div class="px-item"><span class="px-label">Burned</span><span class="px-value" id="pxBurned">—</span></div>
+</div>
+
 <!-- HERO -->
 <header class="hero">
+  <div class="countdown-pill" id="countdown">
+    <span class="lbl">▸ Next 4:20 in</span>
+    <span class="clk" id="countdownClk">—</span>
+  </div>
   <div class="hero-video-wrap">
     <video autoplay muted loop playsinline poster="/assets/hero-poster.jpg">
       <source src="/assets/hero-loop.mp4" type="video/mp4" />
@@ -616,6 +976,66 @@ a, button, [role="button"], input, textarea, select, label {
   <video autoplay muted loop playsinline poster="/assets/banner-poster.jpg">
     <source src="/assets/banner-loop.mp4" type="video/mp4" />
   </video>
+</section>
+
+<!-- STRAIN OF THE DAY -->
+<section class="section" id="strain-day">
+  <div class="section-tag reveal">Strain of the Day</div>
+  <h2 class="reveal">Today's <span class="ember">burn pick.</span></h2>
+  <p class="lead reveal">Rotates daily. One strain at a time. Smoke responsibly, burn aggressively.</p>
+  <div class="strain-day-card reveal" id="strainDayCard">
+    <div class="icon">🌿</div>
+    <div>
+      <div class="label">▸ Today's Strain ▸</div>
+      <h3 id="sdName">loading…</h3>
+      <div class="meta" id="sdMeta"></div>
+      <p class="desc" id="sdDesc"></p>
+      <div class="chips" id="sdChips"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SMOKE SESSIONS MAP -->
+<section class="section" id="sessions">
+  <div class="section-tag reveal">Smoke Sessions</div>
+  <h2 class="reveal">The swarm is <span class="ember">burning.</span></h2>
+  <p class="lead reveal">Drop a pin. Pick a strain. The heads worldwide can see your session light up — and join the hit. Sessions fade after 4:20 hours. No exact location, no doxx, just region + vibe.</p>
+  <div class="sessions-wrap reveal">
+    <div class="sessions-counter">
+      <strong id="sessCount">0</strong> sessions burning right now
+    </div>
+    <div id="sessionMap"></div>
+    <div class="session-form">
+      <h4>🌿 Drop your session</h4>
+      <div class="row">
+        <div>
+          <label for="sessRegion">City / Region</label>
+          <input id="sessRegion" type="text" maxlength="40" placeholder="e.g. Brooklyn, NY" />
+        </div>
+        <div>
+          <label for="sessStrain">Strain</label>
+          <select id="sessStrain"><option>loading…</option></select>
+        </div>
+      </div>
+      <div>
+        <label for="sessVibe">Vibe note (optional)</label>
+        <input id="sessVibe" type="text" maxlength="80" placeholder="e.g. burn session for $BW launch 🔥" />
+      </div>
+      <button class="submit" id="sessSubmit">💨 LIGHT IT UP</button>
+      <div class="hint">City-level only · no GPS · auto-expires in 4h 20m · 1 session per device per 12h</div>
+    </div>
+  </div>
+</section>
+
+<!-- STRAIN INDEX -->
+<section class="section" id="strains">
+  <div class="section-tag reveal">The Index</div>
+  <h2 class="reveal">All the <span class="ember">strains.</span></h2>
+  <p class="lead reveal">Search any strain. Effects, flavors, lineage. Curated heads-pick database.</p>
+  <div class="strain-index-wrap reveal">
+    <input class="strain-search" id="strainSearch" type="search" placeholder="🔍  search by name, effect, flavor…" />
+    <div class="strain-grid" id="strainGrid"></div>
+  </div>
 </section>
 
 <!-- THE RITUAL -->
@@ -704,6 +1124,27 @@ a, button, [role="button"], input, textarea, select, label {
 </footer>
 
 <div class="toast" id="toast">copied 🔥</div>
+
+<!-- Strain detail modal -->
+<div class="strain-modal" id="strainModal">
+  <div class="strain-modal-card">
+    <button class="close" id="strainModalClose">✕</button>
+    <h3 id="smName">—</h3>
+    <div class="meta" id="smMeta"></div>
+    <p class="desc" id="smDesc"></p>
+    <div class="group">
+      <div class="group-label">Effects</div>
+      <div class="chips" id="smEffects"></div>
+    </div>
+    <div class="group">
+      <div class="group-label">Flavors</div>
+      <div class="chips" id="smFlavors"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Leaflet (smoke sessions map) -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
 <script>
 /* ===========================================================
@@ -855,11 +1296,406 @@ if (TOKEN) {
   setInterval(refreshBurnCounter, 25_000);
 }
 
-/* ===== scroll reveal ===== */
+/* ===== scroll reveal — handles both .reveal and .reveal-group ===== */
 const io = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
-}, { threshold: 0.12 });
-document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+}, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+document.querySelectorAll('.reveal, .reveal-group').forEach(el => io.observe(el));
+
+/* ===========================================================
+   420 COUNTDOWN — next 4:20 PM in user's local time
+   =========================================================== */
+(function startCountdown() {
+  const clk = document.getElementById('countdownClk');
+  if (!clk) return;
+  function next420() {
+    const now = new Date();
+    // pick whichever 4:20 (AM or PM) is next within 12h, weighted PM since that's the iconic one
+    const pm = new Date(now); pm.setHours(16, 20, 0, 0);
+    const am = new Date(now); am.setHours(4, 20, 0, 0);
+    let target;
+    if (now < am) target = am;
+    else if (now < pm) target = pm;
+    else { target = new Date(am); target.setDate(target.getDate() + 1); }
+    return target;
+  }
+  function tick() {
+    const t = next420();
+    const ms = t - new Date();
+    if (ms <= 0) { clk.innerHTML = '<span class="now">🔥 LIGHT IT NOW</span>'; return; }
+    const h = Math.floor(ms / 3.6e6);
+    const m = Math.floor((ms % 3.6e6) / 6e4);
+    const s = Math.floor((ms % 6e4) / 1000);
+    clk.textContent = `${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+  }
+  tick(); setInterval(tick, 1000);
+})();
+
+/* ===========================================================
+   LIVE PRICE STRIP — auto-shows when TOKEN is set
+   Reuses the nad.fun + DexScreener hybrid pattern from prior builds
+   =========================================================== */
+const fmtUsd = n => {
+  n = Number(n);
+  if (!isFinite(n) || n <= 0) return '—';
+  if (n >= 1e9) return '$' + (n/1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return '$' + (n/1e3).toFixed(1) + 'K';
+  if (n >= 1)   return '$' + n.toFixed(2);
+  if (n >= 0.01)return '$' + n.toFixed(4);
+  return '$' + n.toExponential(2);
+};
+
+async function refreshPriceStrip() {
+  if (!TOKEN) return;
+  const strip = document.getElementById('priceStrip');
+  try {
+    // nad.fun gives us is_graduated flag — switch source accordingly
+    const nadRes = await fetch(`https://api.nadapp.net/token/${TOKEN}`, { cache: 'no-cache' });
+    const nadData = await nadRes.json();
+    const info = nadData?.token_info || {};
+    const mkt  = nadData?.market_info || {};
+    const grad = info.is_graduated;
+
+    let price, mc, vol, change;
+    if (grad) {
+      // post-grad: DexScreener for live DEX price + 24h vol/change
+      try {
+        const dsRes = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${TOKEN}`);
+        const ds = await dsRes.json();
+        const pair = (ds.pairs || []).sort((a,b) => (b.liquidity?.usd||0) - (a.liquidity?.usd||0))[0];
+        if (pair) {
+          price  = Number(pair.priceUsd);
+          mc     = pair.marketCap || pair.fdv;
+          vol    = pair.volume?.h24;
+          change = pair.priceChange?.h24;
+        }
+      } catch {}
+    } else {
+      price  = Number(mkt.price_usd || mkt.price || 0);
+      mc     = Number(mkt.market_cap_usd || mkt.market_cap || 0);
+      vol    = Number(mkt.volume_24h_usd || 0);
+      change = Number(mkt.price_change_24h_pct || 0);
+    }
+
+    document.getElementById('pxPrice').textContent   = fmtUsd(price);
+    document.getElementById('pxMc').textContent      = fmtUsd(mc);
+    document.getElementById('pxVol').textContent     = fmtUsd(vol);
+    const chEl = document.getElementById('pxChange');
+    if (change !== undefined && change !== null && !isNaN(change)) {
+      chEl.textContent = (change >= 0 ? '+' : '') + Number(change).toFixed(2) + '%';
+      chEl.classList.toggle('up',   change > 0);
+      chEl.classList.toggle('down', change < 0);
+    }
+    const h = info.holder_count || mkt.holder_count;
+    if (h) document.getElementById('pxHolders').textContent = Number(h).toLocaleString();
+
+    // Burned mirrors what the burn-card reads — show same number compact in strip
+    const burnedEl = document.getElementById('stBurned');
+    if (burnedEl && !burnedEl.classList.contains('loading')) {
+      document.getElementById('pxBurned').textContent = '🔥 ' + burnedEl.textContent;
+    }
+
+    strip.classList.add('live');
+  } catch (e) {
+    console.warn('[price] strip refresh failed:', e);
+  }
+}
+
+if (TOKEN) {
+  refreshPriceStrip();
+  setInterval(refreshPriceStrip, 30_000);
+}
+
+/* ===========================================================
+   STRAIN OF THE DAY  +  STRAIN INDEX (searchable)
+   Bundled dataset in /assets/strains.json (60 strains)
+   =========================================================== */
+let _strains = [];
+
+async function loadStrains() {
+  try {
+    const r = await fetch('/assets/strains.json');
+    _strains = await r.json();
+    initStrainOfDay();
+    initStrainIndex();
+    initSessionForm();   // session form's strain dropdown depends on this
+  } catch (e) {
+    console.warn('[strains] load failed:', e);
+  }
+}
+
+function initStrainOfDay() {
+  if (!_strains.length) return;
+  // Pick strain based on day of year — deterministic, same for everyone today
+  const now = new Date();
+  const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
+  const strain = _strains[dayOfYear % _strains.length];
+
+  document.getElementById('sdName').textContent = strain.name;
+
+  const metaEl = document.getElementById('sdMeta');
+  metaEl.innerHTML = `<span class="type ${strain.type}">${strain.type.toUpperCase()}</span> THC: ${strain.thc}`;
+
+  document.getElementById('sdDesc').textContent = strain.desc;
+
+  const chipsEl = document.getElementById('sdChips');
+  chipsEl.innerHTML = strain.effects.map(e => `<span class="chip">${e}</span>`).join('');
+}
+
+function renderStrainGrid(filter = '') {
+  const grid = document.getElementById('strainGrid');
+  const q = filter.trim().toLowerCase();
+  const matches = q
+    ? _strains.filter(s =>
+        s.name.toLowerCase().includes(q) ||
+        s.type.includes(q) ||
+        s.effects.some(e => e.includes(q)) ||
+        s.flavors.some(f => f.includes(q)))
+    : _strains;
+
+  if (!matches.length) {
+    grid.innerHTML = '<div class="strain-empty">no strains match that — try another vibe</div>';
+    return;
+  }
+
+  grid.innerHTML = matches.map(s => `
+    <div class="strain-card" data-id="${s.id}">
+      <div class="name">${s.name}</div>
+      <div class="row">
+        <span class="type ${s.type}">${s.type.slice(0,3).toUpperCase()}</span>
+        <span class="thc">THC ${s.thc}</span>
+      </div>
+      <div class="effects">${s.effects.slice(0,3).join(' · ')}</div>
+    </div>`).join('');
+
+  // bind click → modal
+  grid.querySelectorAll('.strain-card').forEach(card => {
+    card.addEventListener('click', () => openStrainModal(card.dataset.id));
+  });
+}
+
+function initStrainIndex() {
+  if (!_strains.length) return;
+  renderStrainGrid();
+  document.getElementById('strainSearch').addEventListener('input', e => renderStrainGrid(e.target.value));
+}
+
+function openStrainModal(id) {
+  const s = _strains.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('smName').textContent = s.name;
+  document.getElementById('smMeta').innerHTML = `<span class="type ${s.type}" style="padding:3px 10px;border-radius:4px;font-family:var(--f-mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;${s.type==='indica'?'background:var(--purple-smoke);color:#fff;':''}${s.type==='sativa'?'background:var(--ember);color:var(--void);':''}${s.type==='hybrid'?'background:var(--green-2);color:var(--void);':''}">${s.type.toUpperCase()}</span> &nbsp; <span style="color:var(--text-dim);font-family:var(--f-mono);font-size:12px">THC: ${s.thc}</span>`;
+  document.getElementById('smDesc').textContent = s.desc;
+  document.getElementById('smEffects').innerHTML = s.effects.map(e => `<span class="chip">${e}</span>`).join('');
+  document.getElementById('smFlavors').innerHTML = s.flavors.map(f => `<span class="chip">${f}</span>`).join('');
+  document.getElementById('strainModal').classList.add('show');
+}
+document.getElementById('strainModalClose').addEventListener('click', () =>
+  document.getElementById('strainModal').classList.remove('show'));
+document.getElementById('strainModal').addEventListener('click', (e) => {
+  if (e.target.id === 'strainModal') e.currentTarget.classList.remove('show');
+});
+
+/* ===========================================================
+   SMOKE SESSIONS — Leaflet map with seeded + local sessions
+   v1: localStorage-backed for instant-on; swap STORAGE for
+   Supabase by setting SUPABASE_URL + SUPABASE_KEY below
+   =========================================================== */
+const SUPABASE_URL = '';   // paste Chogi/Monshi supabase URL here when ready
+const SUPABASE_KEY = '';   // paste anon key
+const SESSION_TTL_MS = 4 * 3600_000 + 20 * 60_000;   // 4h 20m
+const DEVICE_COOLDOWN_MS = 12 * 3600_000;            // 12h between sessions per device
+
+// rough lat/lng for popular memecoin head cities — seeded so the map looks alive on day 1
+const SEED = [
+  { region: 'Brooklyn, NY',   lat: 40.6782, lng: -73.9442, strain: 'Sour Diesel',         vibe: 'launch hype, gassed up', hits: 12 },
+  { region: 'Los Angeles, CA',lat: 34.0522, lng: -118.2437,strain: 'OG Kush',             vibe: 'sunset session', hits: 8 },
+  { region: 'Toronto, ON',    lat: 43.6532, lng: -79.3832, strain: 'Pink Kush',           vibe: 'gm from the 6', hits: 5 },
+  { region: 'London, UK',     lat: 51.5074, lng: -0.1278,  strain: 'Cheese',              vibe: 'pip pip burn burn', hits: 7 },
+  { region: 'Amsterdam, NL',  lat: 52.3676, lng: 4.9041,   strain: 'White Widow',         vibe: 'coffeeshop classic', hits: 14 },
+  { region: 'Berlin, DE',     lat: 52.52,   lng: 13.405,   strain: 'Northern Lights',     vibe: 'techno + indica', hits: 6 },
+  { region: 'Bangkok, TH',    lat: 13.7563, lng: 100.5018, strain: 'Thai Stick',          vibe: 'old school', hits: 3 },
+  { region: 'Tokyo, JP',      lat: 35.6762, lng: 139.6503, strain: 'Blue Dream',          vibe: 'late night burn', hits: 4 },
+  { region: 'Mumbai, IN',     lat: 19.0760, lng: 72.8777,  strain: 'Hindu Kush',          vibe: 'classic charas', hits: 9 },
+  { region: 'Madrid, ES',     lat: 40.4168, lng: -3.7038,  strain: 'Critical Mass',       vibe: 'siesta strain', hits: 4 },
+  { region: 'Vancouver, BC',  lat: 49.2827, lng: -123.1207,strain: 'BC Bud',              vibe: 'west coast smoke', hits: 11 },
+  { region: 'Denver, CO',     lat: 39.7392, lng: -104.9903,strain: 'Wedding Cake',        vibe: 'mile high', hits: 10 },
+  { region: 'Lisbon, PT',     lat: 38.7223, lng: -9.1393,  strain: 'Lemon Haze',          vibe: 'ocean front session', hits: 5 },
+  { region: 'Mexico City, MX',lat: 19.4326, lng: -99.1332, strain: 'Acapulco Gold',       vibe: 'classic mexican', hits: 6 },
+  { region: 'São Paulo, BR',  lat: -23.5505,lng: -46.6333, strain: 'Bahia Black',         vibe: 'south samba burn', hits: 4 },
+];
+
+const STORE_KEY = 'bw_sessions_v1';
+const DEVICE_KEY = 'bw_device_last';
+
+function loadStoredSessions() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
+    const cutoff = Date.now() - SESSION_TTL_MS;
+    return raw.filter(s => (s.created_at || 0) > cutoff);
+  } catch { return []; }
+}
+function saveStoredSessions(list) {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(list)); } catch {}
+}
+
+// Geocode a city string via OpenStreetMap Nominatim (free, no key)
+async function geocodeRegion(query) {
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`, {
+      headers: { 'Accept-Language': 'en' },
+    });
+    const d = await r.json();
+    if (!d.length) return null;
+    // Snap to ~10km grid so exact addresses become city-blob (privacy)
+    const lat = Math.round(parseFloat(d[0].lat) * 10) / 10;
+    const lng = Math.round(parseFloat(d[0].lon) * 10) / 10;
+    return { lat, lng, region: d[0].display_name.split(',').slice(0, 2).join(',').trim() };
+  } catch { return null; }
+}
+
+let _map = null;
+let _markers = [];
+
+function initSessionsMap() {
+  if (typeof L === 'undefined') return;     // Leaflet not loaded yet
+  const el = document.getElementById('sessionMap');
+  if (!el || _map) return;
+
+  _map = L.map(el, {
+    zoomControl: true,
+    scrollWheelZoom: false,   // less hijacky scroll UX
+    worldCopyJump: true,
+  }).setView([30, 0], 2);
+
+  // Dark tiles via CartoDB (free, no key)
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap · © CARTO',
+    maxZoom: 8,
+    minZoom: 2,
+  }).addTo(_map);
+
+  renderSessions();
+}
+
+function makeJointIcon(hits) {
+  const size = Math.min(32, 14 + hits);
+  const glow = Math.min(20, 6 + hits);
+  const html = `<div style="position:relative;display:flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;">
+    <div style="position:absolute;inset:0;background:radial-gradient(circle,rgba(75,255,137,0.6) 0%,transparent 70%);border-radius:50%;filter:blur(${glow}px);"></div>
+    <div style="position:relative;font-size:${size-2}px;line-height:1;">🌿</div>
+  </div>`;
+  return L.divIcon({ html, className: 'joint-icon', iconSize: [size, size], iconAnchor: [size/2, size/2] });
+}
+
+function renderSessions() {
+  if (!_map) return;
+  _markers.forEach(m => _map.removeLayer(m));
+  _markers = [];
+
+  const stored = loadStoredSessions();
+  const all = [...SEED, ...stored];
+  document.getElementById('sessCount').textContent = all.length;
+
+  all.forEach((s) => {
+    const m = L.marker([s.lat, s.lng], { icon: makeJointIcon(s.hits || 1) });
+    const popupHtml = `
+      <div class="pop-strain">🌿 ${escapeHtml(s.strain)}</div>
+      <div class="pop-region">${escapeHtml(s.region)}</div>
+      ${s.vibe ? `<div class="pop-vibe">"${escapeHtml(s.vibe)}"</div>` : ''}
+      <div class="pop-hits">🔥 <span>${s.hits || 1}</span> hits</div>
+      <button class="join-btn" data-key="${s.lat}_${s.lng}_${s.created_at||'seed'}">JOIN THE SESSION</button>
+    `;
+    m.bindPopup(popupHtml);
+    m.addTo(_map);
+    _markers.push(m);
+  });
+
+  // bind join buttons after popup opens
+  _map.on('popupopen', (e) => {
+    const btn = e.popup._contentNode.querySelector('.join-btn');
+    if (!btn || btn.dataset.bound) return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.key;
+      const stored = loadStoredSessions();
+      const session = stored.find(s => `${s.lat}_${s.lng}_${s.created_at}` === key);
+      const seedIdx = SEED.findIndex(s => `${s.lat}_${s.lng}_seed` === key);
+      const joinedKey = 'bw_joined_' + key;
+      if (localStorage.getItem(joinedKey)) { btn.disabled = true; btn.textContent = '✓ JOINED'; return; }
+      localStorage.setItem(joinedKey, '1');
+      if (session) { session.hits = (session.hits || 1) + 1; saveStoredSessions(stored); }
+      else if (seedIdx >= 0) { SEED[seedIdx].hits++; }
+      btn.disabled = true; btn.textContent = '✓ JOINED 🔥';
+      const span = e.popup._contentNode.querySelector('.pop-hits span');
+      if (span) span.textContent = (parseInt(span.textContent) || 1) + 1;
+      renderSessions();
+    });
+  });
+}
+
+function initSessionForm() {
+  // Populate strain dropdown
+  if (_strains.length) {
+    const sel = document.getElementById('sessStrain');
+    sel.innerHTML = '<option value="">— pick a strain —</option>' +
+      _strains.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+  }
+
+  document.getElementById('sessSubmit').addEventListener('click', async () => {
+    const btn = document.getElementById('sessSubmit');
+    const region = document.getElementById('sessRegion').value.trim();
+    const strain = document.getElementById('sessStrain').value;
+    const vibe   = document.getElementById('sessVibe').value.trim();
+
+    if (!region) return showToast('enter a city');
+    if (!strain) return showToast('pick a strain');
+
+    // Per-device cooldown
+    const last = Number(localStorage.getItem(DEVICE_KEY) || 0);
+    if (Date.now() - last < DEVICE_COOLDOWN_MS) {
+      const hLeft = ((DEVICE_COOLDOWN_MS - (Date.now() - last)) / 3.6e6).toFixed(1);
+      return showToast(`one session per 12h · come back in ${hLeft}h`);
+    }
+
+    btn.disabled = true; btn.textContent = 'GEOCODING…';
+    const loc = await geocodeRegion(region);
+    if (!loc) { btn.disabled = false; btn.textContent = '💨 LIGHT IT UP'; return showToast("couldn't find that region — try a bigger city"); }
+
+    const session = {
+      lat: loc.lat, lng: loc.lng,
+      region: loc.region, strain, vibe,
+      hits: 1,
+      created_at: Date.now(),
+    };
+    const stored = loadStoredSessions();
+    stored.push(session);
+    saveStoredSessions(stored);
+    localStorage.setItem(DEVICE_KEY, String(Date.now()));
+
+    btn.disabled = false; btn.textContent = '💨 LIGHT IT UP';
+    document.getElementById('sessRegion').value = '';
+    document.getElementById('sessVibe').value = '';
+    document.getElementById('sessStrain').value = '';
+    showToast('🔥 session lit · welcome to the swarm');
+
+    renderSessions();
+    _map.flyTo([loc.lat, loc.lng], 5, { duration: 1.6 });
+  });
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+}
+
+// Boot map once Leaflet is ready, AND load strains
+function bootSessions() {
+  if (typeof L === 'undefined') { setTimeout(bootSessions, 200); return; }
+  initSessionsMap();
+}
+loadStrains();
+bootSessions();
 </script>
 
 </body>
