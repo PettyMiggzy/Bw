@@ -1156,7 +1156,12 @@ const TOKEN = '';                       // ← paste the BurningWeedsta contract
 const INITIAL_SUPPLY = 1_000_000_000;   // 1B tokens default — adjust to match contract
 const DEAD = '0x000000000000000000000000000000000000dEaD';
 const ZERO = '0x0000000000000000000000000000000000000000';
-const RPC  = 'https://rpc.monad.xyz';
+// Primary = Alchemy (paid, faster, higher rate limit). Fallback = public RPC.
+// If Alchemy 401s or times out we drop to public automatically.
+const RPCS = [
+  'https://monad-mainnet.g.alchemy.com/v2/tfGX-C5IUIEPIqWkXQctc',
+  'https://rpc.monad.xyz',
+];
 
 /* ===== smoke wisps rising ===== */
 (function buildSmoke() {
@@ -1217,13 +1222,23 @@ const fmt = n => {
 };
 
 async function ethCall(to, data) {
-  const r = await fetch(RPC, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_call', params: [{ to, data }, 'latest'], id: 1 }),
-  });
-  const j = await r.json();
-  return j.result;
+  // Try each RPC in order; first one that returns a non-error wins.
+  // Alchemy throttles much less than the public RPC under load.
+  for (let i = 0; i < RPCS.length; i++) {
+    try {
+      const r = await fetch(RPCS[i], {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_call', params: [{ to, data }, 'latest'], id: 1 }),
+      });
+      const j = await r.json();
+      if (j.error) throw new Error(j.error.message);
+      return j.result;
+    } catch (e) {
+      if (i === RPCS.length - 1) throw e;   // last one — surface error
+      console.warn(`[rpc] ${RPCS[i].slice(0,40)} failed, trying next:`, e.message);
+    }
+  }
 }
 
 async function readSupplyAndBurns() {
