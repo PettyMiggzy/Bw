@@ -381,7 +381,7 @@ footer .trib a{color:var(--ember);text-decoration:underline}
     <div class="fomo-stat rv"><div class="n g" id="fomoSess"><span class="live"></span>0</div><div class="k">Sessions Live</div></div>
     <div class="fomo-stat rv"><div class="n" data-count="62">0</div><div class="k">Strains on Menu</div></div>
     <div class="fomo-stat rv"><div class="n o" data-count="100" data-suffix="%">0</div><div class="k">Feeds the Fire</div></div>
-    <div class="fomo-stat rv"><div class="n" id="fomoCd">--:--:--</div><div class="k">Next Double Burn</div></div>
+    <div class="fomo-stat rv"><div class="n" id="fomoCd">--:--:--</div><div class="k">Next 4:20</div></div>
   </div>
   <div class="urgency">~ the chart's empty, the smoke's fresh &mdash; early is everything ~</div>
 </section>
@@ -401,7 +401,7 @@ footer .trib a{color:var(--ember);text-decoration:underline}
     <div class="meter"><i id="burnMeter"></i></div>
     <div class="meter-cap"><span id="burnCapL">awaiting launch — the meter fills the moment trades hit</span><span id="burnCapR"></span></div>
     <div class="cd">
-      <span>Next <b style="color:var(--ember)">DOUBLE BURN</b> 4:20 window in</span>
+      <span>Next <b style="color:var(--ember)">4:20</b> smoke-time in</span>
       <span class="clk" id="cdClk">—</span>
     </div>
   </div>
@@ -420,7 +420,7 @@ footer .trib a{color:var(--ember);text-decoration:underline}
     </div>
     <div class="season rv" data-s="02">
       <div class="dot">🔥</div>
-      <div class="scard"><span class="sn">SEASON 02</span><h3>BURN</h3><p>Every transfer feeds the fire — routed to <b>0xdead</b>. The 4:20 double-burn windows open daily. Supply only goes one way.</p></div>
+      <div class="scard"><span class="sn">SEASON 02</span><h3>BURN</h3><p>Every transfer feeds the fire — routed to <b>0xdead</b>. Supply only goes one way.</p></div>
     </div>
     <div class="season rv" data-s="03">
       <div class="dot">🌿</div>
@@ -713,7 +713,7 @@ loadStrains(); bootSessions();
   var items=[
     '<span class="o">\ud83d\udd25 SUPPLY ONLY GOES DOWN</span>',
     '<span class="g">\ud83d\udca8 <b class="hSess">0</b> SESSIONS BURNING WORLDWIDE</span>',
-    '<span>\u23f3 DOUBLE BURN IN <b class="hCd">--:--:--</b></span>',
+    '<span>\u23f3 NEXT 4:20 IN <b class="hCd">--:--:--</b></span>',
     '<span class="g">\ud83c\udf3f 60+ STRAINS ON THE MENU</span>',
     '<span>\ud83d\udc51 TRIBUTE TO $WEEDSTA \u00b7 BUILT ON MONAD</span>',
     '<span class="o">\ud83d\ude80 EARLY = EVERYTHING \u2014 DON\u2019T BE LAST IN</span>',
@@ -729,7 +729,7 @@ loadStrains(); bootSessions();
   var io=new IntersectionObserver(function(es){es.forEach(function(e){ if(e.isIntersecting){ countUp(e.target); io.unobserve(e.target);} });},{threshold:.4});
   document.querySelectorAll('.fomo-stat .n[data-count]').forEach(function(el){io.observe(el);});
 
-  // live tickers (session count + double-burn countdown)
+  // live tickers (session count + 4:20 countdown)
   function pad(n){return String(n).padStart(2,'0');}
   function next420fomo(){ var now=new Date(),arr=[]; [[4,20],[16,20]].forEach(function(hm){var d=new Date(now);d.setHours(hm[0],hm[1],0,0);if(d<=now)d.setDate(d.getDate()+1);arr.push(d);}); return arr.sort(function(a,b){return a-b;})[0]; }
   function tickFomo(){
