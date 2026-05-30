@@ -585,12 +585,21 @@ document.querySelectorAll('.hBurned').forEach(function(b){b.textContent=fmt(r.bu
 
 /* ===== price strip (DexScreener, post-graduation) ===== */
 async function refreshPrice(){if(!TOKEN)return;
-try{const r=await fetch(`https://api.dexscreener.com/latest/dex/tokens/${TOKEN}`);const j=await r.json();
-const p=(j.pairs||[]).sort((a,b)=>(b.liquidity?.usd||0)-(a.liquidity?.usd||0))[0];if(!p)return;
 const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
-set('pxPrice','$'+Number(p.priceUsd).toPrecision(3));
+// post-graduation: DexScreener has the DEX pair
+try{const r=await fetch(`https://api.dexscreener.com/latest/dex/tokens/${TOKEN}`);const j=await r.json();
+const p=(j.pairs||[]).sort((a,b)=>(b.liquidity?.usd||0)-(a.liquidity?.usd||0))[0];
+if(p){set('pxPrice','$'+Number(p.priceUsd).toPrecision(3));
 const ch=p.priceChange?.h24;if(ch!=null){const e=document.getElementById('pxChange');e.textContent=(ch>=0?'+':'')+ch+'%';e.style.color=ch>=0?'var(--green)':'var(--ember)';}
-set('pxMc','$'+fmt(p.marketCap||p.fdv));set('pxVol','$'+fmt(p.volume?.h24));}catch(e){}}
+set('pxMc','$'+fmt(p.marketCap||p.fdv));set('pxVol','$'+fmt(p.volume?.h24));return;}}catch(e){}
+// pre-graduation: nad.fun bonding-curve market (keyless)
+try{const r=await fetch(`https://api.nad.fun/trade/market/${TOKEN}`);const j=await r.json();const m=j.market_info;if(!m)return;
+const px=Number(m.price_usd||0);const sup=Number(m.total_supply||0)/1e18;
+if(px){const d=px<1e-4?px.toExponential(2):px.toPrecision(3);set('pxPrice','$'+d);}
+if(px&&sup)set('pxMc','$'+fmt(px*sup));
+if(m.volume!=null)set('pxVol',fmt(Number(m.volume)/1e18)+' MON');
+if(m.holder_count!=null)set('pxHolders',String(m.holder_count));
+}catch(e){}}
 
 /* ===== 4:20 countdown + window ===== */
 function next420(){const now=new Date();const t=[];
