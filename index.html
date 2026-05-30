@@ -19,6 +19,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Permanent+Marker&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
 :root{
   --void:#070a07; --void2:#0c120c; --panel:#101a12; --panel2:#16241a;
@@ -262,18 +264,31 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   .slide-img img,.slide-img video{height:100%;aspect-ratio:auto}
   .jars{grid-template-columns:repeat(3,1fr)}
 }
-/* ---------- ANTHEM MUSIC BUTTON ---------- */
-.music-btn{position:fixed;left:16px;bottom:18px;z-index:9500;width:56px;height:56px;border-radius:50%;cursor:pointer;
-  border:1.5px solid var(--gold2);background:radial-gradient(circle,var(--panel2),var(--void));color:var(--gold);
-  font-size:20px;display:grid;place-items:center;box-shadow:0 0 0 4px rgba(7,10,7,.6),0 0 22px rgba(245,207,87,.35);
-  transition:transform .15s,box-shadow .2s}
-.music-btn:active{transform:scale(.92)}
-.music-btn .lbl{position:absolute;left:64px;white-space:nowrap;font-family:var(--font-display);font-size:10px;letter-spacing:.1em;
-  color:var(--green);background:rgba(7,10,7,.85);border:1px solid var(--line);padding:6px 10px;border-radius:20px;opacity:0;transform:translateX(-6px);transition:opacity .25s,transform .25s;pointer-events:none}
-.music-btn.hint .lbl{opacity:1;transform:none}
-.music-btn.on{color:var(--green);border-color:var(--green-dim);box-shadow:0 0 0 4px rgba(7,10,7,.6),0 0 26px rgba(82,255,143,.5);animation:mpulse 1.6s ease-in-out infinite}
-@keyframes mpulse{50%{box-shadow:0 0 0 4px rgba(7,10,7,.6),0 0 40px rgba(82,255,143,.75)}}
-
+/* ---------- SMOKE SESSIONS MAP ---------- */
+.sess-counter{text-align:center;font-family:var(--font-mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--green);margin-bottom:16px}
+.sess-counter strong{color:var(--gold);font-family:var(--font-display);font-size:22px;margin:0 5px}
+#sessionMap{width:100%;height:460px;border-radius:18px;border:1px solid var(--line);box-shadow:0 0 50px rgba(82,255,143,.12);background:#0a0d0a;overflow:hidden;position:relative;z-index:1}
+#sessionMap .leaflet-container{background:#0a0d0a;font-family:var(--font-mono)}
+.leaflet-popup-content-wrapper{background:var(--void2);color:var(--text);border:1px solid var(--green-deep);border-radius:12px;box-shadow:0 0 30px rgba(82,255,143,.2)}
+.leaflet-popup-tip{background:var(--void2);border:1px solid var(--green-deep)}
+.leaflet-popup-content{margin:14px 16px;min-width:200px}
+.leaflet-popup-content .pop-strain{font-family:var(--font-display);font-size:15px;color:var(--green);margin-bottom:4px}
+.leaflet-popup-content .pop-region{font-size:11px;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.leaflet-popup-content .pop-vibe{font-size:12px;color:var(--dim);margin-bottom:10px;font-style:italic}
+.leaflet-popup-content .pop-hits{font-size:11px;color:var(--ember);margin-bottom:8px}
+.leaflet-popup-content button{width:100%;padding:9px;background:var(--green-dim);color:#04140a;border:0;border-radius:8px;font-family:var(--font-display);font-size:11px;letter-spacing:.04em;cursor:pointer}
+.leaflet-popup-content button:hover{background:var(--green)}
+.leaflet-popup-content button:disabled{opacity:.5;cursor:not-allowed}
+.session-form{margin-top:20px;background:linear-gradient(180deg,rgba(16,26,18,.85),rgba(10,15,11,.85));border:1px solid var(--line);border-radius:16px;padding:20px}
+.session-form h4{font-family:var(--font-display);font-size:15px;letter-spacing:.04em;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.session-form .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+@media(max-width:600px){.session-form .row{grid-template-columns:1fr}}
+.session-form label{display:block;font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
+.session-form input,.session-form select{width:100%;background:var(--void);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-family:var(--font-mono);font-size:13px;margin-bottom:8px}
+.session-form input:focus,.session-form select:focus{outline:none;border-color:var(--green-dim)}
+.session-form .submit{width:100%;margin-top:6px;font-family:var(--font-display);font-size:14px;background:linear-gradient(90deg,var(--ember2),var(--ember),var(--gold));color:#1a0800;border:0;border-radius:30px;padding:14px;cursor:pointer;box-shadow:0 0 26px rgba(255,106,43,.4)}
+.session-form .submit:active{transform:scale(.98)}
+.session-form .hint{margin-top:10px;font-size:10px;color:var(--dim);text-align:center;letter-spacing:.04em}
 </style>
 </head>
 <body>
@@ -440,6 +455,26 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   </div>
 </section>
 
+<!-- SMOKE SESSIONS MAP -->
+<section id="sessions">
+  <div class="kick">&#9656; The swarm worldwide</div>
+  <h2 class="sec">SMOKE <span class="g">SESSIONS</span></h2>
+  <p class="sub">Drop a pin, pick your strain, light it up. Heads worldwide see your session glow &mdash; tap a pin to smoke with them. City-level only (no GPS doxx), and every session fades after 4:20 hours.</p>
+  <div class="sess-counter"><strong id="sessCount">0</strong> sessions burning right now</div>
+  <div id="sessionMap"></div>
+  <div class="session-form">
+    <h4><img src="/assets/leaf-marker.png" style="width:20px;height:20px;object-fit:contain" alt=""/> Drop your session</h4>
+    <div class="row">
+      <div><label for="sessRegion">City / Region</label><input id="sessRegion" type="text" maxlength="40" placeholder="e.g. Brooklyn, NY" /></div>
+      <div><label for="sessStrain">Strain</label><select id="sessStrain"><option>loading&hellip;</option></select></div>
+    </div>
+    <label for="sessVibe">Vibe note (optional)</label>
+    <input id="sessVibe" type="text" maxlength="80" placeholder="e.g. burn session for $CHRONIC &#128293;" />
+    <button class="submit" id="sessSubmit">&#128168; LIGHT IT UP</button>
+    <div class="hint">City-level only &middot; no GPS &middot; auto-expires in 4h 20m &middot; 1 session per device per 12h</div>
+  </div>
+</section>
+
 <!-- JOIN -->
 <section id="join">
   <div class="kick">▸ Pull up</div>
@@ -472,30 +507,6 @@ footer .trib a{color:var(--ember);text-decoration:underline}
 
 <div class="toast" id="toast">copied 🔥</div>
 
-<!-- ANTHEM (YouTube embed, plays from YouTube — nothing hosted) -->
-<button class="music-btn hint" id="musicBtn" aria-label="play anthem">▶<span class="lbl">PLAY THE ANTHEM ♪</span></button>
-<div id="ytwrap" style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none"><div id="ytplayer"></div></div>
-<script src="https://www.youtube.com/iframe_api"></script>
-<script>
-(function(){
-  var player, ready=false, on=false, started=false;
-  var btn=document.getElementById('musicBtn');
-  window.onYouTubeIframeAPIReady=function(){
-    player=new YT.Player('ytplayer',{height:'1',width:'1',videoId:'STIOPbEkX6M',
-      playerVars:{autoplay:0,controls:0,loop:1,playlist:'STIOPbEkX6M',playsinline:1,rel:0},
-      events:{onReady:function(){ready=true;},
-        onStateChange:function(e){ if(e.data===YT.PlayerState.PLAYING){on=true;render();} if(e.data===YT.PlayerState.PAUSED){on=false;render();} }}});
-  };
-  function render(){ btn.firstChild.nodeValue=on?'♪':'▶'; btn.classList.toggle('on',on); if(on) btn.classList.remove('hint'); }
-  function play(){ if(!ready)return; try{player.unMute();player.setVolume(70);player.playVideo();}catch(e){} }
-  function pause(){ if(!ready)return; try{player.pauseVideo();}catch(e){} }
-  btn.addEventListener('click',function(e){ e.stopPropagation(); on?pause():play(); });
-  // best-effort autoplay: kick off on the first user gesture anywhere (splash tap, scroll, etc.)
-  function first(){ if(started)return; started=true; play();
-    window.removeEventListener('pointerdown',first); window.removeEventListener('touchstart',first); window.removeEventListener('keydown',first); window.removeEventListener('scroll',first); }
-  ['pointerdown','touchstart','keydown','scroll'].forEach(function(ev){ window.addEventListener(ev,first,{passive:true}); });
-})();
-</script>
 
 <script>
 /* ===== CONFIG — flip TOKEN at launch ===== */
@@ -594,6 +605,67 @@ document.querySelectorAll('.rv').forEach(e=>io.observe(e));
 
 /* ===== boot live data ===== */
 if(TOKEN){refreshBurn();refreshPrice();setInterval(refreshBurn,25000);setInterval(refreshPrice,30000);}
+/* ===================== SMOKE SESSIONS MAP ===================== */
+function showToast(m){ if(typeof toast==='function') toast(m); }
+const SUPABASE_URL='https://cuqhqcmrgpdjlhyqztnc.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1cWhxY21yZ3BkamxoeXF6dG5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMjQ4NDAsImV4cCI6MjA5MjgwMDg0MH0.bsmuC_onaPutZmYZWTn9p1DvngKIA7Xx4J3YRajbf-8';
+const SESSION_REFRESH_MS=25000;
+function getDeviceFp(){ let fp=localStorage.getItem('bw_device_fp'); if(!fp){ fp=(crypto.randomUUID&&crypto.randomUUID())||('fp_'+Math.random().toString(36).slice(2)+Date.now().toString(36)); localStorage.setItem('bw_device_fp',fp);} return fp; }
+function sbHeaders(){ return {'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'}; }
+async function sbFetchSessions(){ try{ const r=await fetch(`${SUPABASE_URL}/rest/v1/bw_sessions?select=id,region,lat,lng,strain,vibe,hits,created_at&order=created_at.desc&limit=300`,{headers:sbHeaders()}); if(!r.ok)throw new Error('http '+r.status); return await r.json(); }catch(e){ console.warn('[sessions]',e.message); return null; } }
+async function sbCreateSession({region,lat,lng,strain,vibe}){ const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/bw_create_session`,{method:'POST',headers:sbHeaders(),body:JSON.stringify({p_region:region,p_lat:lat,p_lng:lng,p_strain:strain,p_vibe:vibe||'',p_device_fp:getDeviceFp()})}); return await r.json(); }
+async function sbJoinSession(id){ const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/bw_join_session`,{method:'POST',headers:sbHeaders(),body:JSON.stringify({p_session_id:id,p_device_fp:getDeviceFp()})}); return await r.json(); }
+const SEED=[
+ {id:'seed-1',region:'Brooklyn, NY',lat:40.6782,lng:-73.9442,strain:'Sour Diesel',vibe:'launch hype, gassed up',hits:12,_seed:true},
+ {id:'seed-2',region:'Los Angeles, CA',lat:34.0522,lng:-118.2437,strain:'OG Kush',vibe:'sunset session',hits:8,_seed:true},
+ {id:'seed-3',region:'Toronto, ON',lat:43.6532,lng:-79.3832,strain:'Pink Kush',vibe:'gm from the 6',hits:5,_seed:true},
+ {id:'seed-4',region:'London, UK',lat:51.5074,lng:-0.1278,strain:'Cheese',vibe:'pip pip burn burn',hits:7,_seed:true},
+ {id:'seed-5',region:'Amsterdam, NL',lat:52.3676,lng:4.9041,strain:'White Widow',vibe:'coffeeshop classic',hits:14,_seed:true},
+ {id:'seed-6',region:'Berlin, DE',lat:52.52,lng:13.405,strain:'Northern Lights',vibe:'techno + indica',hits:6,_seed:true},
+ {id:'seed-7',region:'Bangkok, TH',lat:13.7563,lng:100.5018,strain:'Thai Stick',vibe:'old school',hits:3,_seed:true},
+ {id:'seed-8',region:'Tokyo, JP',lat:35.6762,lng:139.6503,strain:'Blue Dream',vibe:'late night burn',hits:4,_seed:true},
+ {id:'seed-9',region:'Mumbai, IN',lat:19.076,lng:72.8777,strain:'Hindu Kush',vibe:'classic charas',hits:9,_seed:true},
+ {id:'seed-10',region:'Denver, CO',lat:39.7392,lng:-104.9903,strain:'Wedding Cake',vibe:'mile high',hits:10,_seed:true},
+ {id:'seed-11',region:'Vancouver, BC',lat:49.2827,lng:-123.1207,strain:'BC Bud',vibe:'west coast smoke',hits:11,_seed:true},
+ {id:'seed-12',region:'Lisbon, PT',lat:38.7223,lng:-9.1393,strain:'Lemon Haze',vibe:'ocean front session',hits:5,_seed:true}
+];
+async function geocodeRegion(q){ try{ const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`,{headers:{'Accept-Language':'en'}}); const d=await r.json(); if(!d.length)return null; const lat=Math.round(parseFloat(d[0].lat)*10)/10; const lng=Math.round(parseFloat(d[0].lon)*10)/10; return {lat,lng,region:d[0].display_name.split(',').slice(0,2).join(',').trim()}; }catch{ return null; } }
+let _map=null,_markers=[],_sessions=[],_joinedLocal=new Set(JSON.parse(localStorage.getItem('bw_joined_local')||'[]'));
+function persistJoinedLocal(){ localStorage.setItem('bw_joined_local',JSON.stringify([..._joinedLocal])); }
+function initSessionsMap(){ if(typeof L==='undefined')return; const el=document.getElementById('sessionMap'); if(!el||_map)return;
+  _map=L.map(el,{zoomControl:true,scrollWheelZoom:false,worldCopyJump:true}).setView([30,0],2);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',{attribution:'\u00a9 OpenStreetMap \u00b7 \u00a9 CARTO',maxZoom:8,minZoom:2}).addTo(_map);
+  refreshSessions(); setInterval(refreshSessions,SESSION_REFRESH_MS); }
+async function refreshSessions(){ const real=await sbFetchSessions(); let c; if(real===null){c=SEED;}else if(real.length===0){c=SEED;}else{c=real;} _sessions=c; renderMarkers(); const el=document.getElementById('sessCount'); if(el)el.textContent=c.length; }
+function makeJointIcon(hits){ const size=Math.min(40,18+hits); const glow=Math.min(24,8+hits);
+  const html=`<div style="position:relative;display:flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;"><div style="position:absolute;inset:-4px;background:radial-gradient(circle,rgba(82,255,143,0.7) 0%,transparent 70%);border-radius:50%;filter:blur(${glow}px);"></div><img src="/assets/leaf-marker.png" alt="" style="position:relative;width:${size}px;height:${size}px;object-fit:contain;filter:drop-shadow(0 0 4px rgba(82,255,143,0.8));" draggable="false" /></div>`;
+  return L.divIcon({html,className:'joint-icon',iconSize:[size,size],iconAnchor:[size/2,size/2]}); }
+function renderMarkers(){ if(!_map)return; _markers.forEach(m=>_map.removeLayer(m)); _markers=[];
+  _sessions.forEach((s)=>{ const m=L.marker([s.lat,s.lng],{icon:makeJointIcon(s.hits||1)}); const isSeed=!!s._seed; const joined=_joinedLocal.has(s.id);
+    const html=`<div class="pop-strain">${escapeHtml(s.strain)}</div><div class="pop-region">${escapeHtml(s.region)}</div>${s.vibe?`<div class="pop-vibe">"${escapeHtml(s.vibe)}"</div>`:''}<div class="pop-hits">\ud83d\udd25 <span>${s.hits||1}</span> hits</div><button class="join-btn" data-id="${escapeHtml(s.id)}" data-seed="${isSeed?'1':'0'}" ${joined?'disabled':''}>${joined?'\u2713 JOINED \ud83d\udd25':'JOIN THE SESSION'}</button>`;
+    m.bindPopup(html); m.addTo(_map); _markers.push(m); });
+  _map.off('popupopen').on('popupopen',(e)=>{ const btn=e.popup._contentNode.querySelector('.join-btn'); if(!btn||btn.dataset.bound)return; btn.dataset.bound='1'; btn.addEventListener('click',()=>onJoinClick(btn,e.popup)); }); }
+async function onJoinClick(btn,popup){ if(btn.disabled)return; const id=btn.dataset.id; const isSeed=btn.dataset.seed==='1'; btn.disabled=true; btn.textContent='\u2026';
+  if(isSeed){ _joinedLocal.add(id); persistJoinedLocal(); const s=_sessions.find(x=>x.id===id); if(s)s.hits=(s.hits||1)+1; btn.textContent='\u2713 JOINED \ud83d\udd25'; const sp=popup._contentNode.querySelector('.pop-hits span'); if(sp)sp.textContent=s.hits; renderMarkers(); return; }
+  const res=await sbJoinSession(id);
+  if(res&&res.ok){ _joinedLocal.add(id); persistJoinedLocal(); btn.textContent='\u2713 JOINED \ud83d\udd25'; const sp=popup._contentNode.querySelector('.pop-hits span'); if(sp)sp.textContent=res.hits; const s=_sessions.find(x=>x.id===id); if(s)s.hits=res.hits; renderMarkers(); }
+  else if(res&&res.reason==='already_joined'){ _joinedLocal.add(id); persistJoinedLocal(); btn.textContent='\u2713 JOINED \ud83d\udd25'; }
+  else { btn.disabled=false; btn.textContent='JOIN THE SESSION'; showToast(res&&res.reason==='expired_or_missing'?'session expired':'join failed \u2014 try again'); } }
+let _strains=[],_formBound=false;
+function initSessionForm(){ const sel=document.getElementById('sessStrain'); if(sel){ sel.innerHTML='<option value="">\u2014 pick a strain \u2014</option><option value="$CHRONIC">$CHRONIC (house)</option>'+_strains.map(s=>`<option value="${s.name}">${s.name}</option>`).join(''); }
+  if(_formBound)return; _formBound=true;
+  document.getElementById('sessSubmit').addEventListener('click',async()=>{ const btn=document.getElementById('sessSubmit'); const region=document.getElementById('sessRegion').value.trim(); const strain=document.getElementById('sessStrain').value; const vibe=document.getElementById('sessVibe').value.trim();
+    if(!region)return showToast('enter a city'); if(!strain)return showToast('pick a strain');
+    btn.disabled=true; btn.textContent='GEOCODING\u2026'; const loc=await geocodeRegion(region);
+    if(!loc){ btn.disabled=false; btn.textContent='\ud83d\udca8 LIGHT IT UP'; return showToast("couldn't find that region \u2014 try a bigger city"); }
+    btn.textContent='LIGHTING\u2026'; const res=await sbCreateSession({region:loc.region,lat:loc.lat,lng:loc.lng,strain,vibe}); btn.disabled=false; btn.textContent='\ud83d\udca8 LIGHT IT UP';
+    if(res&&res.ok){ document.getElementById('sessRegion').value=''; document.getElementById('sessVibe').value=''; document.getElementById('sessStrain').value=''; showToast('\ud83d\udd25 session lit \u00b7 welcome to the swarm'); await refreshSessions(); _map.flyTo([loc.lat,loc.lng],5,{duration:1.6}); }
+    else if(res&&res.reason==='rate_limit'){ const h=(res.wait_seconds/3600).toFixed(1); showToast(`one session per 12h \u00b7 come back in ${h}h`); }
+    else { showToast('failed: '+((res&&res.reason)||'unknown')); } }); }
+function escapeHtml(x){ return String(x||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function loadStrains(){ fetch('/assets/strains.json').then(r=>r.json()).then(d=>{ _strains=d||[]; initSessionForm(); }).catch(()=>{ _strains=[]; initSessionForm(); }); }
+function bootSessions(){ if(typeof L==='undefined'){ setTimeout(bootSessions,200); return; } initSessionsMap(); }
+loadStrains(); bootSessions();
 </script>
 </body>
 </html>
