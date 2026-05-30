@@ -289,6 +289,34 @@ footer .trib a{color:var(--ember);text-decoration:underline}
 .session-form .submit{width:100%;margin-top:6px;font-family:var(--font-display);font-size:14px;background:linear-gradient(90deg,var(--ember2),var(--ember),var(--gold));color:#1a0800;border:0;border-radius:30px;padding:14px;cursor:pointer;box-shadow:0 0 26px rgba(255,106,43,.4)}
 .session-form .submit:active{transform:scale(.98)}
 .session-form .hint{margin-top:10px;font-size:10px;color:var(--dim);text-align:center;letter-spacing:.04em}
+/* ---------- FOMO LAYER ---------- */
+.hype{overflow:hidden;white-space:nowrap;border-bottom:1px solid var(--line);position:relative;
+  background:linear-gradient(90deg,rgba(255,106,43,.12),rgba(245,207,87,.08),rgba(82,255,143,.1))}
+.hype::before,.hype::after{content:"";position:absolute;top:0;bottom:0;width:46px;z-index:2;pointer-events:none}
+.hype::before{left:0;background:linear-gradient(90deg,var(--void),transparent)}
+.hype::after{right:0;background:linear-gradient(270deg,var(--void),transparent)}
+.hype .track{display:inline-block;padding:9px 0;animation:hscroll 30s linear infinite;font-family:var(--font-display);font-size:12px;letter-spacing:.04em}
+.hype .track span{margin:0 20px;color:var(--gold)}
+.hype .track span.o{color:var(--ember)} .hype .track span.g{color:var(--green)}
+.hype:hover .track{animation-play-state:paused}
+@keyframes hscroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.fomo{padding:30px 18px 4px;max-width:1100px;margin:0 auto}
+.fomo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.fomo-stat{background:linear-gradient(180deg,rgba(22,36,26,.7),rgba(10,15,11,.85));border:1px solid var(--line);border-radius:16px;padding:18px 12px;text-align:center;position:relative;overflow:hidden}
+.fomo-stat::after{content:"";position:absolute;inset:0;background:radial-gradient(70% 55% at 50% 0,rgba(245,207,87,.1),transparent 70%);pointer-events:none}
+.fomo-stat .n{font-family:var(--font-display);font-size:clamp(24px,7.5vw,38px);line-height:1;color:var(--gold);text-shadow:0 0 24px rgba(245,207,87,.3)}
+.fomo-stat .n.g{color:var(--green)} .fomo-stat .n.o{color:var(--ember)}
+.fomo-stat .k{font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);margin-top:6px}
+.fomo-stat .live{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);margin-right:5px;animation:blink 1.2s steps(2) infinite;vertical-align:middle}
+.urgency{text-align:center;font-family:var(--font-script);color:var(--ember);font-size:clamp(16px,4.6vw,24px);transform:rotate(-1.5deg);margin:20px auto 0;max-width:620px;text-shadow:0 0 20px rgba(255,106,43,.3)}
+.buyfab{position:fixed;left:50%;transform:translateX(-50%) translateY(150%);bottom:16px;z-index:8000;text-align:center;
+  background:linear-gradient(90deg,var(--ember2),var(--ember),var(--gold));color:#1a0800;font-family:var(--font-display);font-size:14px;
+  padding:12px 24px;border-radius:40px;box-shadow:0 8px 32px rgba(255,106,43,.55);transition:transform .35s;text-decoration:none;white-space:nowrap}
+.buyfab.show{transform:translateX(-50%) translateY(0)}
+.buyfab .mc{font-family:var(--font-mono);font-size:9px;letter-spacing:.05em;opacity:.85;display:block;font-weight:700;margin-top:1px}
+.buyfab:active{transform:translateX(-50%) translateY(0) scale(.96)}
+.hero h1 .c{filter:drop-shadow(0 0 30px rgba(82,255,143,.3))}
+@media(min-width:760px){.fomo-grid{grid-template-columns:repeat(4,1fr)}}
 </style>
 </head>
 <body>
@@ -326,6 +354,8 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   <div class="px"><div class="l">Burned</div><div class="v o" id="pxBurned">—</div></div>
 </div>
 
+<div class="hype"><div class="track" id="hypeTrack"></div></div>
+
 <!-- HERO -->
 <header class="hero">
   <div class="stamp"><span class="dot"></span> LIT ON MONAD · CHAIN 143 · TICKER <b>$CHRONIC</b></div>
@@ -344,6 +374,17 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   <div class="ca-pill">CA: <span class="a pending" id="caAddr">launching soon — drops in TG</span>
     <button id="copyCA" disabled>copy</button></div>
 </header>
+
+<!-- FOMO BAND -->
+<section class="fomo">
+  <div class="fomo-grid">
+    <div class="fomo-stat rv"><div class="n g" id="fomoSess"><span class="live"></span>0</div><div class="k">Sessions Live</div></div>
+    <div class="fomo-stat rv"><div class="n" data-count="62">0</div><div class="k">Strains on Menu</div></div>
+    <div class="fomo-stat rv"><div class="n o" data-count="100" data-suffix="%">0</div><div class="k">Feeds the Fire</div></div>
+    <div class="fomo-stat rv"><div class="n" id="fomoCd">--:--:--</div><div class="k">Next Double Burn</div></div>
+  </div>
+  <div class="urgency">~ the chart's empty, the smoke's fresh &mdash; early is everything ~</div>
+</section>
 
 <!-- THE BURN -->
 <section id="burn">
@@ -666,6 +707,49 @@ function escapeHtml(x){ return String(x||'').replace(/[&<>"]/g,c=>({'&':'&amp;',
 function loadStrains(){ fetch('/assets/strains.json').then(r=>r.json()).then(d=>{ _strains=d||[]; initSessionForm(); }).catch(()=>{ _strains=[]; initSessionForm(); }); }
 function bootSessions(){ if(typeof L==='undefined'){ setTimeout(bootSessions,200); return; } initSessionsMap(); }
 loadStrains(); bootSessions();
+/* ===================== FOMO LAYER ===================== */
+(function(){
+  // hype marquee
+  var items=[
+    '<span class="o">\ud83d\udd25 SUPPLY ONLY GOES DOWN</span>',
+    '<span class="g">\ud83d\udca8 <b class="hSess">0</b> SESSIONS BURNING WORLDWIDE</span>',
+    '<span>\u23f3 DOUBLE BURN IN <b class="hCd">--:--:--</b></span>',
+    '<span class="g">\ud83c\udf3f 60+ STRAINS ON THE MENU</span>',
+    '<span>\ud83d\udc51 TRIBUTE TO $WEEDSTA \u00b7 BUILT ON MONAD</span>',
+    '<span class="o">\ud83d\ude80 EARLY = EVERYTHING \u2014 DON\u2019T BE LAST IN</span>',
+    '<span>\ud83d\udd25 100% BURN ENGINE \u00b7 0 TEAM TOKENS</span>'
+  ];
+  var t=document.getElementById('hypeTrack');
+  if(t){ t.innerHTML=(items.join('')+items.join('')); }
+
+  // count-up stats on view
+  function countUp(el){ var target=+el.dataset.count, suf=el.dataset.suffix||'', dur=1100, t0=null;
+    function step(ts){ if(!t0)t0=ts; var p=Math.min(1,(ts-t0)/dur); el.textContent=Math.round(p*target)+suf; if(p<1)requestAnimationFrame(step); }
+    requestAnimationFrame(step); }
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){ if(e.isIntersecting){ countUp(e.target); io.unobserve(e.target);} });},{threshold:.4});
+  document.querySelectorAll('.fomo-stat .n[data-count]').forEach(function(el){io.observe(el);});
+
+  // live tickers (session count + double-burn countdown)
+  function pad(n){return String(n).padStart(2,'0');}
+  function next420fomo(){ var now=new Date(),arr=[]; [[4,20],[16,20]].forEach(function(hm){var d=new Date(now);d.setHours(hm[0],hm[1],0,0);if(d<=now)d.setDate(d.getDate()+1);arr.push(d);}); return arr.sort(function(a,b){return a-b;})[0]; }
+  function tickFomo(){
+    var sc=document.getElementById('sessCount'); var n=sc?sc.textContent:'0';
+    var fs=document.getElementById('fomoSess'); if(fs)fs.innerHTML='<span class="live"></span>'+n;
+    document.querySelectorAll('.hSess').forEach(function(b){b.textContent=n;});
+    var now=new Date(),h=now.getHours(),m=now.getMinutes(),inWin=(h===4||h===16)&&m>=20&&m<30;
+    var txt; if(inWin){txt='OPEN NOW';}else{var diff=Math.max(0,next420fomo()-now);txt=pad(Math.floor(diff/3.6e6))+':'+pad(Math.floor(diff%3.6e6/6e4))+':'+pad(Math.floor(diff%6e4/1e3));}
+    var fc=document.getElementById('fomoCd'); if(fc)fc.textContent=txt;
+    document.querySelectorAll('.hCd').forEach(function(b){b.textContent=txt;});
+  }
+  setInterval(tickFomo,1000); tickFomo();
+
+  // sticky buy fab — appears after the hero, links to buy
+  var fab=document.getElementById('buyFab');
+  var hb=document.getElementById('heroBuyBtn');
+  if(fab&&hb){ fab.href=hb.href; }
+  window.addEventListener('scroll',function(){ if(!fab)return; fab.classList.toggle('show', window.scrollY>700); },{passive:true});
+})();
 </script>
+<a class="buyfab" id="buyFab" href="#" target="_blank" rel="noopener">🔥 BUY $CHRONIC<span class="mc">don’t be the last one in</span></a>
 </body>
 </html>
