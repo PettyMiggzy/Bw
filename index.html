@@ -333,6 +333,9 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   border:1px solid var(--gold2);border-radius:14px;padding:14px 18px;box-shadow:0 0 26px rgba(245,207,87,.18);transition:transform .15s,box-shadow .2s}
 .topflex:hover{transform:translateY(-2px);box-shadow:0 0 36px rgba(245,207,87,.3)}
 .topflex b{color:var(--ember);font-family:var(--font-display);font-size:12px}
+.sess-live{text-align:center;font-family:var(--font-mono);font-size:12px;color:var(--gold);margin:-6px 0 18px;min-height:18px;transition:opacity .4s;opacity:0}
+.sess-live.in{opacity:1}
+.sess-live b{color:var(--green)} .sess-live .o{color:var(--ember)}
 </style>
 </head>
 <body>
@@ -445,6 +448,7 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   <h2 class="sec">SMOKE <span class="g">SESSIONS</span></h2>
   <p class="sub">Drop a pin, pick your strain, light it up. Heads worldwide see your session glow &mdash; tap a pin to smoke with them. City-level only (no GPS doxx), and every session fades after 4:20 hours.</p>
   <div class="sess-counter"><strong id="sessCount">0</strong> sessions burning right now</div>
+  <div class="sess-live" id="sessLive"></div>
   <div id="sessionMap"></div>
   <div class="session-form">
     <h4><img src="/assets/leaf-marker.png" style="width:20px;height:20px;object-fit:contain" alt=""/> Drop your session</h4>
@@ -626,18 +630,18 @@ async function sbFetchSessions(){ try{ const r=await fetch(`${SUPABASE_URL}/rest
 async function sbCreateSession({region,lat,lng,strain,vibe}){ const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/bw_create_session`,{method:'POST',headers:sbHeaders(),body:JSON.stringify({p_region:region,p_lat:lat,p_lng:lng,p_strain:strain,p_vibe:vibe||'',p_device_fp:getDeviceFp()})}); return await r.json(); }
 async function sbJoinSession(id){ const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/bw_join_session`,{method:'POST',headers:sbHeaders(),body:JSON.stringify({p_session_id:id,p_device_fp:getDeviceFp()})}); return await r.json(); }
 const SEED=[
- {id:'seed-1',region:'Brooklyn, NY',lat:40.6782,lng:-73.9442,strain:'Sour Diesel',vibe:'launch hype, gassed up',hits:12,_seed:true},
- {id:'seed-2',region:'Los Angeles, CA',lat:34.0522,lng:-118.2437,strain:'OG Kush',vibe:'sunset session',hits:8,_seed:true},
- {id:'seed-3',region:'Toronto, ON',lat:43.6532,lng:-79.3832,strain:'Pink Kush',vibe:'gm from the 6',hits:5,_seed:true},
- {id:'seed-4',region:'London, UK',lat:51.5074,lng:-0.1278,strain:'Cheese',vibe:'pip pip burn burn',hits:7,_seed:true},
- {id:'seed-5',region:'Amsterdam, NL',lat:52.3676,lng:4.9041,strain:'White Widow',vibe:'coffeeshop classic',hits:14,_seed:true},
- {id:'seed-6',region:'Berlin, DE',lat:52.52,lng:13.405,strain:'Northern Lights',vibe:'techno + indica',hits:6,_seed:true},
- {id:'seed-7',region:'Bangkok, TH',lat:13.7563,lng:100.5018,strain:'Thai Stick',vibe:'old school',hits:3,_seed:true},
- {id:'seed-8',region:'Tokyo, JP',lat:35.6762,lng:139.6503,strain:'Blue Dream',vibe:'late night burn',hits:4,_seed:true},
- {id:'seed-9',region:'Mumbai, IN',lat:19.076,lng:72.8777,strain:'Hindu Kush',vibe:'classic charas',hits:9,_seed:true},
- {id:'seed-10',region:'Denver, CO',lat:39.7392,lng:-104.9903,strain:'Wedding Cake',vibe:'mile high',hits:10,_seed:true},
- {id:'seed-11',region:'Vancouver, BC',lat:49.2827,lng:-123.1207,strain:'BC Bud',vibe:'west coast smoke',hits:11,_seed:true},
- {id:'seed-12',region:'Lisbon, PT',lat:38.7223,lng:-9.1393,strain:'Lemon Haze',vibe:'ocean front session',hits:5,_seed:true}
+ {id:'seed-1',region:'Brooklyn, NY',lat:40.6782,lng:-73.9442,strain:'$CHRONIC OG',vibe:'launch session, gassed up \ud83d\udd25',hits:12,_seed:true},
+ {id:'seed-2',region:'Los Angeles, CA',lat:34.0522,lng:-118.2437,strain:'Gas Pedal',vibe:'sunset burn for the fire',hits:8,_seed:true},
+ {id:'seed-3',region:'Toronto, ON',lat:43.6532,lng:-79.3832,strain:'Monad Kush',vibe:'gm from the 6, feeding the fire',hits:5,_seed:true},
+ {id:'seed-4',region:'London, UK',lat:51.5074,lng:-0.1278,strain:'Purple Curve',vibe:'pip pip, pass the $CHRONIC',hits:7,_seed:true},
+ {id:'seed-5',region:'Amsterdam, NL',lat:52.3676,lng:4.9041,strain:'Ash Haze',vibe:'coffeeshop + $CHRONIC',hits:14,_seed:true},
+ {id:'seed-6',region:'Berlin, DE',lat:52.52,lng:13.405,strain:'Frostbite',vibe:'techno + indica burn',hits:6,_seed:true},
+ {id:'seed-7',region:'Bangkok, TH',lat:13.7563,lng:100.5018,strain:'Burn OG',vibe:'old school, new fire',hits:3,_seed:true},
+ {id:'seed-8',region:'Tokyo, JP',lat:35.6762,lng:139.6503,strain:'$CHRONIC OG',vibe:'late night burn session',hits:4,_seed:true},
+ {id:'seed-9',region:'Mumbai, IN',lat:19.076,lng:72.8777,strain:'Monad Kush',vibe:'feeding the fire from India',hits:9,_seed:true},
+ {id:'seed-10',region:'Denver, CO',lat:39.7392,lng:-104.9903,strain:'Gas Pedal',vibe:'mile high, lighting $CHRONIC',hits:10,_seed:true},
+ {id:'seed-11',region:'Vancouver, BC',lat:49.2827,lng:-123.1207,strain:'Purple Curve',vibe:'west coast smoke',hits:11,_seed:true},
+ {id:'seed-12',region:'Lisbon, PT',lat:38.7223,lng:-9.1393,strain:'Ash Haze',vibe:'ocean front burn',hits:5,_seed:true}
 ];
 async function geocodeRegion(q){ try{ const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`,{headers:{'Accept-Language':'en'}}); const d=await r.json(); if(!d.length)return null; const lat=Math.round(parseFloat(d[0].lat)*10)/10; const lng=Math.round(parseFloat(d[0].lon)*10)/10; return {lat,lng,region:d[0].display_name.split(',').slice(0,2).join(',').trim()}; }catch{ return null; } }
 let _map=null,_markers=[],_sessions=[],_joinedLocal=new Set(JSON.parse(localStorage.getItem('bw_joined_local')||'[]'));
@@ -646,7 +650,16 @@ function initSessionsMap(){ if(typeof L==='undefined')return; const el=document.
   _map=L.map(el,{zoomControl:true,scrollWheelZoom:false,worldCopyJump:true}).setView([30,0],2);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',{attribution:'\u00a9 OpenStreetMap \u00b7 \u00a9 CARTO',maxZoom:8,minZoom:2}).addTo(_map);
   refreshSessions(); setInterval(refreshSessions,SESSION_REFRESH_MS); }
-async function refreshSessions(){ const real=await sbFetchSessions(); let c; if(real===null){c=SEED;}else if(real.length===0){c=SEED;}else{c=real;} _sessions=c; renderMarkers(); const el=document.getElementById('sessCount'); if(el)el.textContent=c.length; }
+async function refreshSessions(){ const real=await sbFetchSessions(); var realArr=(real&&real.length)?real:[];
+  var topup = realArr.length>=SEED.length ? [] : SEED.slice(0, SEED.length-realArr.length);
+  var c = realArr.concat(topup); _sessions=c; renderMarkers(); var el=document.getElementById('sessCount'); if(el)el.textContent=c.length; if(typeof updateSessLive==='function') updateSessLive(); }
+var _liveIdx=0;
+function updateSessLive(){ var el=document.getElementById('sessLive'); if(!el||!_sessions.length)return;
+  var s=_sessions[_liveIdx % _sessions.length]; _liveIdx++;
+  el.classList.remove('in');
+  setTimeout(function(){ el.innerHTML='\ud83d\udd25 <b>'+escapeHtml(s.region)+'</b> is burning <span class="o">'+escapeHtml(s.strain)+'</span> \u00b7 '+(s.hits||1)+' heads in'; el.classList.add('in'); },220);
+}
+setInterval(updateSessLive,3800);
 function makeJointIcon(hits){ const size=Math.min(40,18+hits); const glow=Math.min(24,8+hits);
   const html=`<div style="position:relative;display:flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;"><div style="position:absolute;inset:-4px;background:radial-gradient(circle,rgba(82,255,143,0.7) 0%,transparent 70%);border-radius:50%;filter:blur(${glow}px);"></div><img src="/assets/leaf-marker.png" alt="" style="position:relative;width:${size}px;height:${size}px;object-fit:contain;filter:drop-shadow(0 0 4px rgba(82,255,143,0.8));" draggable="false" /></div>`;
   return L.divIcon({html,className:'joint-icon',iconSize:[size,size],iconAnchor:[size/2,size/2]}); }
