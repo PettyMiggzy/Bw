@@ -707,7 +707,7 @@ loadStrains(); bootSessions();
   // sticky buy fab — appears after the hero, links to buy
   var fab=document.getElementById('buyFab');
   var hb=document.getElementById('heroBuyBtn');
-  if(fab&&hb){ fab.href=hb.href; }
+  if(fab){ fab.href = (typeof TOKEN!=='undefined' && TOKEN) ? ('https://nad.fun/tokens/'+TOKEN) : 'https://t.me/burnweedsta'; }
   window.addEventListener('scroll',function(){ if(!fab)return; fab.classList.toggle('show', window.scrollY>700); },{passive:true});
 })();
 </script>
