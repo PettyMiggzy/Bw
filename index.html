@@ -391,7 +391,7 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   <div class="fomo-grid">
     <div class="fomo-stat rv"><div class="n g" id="fomoSess"><span class="live"></span>0</div><div class="k">Sessions Live</div></div>
     <div class="fomo-stat rv"><div class="n" data-count="62">0</div><div class="k">Strains on Menu</div></div>
-    <div class="fomo-stat rv"><div class="n o" data-count="100" data-suffix="%">0</div><div class="k">Feeds the Fire</div></div>
+    <div class="fomo-stat rv"><div class="n o" id="fomoBurned">—</div><div class="k">$CHRONIC Burned</div></div>
     <div class="fomo-stat rv"><div class="n" id="fomoCd">--:--:--</div><div class="k">Next 4:20</div></div>
   </div>
   <div class="urgency">~ the chart's empty, the smoke's fresh &mdash; early is everything ~</div>
@@ -568,8 +568,10 @@ document.getElementById('bRemain').textContent=fmt(remain);
 document.getElementById('bPct').textContent=pct.toFixed(2)+'%';
 document.getElementById('pxBurned').textContent=fmt(r.burned);
 document.getElementById('burnMeter').style.width=pct+'%';
-document.getElementById('burnCapL').textContent=fmt(r.burned)+' of '+fmt(INITIAL_SUPPLY)+' incinerated';
-document.getElementById('burnCapR').textContent=pct.toFixed(2)+'% gone forever';}
+document.getElementById('burnCapL').textContent=fmt(r.burned)+' of '+fmt(INITIAL_SUPPLY)+' burned to 0xdead';
+document.getElementById('burnCapR').textContent=pct.toFixed(2)+'% gone forever';
+var fb=document.getElementById('fomoBurned');if(fb)fb.textContent=fmt(r.burned);
+document.querySelectorAll('.hBurned').forEach(function(b){b.textContent=fmt(r.burned);});}
 
 /* ===== price strip (DexScreener, post-graduation) ===== */
 async function refreshPrice(){if(!TOKEN)return;
@@ -678,7 +680,7 @@ loadStrains(); bootSessions();
     '<span class="g">\ud83c\udf3f 60+ STRAINS ON THE MENU</span>',
     '<span>\ud83d\udc51 TRIBUTE TO $WEEDSTA \u00b7 BUILT ON MONAD</span>',
     '<span class="o">\ud83d\ude80 EARLY = EVERYTHING \u2014 DON\u2019T BE LAST IN</span>',
-    '<span>\ud83d\udd25 100% BURN ENGINE \u00b7 0 TEAM TOKENS</span>'
+    '<span class="o">\ud83d\udd25 <b class="hBurned">\u2014</b> $CHRONIC BURNED TO 0xdead</span>'
   ];
   var t=document.getElementById('hypeTrack');
   if(t){ t.innerHTML=(items.join('')+items.join('')); }
