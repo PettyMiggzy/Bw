@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>$CHRONIC Strains — private preview</title>
+<meta name="robots" content="noindex,nofollow" />
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --void:#070a07;--void2:#0c120c;--panel:#101a12;--panel2:#16241a;
+  --green:#52ff8f;--green-dim:#2bd96a;--green-deep:#0c3d22;
+  --ember:#ff6a2b;--ember2:#ff3d1f;--gold:#f5cf57;--gold2:#d9a93a;--purple:#a85cff;--smoke:#6b34a8;
+  --text:#e9ffe9;--dim:#84a78d;--line:rgba(82,255,143,.16);
+  --fd:'Bungee',sans-serif;--fh:'Bungee Shade',sans-serif;--fm:'Space Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--void);color:var(--text);font-family:var(--fm);overflow-x:hidden;min-height:100vh;
+  background-image:radial-gradient(120% 55% at 50% -10%,rgba(107,52,168,.3),transparent 60%),
+    radial-gradient(80% 50% at 100% 12%,rgba(255,106,43,.12),transparent 55%),
+    radial-gradient(80% 50% at 0% 18%,rgba(82,255,143,.1),transparent 55%);}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  background-image:linear-gradient(rgba(82,255,143,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(82,255,143,.045) 1px,transparent 1px);
+  background-size:42px 42px;mask-image:radial-gradient(120% 80% at 50% 0,#000,transparent 75%)}
+.wrap{position:relative;z-index:2;max-width:1000px;margin:0 auto;padding:0 16px 80px}
+
+#lock{position:fixed;inset:0;z-index:9999;background:var(--void);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;padding:24px}
+#lock h1{font-family:var(--fh);color:var(--ember);font-size:40px}
+#lock p{color:var(--dim);max-width:300px;font-size:13px}
+#lock .pad{display:flex;gap:8px}
+#lock input{background:var(--panel);border:1px solid var(--line);color:var(--green);font-family:var(--fm);padding:12px 14px;border-radius:12px;width:180px}
+#lock button{font-family:var(--fd);background:linear-gradient(90deg,var(--ember2),var(--ember));color:#1a0800;border:0;border-radius:12px;padding:12px 18px;cursor:pointer}
+
+.bar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 6px;
+  backdrop-filter:blur(10px);background:linear-gradient(180deg,rgba(7,10,7,.92),rgba(7,10,7,.4));border-bottom:1px solid var(--line)}
+.bar a{color:var(--dim);text-decoration:none;font-size:12px}
+.priv{font-size:9px;letter-spacing:.16em;color:var(--ember);border:1px solid var(--line);border-radius:20px;padding:5px 9px}
+
+h1.title{font-family:var(--fh);font-size:clamp(32px,10vw,60px);line-height:.92;text-align:center;margin:26px 0 6px;
+  color:var(--green);text-shadow:0 0 34px rgba(82,255,143,.5),5px 5px 0 var(--ember2)}
+.sub{text-align:center;color:var(--dim);font-size:13px;max-width:620px;margin:0 auto 8px}
+.note{max-width:680px;margin:16px auto 28px;background:rgba(16,26,18,.7);border:1px solid var(--line);border-radius:14px;padding:14px 18px;font-size:12px;color:var(--dim)}
+.note b{color:var(--gold)} .note .g{color:var(--green)}
+
+.tierbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:24px}
+.tierbar span{font-family:var(--fd);font-size:10px;letter-spacing:.06em;padding:6px 12px;border-radius:20px;border:1px solid var(--line)}
+.t-mids{color:var(--green-dim)} .t-loud{color:var(--gold)} .t-exotic{color:var(--purple)} .t-leg{color:var(--ember)}
+
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+@media(min-width:680px){.grid{grid-template-columns:repeat(4,1fr)}}
+.card{background:linear-gradient(180deg,rgba(16,26,18,.85),rgba(10,15,11,.9));border:1px solid var(--line);border-radius:16px;overflow:hidden;position:relative;transition:transform .15s,border-color .2s}
+.card:hover{transform:translateY(-4px);border-color:var(--gold2)}
+.card .imgwrap{position:relative;aspect-ratio:1/1;overflow:hidden}
+.card img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s}
+.card:hover img{transform:scale(1.07)}
+.card .imgwrap::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(10,15,11,.92))}
+.ribbon{position:absolute;top:10px;right:10px;z-index:2;font-family:var(--fd);font-size:8px;letter-spacing:.08em;padding:4px 9px;border-radius:20px;color:#0a0d0a}
+.r-mids{background:var(--green-dim)} .r-loud{background:var(--gold)} .r-exotic{background:var(--purple)} .r-leg{background:var(--ember)}
+.card .info{padding:12px 13px}
+.card .nm{font-family:var(--fd);font-size:13px;color:var(--text);line-height:1.1}
+.card .ty{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:3px}
+.card .burn{margin-top:8px;font-family:var(--fd);font-size:12px;color:var(--ember)}
+.card .burn span{color:var(--dim);font-size:9px;font-family:var(--fm);display:block;letter-spacing:.06em}
+
+.foot{text-align:center;margin-top:32px;color:var(--dim);font-size:12px}
+.foot .ask{font-family:var(--fd);color:var(--gold);font-size:14px;margin-bottom:6px}
+</style>
+</head>
+<body>
+
+<div id="lock">
+  <h1>🔒 PRIVATE</h1>
+  <p>$CHRONIC strain collection — dev preview. Not public. Enter the key.</p>
+  <div class="pad"><input id="key" type="password" placeholder="key" autocomplete="off"/><button id="unlock">ENTER</button></div>
+</div>
+
+<div class="bar">
+  <a href="/">‹ back to site</a>
+  <span class="priv">DEV PREVIEW</span>
+</div>
+
+<div class="wrap">
+  <h1 class="title">THE STRAIN VAULT</h1>
+  <p class="sub">Burn-to-mint collection preview. Burn $CHRONIC → mint a strain. Higher burn = rarer strain.</p>
+
+  <div class="note">
+    <b>Art:</b> <span class="g">CC0 / public-domain</span> strain macros, graded to the $CHRONIC palette. Free to mint, <b>royalties 0%</b> — no licensing exposure. &nbsp;<b>Note:</b> CC0 means anyone could reuse the same source photos; your edge is the burn mechanic + styling, not exclusive art. If you want art that's <span class="g">exclusively yours</span>, we generate instead — say the word.
+  </div>
+
+  <div class="tierbar">
+    <span class="t-mids">● MIDS · 100K</span>
+    <span class="t-loud">● LOUD · 500K</span>
+    <span class="t-exotic">● EXOTIC · 2M</span>
+    <span class="t-leg">● LEGENDARY · 10M</span>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="foot">
+    <div class="ask">Cool? Or generate exclusive art instead?</div>
+    8 strains shown · this is a preview, nothing's deployed · burn amounts + names all easy to change
+  </div>
+</div>
+
+<script>
+var KEY='chronic420';
+function gate(){
+  var p=new URLSearchParams(location.search);
+  if(p.get('k')===KEY) localStorage.setItem('cg_dev','1');
+  if(localStorage.getItem('cg_dev')==='1'){ document.getElementById('lock').style.display='none'; render(); }
+  document.getElementById('unlock').addEventListener('click',tryKey);
+  document.getElementById('key').addEventListener('keydown',function(e){if(e.key==='Enter')tryKey();});
+  function tryKey(){ if(document.getElementById('key').value.trim()===KEY){localStorage.setItem('cg_dev','1');document.getElementById('lock').style.display='none';render();} else {document.getElementById('key').value='';document.getElementById('key').placeholder='nope';} }
+}
+var STRAINS=[
+ {img:1,nm:'$CHRONIC OG',ty:'Indica · House',tier:'leg',burn:'10M'},
+ {img:2,nm:'DEAD WALLET',ty:'Trichome Macro',tier:'leg',burn:'10M'},
+ {img:3,nm:'PURPLE CURVE',ty:'Indica',tier:'exotic',burn:'2M'},
+ {img:4,nm:'MONAD KUSH',ty:'Hybrid',tier:'exotic',burn:'2M'},
+ {img:5,nm:'FROSTBITE',ty:'Sativa',tier:'exotic',burn:'2M'},
+ {img:6,nm:'BURN OG',ty:'Indica',tier:'loud',burn:'500K'},
+ {img:7,nm:'GAS PEDAL',ty:'Sativa',tier:'loud',burn:'500K'},
+ {img:8,nm:'ASH HAZE',ty:'Sativa',tier:'mids',burn:'100K'}
+];
+var TLABEL={mids:'MIDS',loud:'LOUD',exotic:'EXOTIC',leg:'LEGENDARY'};
+function render(){
+  var g=document.getElementById('grid'); g.innerHTML='';
+  STRAINS.forEach(function(s){
+    var d=document.createElement('div'); d.className='card';
+    d.innerHTML='<div class="imgwrap"><span class="ribbon r-'+s.tier+'">'+TLABEL[s.tier]+'</span><img src="/assets/strain-'+s.img+'.jpg" alt="" loading="lazy"></div>'+
+      '<div class="info"><div class="nm">'+s.nm+'</div><div class="ty">'+s.ty+'</div>'+
+      '<div class="burn">🔥 '+s.burn+'<span>$CHRONIC to mint</span></div></div>';
+    g.appendChild(d);
+  });
+}
+gate();
+</script>
+</body>
+</html>
