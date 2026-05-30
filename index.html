@@ -317,6 +317,17 @@ footer .trib a{color:var(--ember);text-decoration:underline}
 .buyfab:active{transform:translateX(-50%) translateY(0) scale(.96)}
 .hero h1 .c{filter:drop-shadow(0 0 30px rgba(82,255,143,.3))}
 @media(min-width:760px){.fomo-grid{grid-template-columns:repeat(4,1fr)}}
+/* ---------- ANTHEM MUSIC BUTTON ---------- */
+.music-btn{position:fixed;left:16px;bottom:18px;z-index:9500;width:56px;height:56px;border-radius:50%;cursor:pointer;
+  border:1.5px solid var(--gold2);background:radial-gradient(circle,var(--panel2),var(--void));color:var(--gold);
+  font-size:20px;display:grid;place-items:center;box-shadow:0 0 0 4px rgba(7,10,7,.6),0 0 22px rgba(245,207,87,.35);
+  transition:transform .15s,box-shadow .2s}
+.music-btn:active{transform:scale(.92)}
+.music-btn .lbl{position:absolute;left:64px;white-space:nowrap;font-family:var(--font-display);font-size:10px;letter-spacing:.1em;
+  color:var(--green);background:rgba(7,10,7,.85);border:1px solid var(--line);padding:6px 10px;border-radius:20px;opacity:0;transform:translateX(-6px);transition:opacity .25s,transform .25s;pointer-events:none}
+.music-btn.hint .lbl{opacity:1;transform:none}
+.music-btn.on{color:var(--green);border-color:var(--green-dim);box-shadow:0 0 0 4px rgba(7,10,7,.6),0 0 26px rgba(82,255,143,.5);animation:mpulse 1.6s ease-in-out infinite}
+@keyframes mpulse{50%{box-shadow:0 0 0 4px rgba(7,10,7,.6),0 0 40px rgba(82,255,143,.75)}}
 </style>
 </head>
 <body>
@@ -546,7 +557,31 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   <div class="trib">Tribute to <a href="https://weedsta.space" target="_blank" rel="noopener">$Weedsta on Solana</a>. Not affiliated. Built by Monad heads with full respect to the OGs.</div>
 </footer>
 
-<div class="toast" id="toast">copied 🔥</div>
+<div class="toast" id="toast">copied &#128293;</div>
+
+<!-- ANTHEM (YouTube embed, streams from YouTube — nothing hosted) -->
+<button class="music-btn hint" id="musicBtn" aria-label="play anthem">&#9654;<span class="lbl">PLAY THE ANTHEM &#9834;</span></button>
+<div id="ytwrap" style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none"><div id="ytplayer"></div></div>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+(function(){
+  var player, ready=false, on=false, started=false;
+  var btn=document.getElementById('musicBtn');
+  window.onYouTubeIframeAPIReady=function(){
+    player=new YT.Player('ytplayer',{height:'1',width:'1',videoId:'STIOPbEkX6M',
+      playerVars:{autoplay:0,controls:0,loop:1,playlist:'STIOPbEkX6M',playsinline:1,rel:0},
+      events:{onReady:function(){ready=true;},
+        onStateChange:function(e){ if(e.data===YT.PlayerState.PLAYING){on=true;render();} if(e.data===YT.PlayerState.PAUSED){on=false;render();} }}});
+  };
+  function render(){ btn.firstChild.nodeValue=on?'\u266a':'\u25b6'; btn.classList.toggle('on',on); if(on) btn.classList.remove('hint'); }
+  function play(){ if(!ready)return; try{player.unMute();player.setVolume(70);player.playVideo();}catch(e){} }
+  function pause(){ if(!ready)return; try{player.pauseVideo();}catch(e){} }
+  btn.addEventListener('click',function(e){ e.stopPropagation(); on?pause():play(); });
+  function first(){ if(started)return; started=true; play();
+    window.removeEventListener('pointerdown',first); window.removeEventListener('touchstart',first); window.removeEventListener('keydown',first); window.removeEventListener('scroll',first); }
+  ['pointerdown','touchstart','keydown','scroll'].forEach(function(ev){ window.addEventListener(ev,first,{passive:true}); });
+})();
+</script>
 
 
 <script>
