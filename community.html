@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>$CHRONIC — Community NFTs</title>
+<meta name="description" content="Mint your own NFT, list it for sale, buy others'. The $CHRONIC community marketplace on Monad." />
+<link rel="canonical" href="https://burnchronic.xyz/community" />
+<meta property="og:title" content="$CHRONIC — Community NFTs" />
+<meta property="og:description" content="Mint your own, list it, buy others'. The $CHRONIC community marketplace." />
+<meta property="og:image" content="https://www.burnchronic.xyz/assets/og-chronic.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=3" />
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --void:#070a07;--panel:#101a12;--panel2:#16241a;
+  --green:#52ff8f;--green-dim:#2bd96a;--green-deep:#0c3d22;
+  --ember:#ff6a2b;--ember2:#ff3d1f;--gold:#f5cf57;--purple:#a85cff;--smoke:#6b34a8;
+  --text:#e9ffe9;--dim:#84a78d;--line:rgba(82,255,143,.16);
+  --fd:'Bungee',sans-serif;--fh:'Bungee Shade',sans-serif;--fm:'Space Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--void);color:var(--text);font-family:var(--fm);overflow-x:hidden;min-height:100vh;
+  background-image:radial-gradient(120% 55% at 50% -10%,rgba(107,52,168,.28),transparent 60%),
+    radial-gradient(80% 50% at 100% 12%,rgba(255,106,43,.12),transparent 55%),
+    radial-gradient(80% 50% at 0% 18%,rgba(82,255,143,.1),transparent 55%);}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  background-image:linear-gradient(rgba(82,255,143,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(82,255,143,.045) 1px,transparent 1px);
+  background-size:42px 42px;mask-image:radial-gradient(120% 80% at 50% 0,#000,transparent 75%)}
+.wrap{position:relative;z-index:2;max-width:1040px;margin:0 auto;padding:0 16px 80px}
+.bar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 6px;
+  backdrop-filter:blur(10px);background:linear-gradient(180deg,rgba(7,10,7,.92),rgba(7,10,7,.4));border-bottom:1px solid var(--line)}
+.bar a.bk{color:var(--dim);text-decoration:none;font-size:12px}
+.bar .nav{display:flex;align-items:center;gap:8px}
+.navlink{font-family:var(--fd);font-size:12px;padding:10px 14px;border-radius:30px;border:1px solid var(--line);color:var(--green);text-decoration:none}
+#connectBtn{font-family:var(--fd);font-size:12px;border:0;border-radius:30px;padding:10px 16px;cursor:pointer;background:linear-gradient(90deg,var(--ember2),var(--ember),var(--gold));color:#1a0800}
+#connectBtn.on{background:transparent;border:1px solid var(--green);color:var(--green)}
+h1.title{font-family:var(--fh);font-size:clamp(32px,9vw,58px);line-height:.92;text-align:center;margin:26px 0 6px;
+  color:var(--green);text-shadow:0 0 34px rgba(82,255,143,.5),5px 5px 0 var(--ember2)}
+.sub{text-align:center;color:var(--dim);font-size:13px;max-width:600px;margin:0 auto 24px}
+.notice{max-width:640px;margin:0 auto 22px;background:rgba(255,106,43,.1);border:1px solid rgba(255,106,43,.4);border-radius:12px;padding:12px 16px;font-size:12px;color:var(--gold);text-align:center}
+/* mint panel */
+.mint{max-width:560px;margin:0 auto 40px;background:linear-gradient(180deg,rgba(16,26,18,.9),rgba(10,15,11,.94));border:1px solid var(--line);border-radius:18px;padding:20px}
+.mint h2{font-family:var(--fd);font-size:16px;color:var(--green);margin-bottom:14px}
+.drop{border:2px dashed var(--line);border-radius:14px;aspect-ratio:1/1;max-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;color:var(--dim);font-size:12px;overflow:hidden;position:relative;background:#0a0f0b}
+.drop img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.drop .ic{font-size:38px}
+.fld{margin-top:12px}
+.fld label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.fld input,.fld textarea{width:100%;background:#0a0f0b;border:1px solid var(--line);border-radius:10px;padding:11px 12px;color:var(--text);font-family:var(--fm);font-size:14px}
+.fld textarea{resize:vertical;min-height:54px}
+.act{margin-top:16px;font-family:var(--fd);font-size:13px;border:0;border-radius:12px;padding:14px;cursor:pointer;width:100%;background:linear-gradient(90deg,var(--ember2),var(--ember));color:#1a0800}
+.act:disabled{opacity:.4;cursor:not-allowed;background:var(--panel2);color:var(--dim)}
+.msg{text-align:center;font-size:12px;min-height:18px;margin-top:10px;color:var(--green)}
+.msg.err{color:var(--ember)}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid var(--line);border-top-color:var(--green);border-radius:50%;animation:s .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes s{to{transform:rotate(360deg)}}
+/* gallery */
+.gtitle{font-family:var(--fh);font-size:clamp(22px,6vw,38px);text-align:center;margin:30px 0 4px;color:var(--purple);text-shadow:0 0 24px rgba(168,92,255,.35)}
+.filters{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:14px 0 22px}
+.fbtn{font-family:var(--fd);font-size:11px;padding:8px 14px;border-radius:30px;border:1px solid var(--line);color:var(--dim);background:transparent;cursor:pointer}
+.fbtn.on{color:#0a0d0a;background:var(--green)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+@media(min-width:760px){.grid{grid-template-columns:repeat(3,1fr)}}
+.card{background:linear-gradient(180deg,rgba(16,26,18,.88),rgba(10,15,11,.92));border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.card .im{aspect-ratio:1/1;overflow:hidden;background:#0a0f0b}
+.card .im img{width:100%;height:100%;object-fit:cover;display:block}
+.card .bd{padding:12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.card .nm{font-family:var(--fd);font-size:13px;color:var(--text)}
+.card .by{font-size:9px;color:var(--dim);letter-spacing:.04em}
+.card .pr{font-family:var(--fd);font-size:13px;color:var(--gold)}
+.card .b{margin-top:auto;font-family:var(--fd);font-size:11px;border:0;border-radius:10px;padding:10px;cursor:pointer;width:100%}
+.b.buy{background:linear-gradient(90deg,var(--ember2),var(--ember));color:#1a0800}
+.b.list{background:transparent;border:1px solid var(--green);color:var(--green)}
+.b.cancel{background:transparent;border:1px solid var(--ember);color:var(--ember)}
+.empty{text-align:center;color:var(--dim);font-size:13px;padding:40px 0}
+.foot{text-align:center;margin-top:34px;color:var(--dim);font-size:12px}
+.foot a{color:var(--green);text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <a class="bk" href="/">‹ back to site</a>
+  <div class="nav">
+    <a class="navlink" href="/nfts">🎴 NFTs</a>
+    <button id="connectBtn">CONNECT</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <h1 class="title">COMMUNITY NFTs</h1>
+  <p class="sub">Mint your own NFT. List it for sale. Buy what the community makes. All on Monad — your art, your token, your royalties.</p>
+
+  <div class="notice" id="notice" style="display:none"></div>
+
+  <!-- MINT -->
+  <div class="mint">
+    <h2>🎨 Mint your own</h2>
+    <div class="drop" id="drop"><span class="ic">📤</span><span id="dropTxt">tap to upload your art (PNG / JPG / GIF)</span><img id="prev" style="display:none"/></div>
+    <input type="file" id="file" accept="image/*" style="display:none"/>
+    <div class="fld"><label>Name</label><input id="nm" maxlength="60" placeholder="name your piece"/></div>
+    <div class="fld"><label>Description (optional)</label><textarea id="ds" maxlength="500" placeholder="what is it?"></textarea></div>
+    <button class="act" id="mintBtn">MINT NFT</button>
+    <div class="msg" id="mintMsg"></div>
+  </div>
+
+  <!-- GALLERY -->
+  <h2 class="gtitle">THE GALLERY</h2>
+  <div class="filters" id="filters"></div>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" style="display:none">No NFTs yet — be the first to mint. 🌿</div>
+
+  <div class="foot">Part of the $CHRONIC universe · <a href="/nfts">NFTs</a> · <a href="/">Home</a></div>
+</div>
+
+<script>
+/* ───────── CONFIG ───────── */
+var SUPABASE_URL = 'https://cuqhqcmrgpdjlhyqztnc.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1cWhxY21yZ3BkamxoeXF6dG5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMjQ4NDAsImV4cCI6MjA5MjgwMDg0MH0.bsmuC_onaPutZmYZWTn9p1DvngKIA7Xx4J3YRajbf-8';
+var RPC = 'https://rpc.monad.xyz';
+var CHAIN_ID = 143;
+var BUCKET = 'chronic-nfts';
+// paste deployed addresses here to go live:
+var MINT_ADDR   = '';   // ChronicMint
+var MARKET_ADDR = '';   // ChronicMarket
+// extra collections to surface in the gallery (lowercase). Strain Vault:
+var COLLECTIONS = {
+  community: { addr: MINT_ADDR,   label: 'Community' },
+  strains:   { addr: '0x7779cd49760bdefa066d7707e7ea28a2a638ccec', label: 'Strains' }
+};
+
+/* ───────── setup ───────── */
+var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+var ro = new ethers.JsonRpcProvider(RPC);
+var MINT_ABI = ['function mint(string uri) payable returns (uint256)','function mintFee() view returns (uint256)','event Minted(uint256 indexed id, address indexed creator, string uri)'];
+var MARKET_ABI = ['function list(address nft,uint256 id,uint256 price)','function cancel(address nft,uint256 id)','function buy(address nft,uint256 id) payable','function listings(address,uint256) view returns (address seller,uint256 price)'];
+var ERC721_ABI = ['function ownerOf(uint256) view returns (address)','function isApprovedForAll(address,address) view returns (bool)','function setApprovalForAll(address,bool)'];
+var signer=null, me=null, activeFilter='all', pickedFile=null;
+
+function $(id){return document.getElementById(id);}
+function short(a){return a? a.slice(0,6)+'…'+a.slice(-4):'';}
+function setMsg(t,err){var m=$('mintMsg');m.textContent=t;m.className='msg'+(err?' err':'');}
+
+/* contracts not deployed yet → soft-disable actions */
+function live(){return MINT_ADDR && MARKET_ADDR;}
+if(!live()){ $('notice').style.display='block'; $('notice').textContent='⚙️ Contracts are deploying — minting & sales open the moment they go live.'; $('mintBtn').disabled=true; }
+
+/* ───────── wallet ───────── */
+async function connect(){
+  if(!window.ethereum){ alert('No wallet found'); return; }
+  var bp = new ethers.BrowserProvider(window.ethereum);
+  await bp.send('eth_requestAccounts',[]);
+  var net = await bp.getNetwork();
+  if(Number(net.chainId)!==CHAIN_ID){
+    try{ await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:'0x8f'}]}); }
+    catch(e){ alert('Switch to Monad (chainId 143)'); return; }
+    bp = new ethers.BrowserProvider(window.ethereum);
+  }
+  signer = await bp.getSigner();
+  me = (await signer.getAddress()).toLowerCase();
+  var b=$('connectBtn'); b.textContent=short(me); b.classList.add('on');
+  renderGallery();
+}
+$('connectBtn').onclick=connect;
+
+/* ───────── image picker ───────── */
+$('drop').onclick=function(){ $('file').click(); };
+$('file').onchange=function(e){
+  var f=e.target.files[0]; if(!f) return; pickedFile=f;
+  var url=URL.createObjectURL(f); var p=$('prev'); p.src=url; p.style.display='block';
+  $('drop').querySelector('.ic').style.display='none'; $('dropTxt').style.display='none';
+};
+
+/* ───────── mint ───────── */
+$('mintBtn').onclick=async function(){
+  try{
+    if(!live()){ return; }
+    if(!signer){ await connect(); if(!signer) return; }
+    if(!pickedFile){ setMsg('pick an image first',true); return; }
+    var name=$('nm').value.trim(); if(!name){ setMsg('give it a name',true); return; }
+    $('mintBtn').disabled=true;
+
+    setMsg('uploading art…'); 
+    var ext=(pickedFile.name.split('.').pop()||'png').toLowerCase();
+    var key='images/'+me+'-'+Date.now()+'.'+ext;
+    var up=await sb.storage.from(BUCKET).upload(key,pickedFile,{contentType:pickedFile.type,upsert:false});
+    if(up.error) throw up.error;
+    var imageUrl=sb.storage.from(BUCKET).getPublicUrl(key).data.publicUrl;
+
+    setMsg('writing metadata…');
+    var meta={name:name,description:$('ds').value.trim(),image:imageUrl,attributes:[{trait_type:'Creator',value:me},{trait_type:'Collection',value:'Chronic Community'}]};
+    var mkey='meta/'+me+'-'+Date.now()+'.json';
+    var mup=await sb.storage.from(BUCKET).upload(mkey,new Blob([JSON.stringify(meta)],{type:'application/json'}),{contentType:'application/json'});
+    if(mup.error) throw mup.error;
+    var tokenURI=sb.storage.from(BUCKET).getPublicUrl(mkey).data.publicUrl;
+
+    setMsg('confirm in wallet…');
+    var c=new ethers.Contract(MINT_ADDR,MINT_ABI,signer);
+    var fee=await c.mintFee();
+    var tx=await c.mint(tokenURI,{value:fee});
+    setMsg('minting on-chain…');
+    var rc=await tx.wait();
+    var tokenId=null;
+    for(var i=0;i<rc.logs.length;i++){ try{ var p=c.interface.parseLog(rc.logs[i]); if(p&&p.name==='Minted'){ tokenId=p.args.id.toString(); } }catch(e){} }
+
+    await sb.from('chronic_nfts').insert({contract:MINT_ADDR.toLowerCase(),token_id:tokenId,creator:me,name:name,description:meta.description,image_url:imageUrl,metadata_url:tokenURI,tx:rc.hash});
+    setMsg('✅ minted! #'+tokenId);
+    pickedFile=null; $('nm').value=''; $('ds').value=''; $('prev').style.display='none'; $('drop').querySelector('.ic').style.display=''; $('dropTxt').style.display='';
+    renderGallery();
+  }catch(e){ setMsg((e&&e.shortMessage)||e.message||'mint failed',true); }
+  finally{ $('mintBtn').disabled=!live(); }
+};
+
+/* ───────── gallery ───────── */
+function renderFilters(){
+  var f=$('filters'); var keys=['all'].concat(Object.keys(COLLECTIONS).filter(function(k){return COLLECTIONS[k].addr;}));
+  f.innerHTML=keys.map(function(k){var lbl=k==='all'?'All':COLLECTIONS[k].label;return '<button class="fbtn'+(k===activeFilter?' on':'')+'" data-f="'+k+'">'+lbl+'</button>';}).join('');
+  Array.prototype.forEach.call(f.children,function(b){b.onclick=function(){activeFilter=b.dataset.f;renderGallery();};});
+}
+async function renderGallery(){
+  renderFilters();
+  var q=sb.from('chronic_nfts').select('*').eq('hidden',false).order('created_at',{ascending:false}).limit(120);
+  if(activeFilter!=='all' && COLLECTIONS[activeFilter] && COLLECTIONS[activeFilter].addr) q=q.eq('contract',COLLECTIONS[activeFilter].addr.toLowerCase());
+  var res=await q; var rows=res.data||[];
+  var grid=$('grid'); $('empty').style.display=rows.length?'none':'block';
+  grid.innerHTML='';
+  for(var i=0;i<rows.length;i++){ grid.appendChild(card(rows[i])); }
+}
+function card(n){
+  var el=document.createElement('div'); el.className='card';
+  el.innerHTML='<div class="im"><img src="'+n.image_url+'" loading="lazy" alt=""/></div>'+
+    '<div class="bd"><span class="nm">'+esc(n.name)+'</span><span class="by">by '+short(n.creator)+'</span>'+
+    '<div class="pr" data-pr></div><div data-act></div></div>';
+  if(MARKET_ADDR) decorate(el,n);
+  return el;
+}
+function esc(s){return (s||'').replace(/[<>&]/g,function(c){return{'<':'&lt;','>':'&gt;','&':'&amp;'}[c];});}
+
+async function decorate(el,n){
+  try{
+    var mkt=new ethers.Contract(MARKET_ADDR,MARKET_ABI,ro);
+    var l=await mkt.listings(n.contract,n.token_id);
+    var listed=l.price>0n;
+    var owner=null; try{ owner=(await new ethers.Contract(n.contract,ERC721_ABI,ro).ownerOf(n.token_id)).toLowerCase(); }catch(e){}
+    var mine = me && owner===me;
+    var prEl=el.querySelector('[data-pr]'), acEl=el.querySelector('[data-act]');
+    if(listed){ prEl.textContent=ethers.formatEther(l.price)+' MON'; }
+    if(listed && !mine){ acEl.innerHTML='<button class="b buy">BUY</button>'; acEl.firstChild.onclick=function(){buy(n,l.price);}; }
+    else if(mine && listed){ acEl.innerHTML='<button class="b cancel">CANCEL LISTING</button>'; acEl.firstChild.onclick=function(){cancel(n);}; }
+    else if(mine){ acEl.innerHTML='<button class="b list">LIST FOR SALE</button>'; acEl.firstChild.onclick=function(){listIt(n);}; }
+  }catch(e){}
+}
+async function listIt(n){
+  if(!signer){await connect();if(!signer)return;}
+  var p=prompt('Sale price in MON:'); if(!p) return;
+  try{
+    var nft=new ethers.Contract(n.contract,ERC721_ABI,signer);
+    if(!(await nft.isApprovedForAll(me,MARKET_ADDR))){ var ax=await nft.setApprovalForAll(MARKET_ADDR,true); await ax.wait(); }
+    var mkt=new ethers.Contract(MARKET_ADDR,MARKET_ABI,signer);
+    var tx=await mkt.list(n.contract,n.token_id,ethers.parseEther(p)); await tx.wait();
+    renderGallery();
+  }catch(e){ alert((e&&e.shortMessage)||e.message); }
+}
+async function buy(n,price){
+  if(!signer){await connect();if(!signer)return;}
+  try{ var mkt=new ethers.Contract(MARKET_ADDR,MARKET_ABI,signer); var tx=await mkt.buy(n.contract,n.token_id,{value:price}); await tx.wait(); renderGallery(); }
+  catch(e){ alert((e&&e.shortMessage)||e.message); }
+}
+async function cancel(n){
+  if(!signer){await connect();if(!signer)return;}
+  try{ var mkt=new ethers.Contract(MARKET_ADDR,MARKET_ABI,signer); var tx=await mkt.cancel(n.contract,n.token_id); await tx.wait(); renderGallery(); }
+  catch(e){ alert((e&&e.shortMessage)||e.message); }
+}
+
+renderGallery();
+</script>
+</body>
+</html>
