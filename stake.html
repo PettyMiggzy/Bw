@@ -167,7 +167,7 @@ function updateMult(){ var dd=curDays(); document.getElementById('stakeMult').te
 
 async function refreshStats(){
   if(notDeployed){ document.getElementById('notice').style.display='block';
-    document.getElementById('notice').innerHTML='⛏️ Staking contract deploys soon — this page goes live the moment it\u2019s on-chain. Pool + leaderboard will populate automatically.'; return; }
+    document.getElementById('notice').innerHTML='⛏️ Staking contract deploys soon — this page goes live the moment it\u2019s on-chain. Pool + leaderboard will populate automatically.'; loadLeaderboard(); return; }
   try{
     var c=stakeCtr(roProvider); var ps=await c.poolStats();
     document.getElementById('sTotal').textContent=fmt(ethers.formatUnits(ps[0],18));
