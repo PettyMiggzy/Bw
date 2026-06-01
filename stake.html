@@ -74,7 +74,7 @@ input[type=text],input[type=number]{width:100%;background:var(--void);border:1px
 <div class="bar">
   <a href="/">‹ $CHRONIC</a>
   <div class="links">
-    <a href="/#burn">Burn</a><a href="/#sessions">Map</a>
+    <a href="/#burn">Burn</a><a href="/strains">Strains</a>
     <button id="connectBtn">CONNECT</button>
   </div>
 </div>
@@ -293,7 +293,7 @@ async function loadNftWallet(){
   try{
     var s=strainsCtr(roProvider);
     var bal=Number(await s.balanceOf(account));
-    if(!bal){ box.innerHTML='<div class="msg" style="color:var(--smoke)">No Strain NFTs in your wallet. Mint some first, then stake them here to earn.</div>'; btn.disabled=true; btn.textContent='NO STRAINS TO STAKE'; return; }
+    if(!bal){ box.innerHTML='<div class="msg" style="color:var(--smoke)">No Strain NFTs in your wallet. <a href="/strains" style="color:var(--green)">Mint some →</a> then stake them here to earn.</div>'; btn.disabled=true; btn.textContent='NO STRAINS TO STAKE'; return; }
     // enumerate owned token ids (ERC721 has no enumerable here; scan nextId range by ownerOf)
     var maxId=Number(await s.nextId()); var owned=[];
     for(var id=1; id<maxId && owned.length<bal; id++){ try{ if((await s.ownerOf(id)).toLowerCase()===account.toLowerCase()) owned.push(id); }catch(e){} }
