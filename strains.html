@@ -93,6 +93,7 @@ h1.title{font-family:var(--fh);font-size:clamp(34px,10vw,64px);line-height:.92;t
 <div class="bar">
   <a class="bk" href="/">‹ back to site</a>
   <div class="nav">
+    <a class="navlink" href="/chronic">💀 CHRONIC</a>
     <a class="navlink" href="/stake">💰 STAKE</a>
     <button id="connectBtn">CONNECT</button>
   </div>
@@ -126,10 +127,10 @@ var CONFIG={
 };
 // tier index -> display. burn/cap mirror the contract (read live too).
 var TIERS=[
-  {key:'mids',  name:'Mids',   rar:'Common',    burn:1000000,  emoji:'🌿', color:'#52ff8f', img:'/assets/strains/mids-1.png',   pool:7},
-  {key:'loud',  name:'Loud',   rar:'Uncommon',  burn:2000000,  emoji:'🔥', color:'#f5cf57', img:'/assets/strains/loud-1.png',   pool:7},
-  {key:'exotic',name:'Exotic', rar:'Rare',      burn:5000000,  emoji:'💜', color:'#a85cff', img:'/assets/strains/exotic-1.png', pool:5},
-  {key:'gas',   name:'Gas',    rar:'Legendary', burn:10000000, emoji:'⛽', color:'#ff6a2b', img:'/assets/strains/gas-1.png',    pool:4}
+  {key:'mids',  name:'Mids',   rar:'Common',    burn:1000000,  emoji:'🌿', color:'#52ff8f', img:'/assets/strains/mids-1.png',   pool:5},
+  {key:'loud',  name:'Loud',   rar:'Uncommon',  burn:2000000,  emoji:'🔥', color:'#f5cf57', img:'/assets/strains/loud-1.png',   pool:5},
+  {key:'exotic',name:'Exotic', rar:'Rare',      burn:5000000,  emoji:'💜', color:'#a85cff', img:'/assets/strains/exotic-1.png', pool:4},
+  {key:'gas',   name:'Gas',    rar:'Legendary', burn:10000000, emoji:'⛽', color:'#ff6a2b', img:'/assets/strains/gas-1.png',    pool:3}
 ];
 var STRAINS_ABI=[
  "function mint(uint8 tier) returns (uint256)",
