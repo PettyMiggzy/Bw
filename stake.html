@@ -25,6 +25,7 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opa
 #connectBtn.on{background:transparent;border:1px solid var(--green);color:var(--green)}
 .hero{text-align:center;padding:30px 0 10px}
 .hero img{width:120px;height:120px;border-radius:50%;box-shadow:0 0 40px rgba(82,255,143,.4);margin-bottom:14px}
+.hero .vault{width:100%;max-width:360px;border-radius:20px;box-shadow:0 0 50px rgba(82,255,143,.35);margin-bottom:16px;display:block;margin-inline:auto}
 h1{font-family:var(--fh);font-size:clamp(34px,11vw,64px);line-height:.9;color:var(--green);text-shadow:0 0 34px rgba(82,255,143,.5),4px 4px 0 var(--ember2)}
 .tag{color:var(--dim);font-size:14px;margin-top:10px;max-width:560px;margin-inline:auto}
 .notice{background:rgba(255,106,43,.1);border:1px solid var(--ember);color:var(--gold);border-radius:14px;padding:13px 16px;font-size:13px;text-align:center;margin:18px 0}
@@ -77,7 +78,9 @@ input[type=text],input[type=number]{width:100%;background:var(--void);border:1px
 
 <div class="wrap">
   <div class="hero">
-    <img src="/assets/logo-chronic.png" alt="$CHRONIC" />
+    <video class="vault" autoplay muted loop playsinline poster="/assets/vault-poster.jpg">
+      <source src="/assets/vault-loop.mp4" type="video/mp4" />
+    </video>
     <h1>STAKE &amp;<br>BURN</h1>
     <p class="tag">Lock $CHRONIC, earn from the pool. Longer lock = up to <b style="color:var(--gold)">5&times;</b> the rewards. Bail early and 15% feeds the pool + the fire. Free to stake — just gas.</p>
   </div>
