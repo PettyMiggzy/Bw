@@ -826,27 +826,40 @@ loadStrains(); bootSessions();
   }
   function clearMarkers(){if(!lmap)return;lmarkers.forEach(function(m){lmap.removeLayer(m);});lmarkers=[];}
   function km(a,b,c,d){var R=6371,p=Math.PI/180,x=Math.sin((c-a)*p/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin((d-b)*p/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
+  async function overpass(q){
+    var hosts=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
+    for(var i=0;i<hosts.length;i++){
+      try{
+        var r=await fetch(hosts[i]+'?data='+encodeURIComponent(q),{headers:{'Accept':'application/json'}});
+        if(!r.ok) continue;
+        var d=await r.json(); if(d&&d.elements) return d.elements;
+      }catch(e){ /* try next mirror */ }
+    }
+    return null; // all mirrors failed
+  }
   async function findNear(lat,lng){
     initLMap(); if(!lmap){lstat('map failed to load',true);return;}
-    lmap.setView([lat,lng],12); clearMarkers(); llist.innerHTML=''; lstat('searching nearby\u2026');
+    lmap.setView([lat,lng],11); clearMarkers(); llist.innerHTML=''; lstat('searching nearby\u2026');
     var me=L.circleMarker([lat,lng],{radius:7,color:'#52ff8f',fillColor:'#52ff8f',fillOpacity:1}).addTo(lmap).bindPopup('You'); lmarkers.push(me);
-    var q='[out:json][timeout:25];(node["shop"="cannabis"](around:25000,'+lat+','+lng+');node["shop"="weed"](around:25000,'+lat+','+lng+'););out body 50;';
-    try{
-      var r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(q)});
-      var d=await r.json(); var els=(d.elements||[]).filter(function(e){return e.lat&&e.tags;});
-      if(!els.length){lstat('no mapped dispensaries within 25km \u2014 try a bigger city nearby.',false);return;}
-      els.forEach(function(e){e._k=km(lat,lng,e.lat,e.lon);}); els.sort(function(a,b){return a._k-b._k;});
-      els.slice(0,25).forEach(function(e){
-        var nm=e.tags.name||'Cannabis shop';
-        var ad=[e.tags['addr:housenumber'],e.tags['addr:street'],e.tags['addr:city']].filter(Boolean).join(' ')||'address n/a';
-        var m=L.marker([e.lat,e.lon]).addTo(lmap).bindPopup('<b>'+nm+'</b><br>'+ad); lmarkers.push(m);
-        var row=document.createElement('div'); row.className='loc-row';
-        row.innerHTML='<div><div class="nm">'+nm+'</div><div class="ad">'+ad+' \u00b7 '+e._k.toFixed(1)+'km</div></div>'+
-          '<a href="https://www.google.com/maps/dir/?api=1&destination='+e.lat+','+e.lon+'" target="_blank" rel="noopener">Directions \u2197</a>';
-        llist.appendChild(row);
-      });
-      lstat(els.length+' spots found nearby.');
-    }catch(err){lstat('lookup failed \u2014 try again in a moment.',true);}
+    var R=40000; // 40km
+    var q='[out:json][timeout:25];(nwr["shop"="cannabis"](around:'+R+','+lat+','+lng+');nwr["shop"="weed"](around:'+R+','+lat+','+lng+');nwr["name"~"dispensary|cannabis|marijuana",i](around:'+R+','+lat+','+lng+'););out center 60;';
+    var els=await overpass(q);
+    if(els===null){ lstat('the map service is busy \u2014 try again in a moment.',true); return; }
+    els=els.map(function(e){var la=e.lat||(e.center&&e.center.lat),lo=e.lon||(e.center&&e.center.lon);return (la&&lo&&e.tags)?{la:la,lo:lo,t:e.tags}:null;}).filter(Boolean);
+    // de-dupe by name+coord
+    var seen={}; els=els.filter(function(e){var k=(e.t.name||'')+e.la.toFixed(3)+e.lo.toFixed(3);if(seen[k])return false;seen[k]=1;return true;});
+    if(!els.length){lstat('no dispensaries mapped near here in OpenStreetMap. Coverage is patchy \u2014 try a major city, or see note below.',false);return;}
+    els.forEach(function(e){e._k=km(lat,lng,e.la,e.lo);}); els.sort(function(a,b){return a._k-b._k;});
+    els.slice(0,30).forEach(function(e){
+      var nm=e.t.name||'Cannabis shop';
+      var ad=[e.t['addr:housenumber'],e.t['addr:street'],e.t['addr:city']].filter(Boolean).join(' ')||'address n/a';
+      var m=L.marker([e.la,e.lo]).addTo(lmap).bindPopup('<b>'+nm+'</b><br>'+ad); lmarkers.push(m);
+      var row=document.createElement('div'); row.className='loc-row';
+      row.innerHTML='<div><div class="nm">'+nm+'</div><div class="ad">'+ad+' \u00b7 '+e._k.toFixed(1)+'km</div></div>'+
+        '<a href="https://www.google.com/maps/dir/?api=1&destination='+e.la+','+e.lo+'" target="_blank" rel="noopener">Directions \u2197</a>';
+      llist.appendChild(row);
+    });
+    lstat(els.length+' spots found within 40km.');
   }
   var lg=document.getElementById('locGeo');
   if(lg)lg.addEventListener('click',function(){
