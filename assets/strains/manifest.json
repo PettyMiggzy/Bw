@@ -1,6 +1,6 @@
 {
-  "mids": ["mids-1.png", "mids-2.png"],
-  "loud": ["loud-1.png", "loud-2.png"],
-  "exotic": ["exotic-1.png"],
-  "gas": ["gas-1.png"]
+  "mids": ["mids-1.png","mids-2.png","mids-3.png","mids-4.png","mids-5.png","mids-6.png","mids-7.png"],
+  "loud": ["loud-1.png","loud-2.png","loud-3.png","loud-4.png","loud-5.png","loud-6.png","loud-7.png"],
+  "exotic": ["exotic-1.png","exotic-2.png","exotic-3.png","exotic-4.png","exotic-5.png"],
+  "gas": ["gas-1.png","gas-2.png","gas-3.png","gas-4.png"]
 }
