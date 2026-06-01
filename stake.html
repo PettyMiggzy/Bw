@@ -236,10 +236,25 @@ async function connect(){
       bp=new ethers.BrowserProvider(window.ethereum);
     }
     signer=await bp.getSigner(); account=await signer.getAddress();
-    var btn=document.getElementById('connectBtn'); btn.textContent=short(account); btn.classList.add('on');
-    document.getElementById('stakeBtn').disabled=false; document.getElementById('stakeBtn').textContent='🔥 STAKE $CHRONIC';
+    setConnectedUI();
     refreshYou(); loadLeaderboard();
   }catch(e){ console.warn(e); }
+}
+
+function setConnectedUI(){
+  var btn=document.getElementById('connectBtn');
+  btn.textContent=short(account)+'  \u2715'; btn.classList.add('on'); btn.title='Click to disconnect';
+  var sb=document.getElementById('stakeBtn'); sb.disabled=false; sb.textContent='\ud83d\udd25 STAKE $CHRONIC';
+}
+async function disconnect(){
+  // best-effort: revoke the site's wallet permission so next visit re-prompts
+  try{ if(window.ethereum&&window.ethereum.request){ await window.ethereum.request({method:'wallet_revokePermissions',params:[{eth_accounts:{}}]}); } }catch(e){}
+  signer=null; account=null;
+  var btn=document.getElementById('connectBtn'); btn.textContent='CONNECT'; btn.classList.remove('on'); btn.title='';
+  var sb=document.getElementById('stakeBtn'); sb.disabled=true; sb.textContent='CONNECT WALLET TO STAKE';
+  document.getElementById('posCard').style.display='none';
+  document.getElementById('sYou').textContent='\u2014'; document.getElementById('bal').textContent='\u2014';
+  smsg('wallet disconnected',true); loadLeaderboard();
 }
 
 async function doStake(){
@@ -266,8 +281,12 @@ async function doUnstake(i,early){
 }
 function smsg(t,ok){ var m=document.getElementById('stakeMsg'); m.textContent=t; m.style.color=ok?'var(--green)':'var(--ember)'; }
 
-// init — NOTE: no auto-connect. wallet only touched on the CONNECT click.
-document.getElementById('connectBtn').addEventListener('click',connect);
+// init — NOTE: no auto-connect, nothing persisted. Wallet is only touched on the
+// CONNECT click, so every visit starts disconnected.
+document.getElementById('connectBtn').addEventListener('click',function(){ account ? disconnect() : connect(); });
+if(window.ethereum&&window.ethereum.on){
+  window.ethereum.on('accountsChanged',function(accs){ if(!accs||!accs.length){ if(account) disconnect(); } else if(account){ account=accs[0]; setConnectedUI(); refreshYou(); loadLeaderboard(); } });
+}
 document.getElementById('stakeBtn').addEventListener('click',doStake);
 document.getElementById('customDays')&&document.getElementById('customDays').addEventListener('input',updateMult);
 buildLocks(); updateMult(); refreshStats();
