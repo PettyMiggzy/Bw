@@ -5,8 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>$CHRONIC · Burn It Don’t Hoard It · Monad</title>
 <meta name="description" content="$CHRONIC — burn it, don’t hoard it. 1% of every trade burns forever, no mint, no add. Skeleton-crew memecoin on Monad mainnet (chain 143)." />
-<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
-<link rel="apple-touch-icon" href="/assets/favicon-192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=3" />
+<link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png?v=3" />
+<link rel="shortcut icon" href="/assets/favicon.ico?v=3" />
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=3" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://burnchronic.xyz/" />
 <meta property="og:title" content="$CHRONIC — Burn on Monad" />
@@ -336,9 +338,33 @@ footer .trib a{color:var(--ember);text-decoration:underline}
 .sess-live{text-align:center;font-family:var(--font-mono);font-size:12px;color:var(--gold);margin:-6px 0 18px;min-height:18px;transition:opacity .4s;opacity:0}
 .sess-live.in{opacity:1}
 .sess-live b{color:var(--green)} .sess-live .o{color:var(--ember)}
+
+/* === logo + locator + newsletter === */
+.site-logo{position:fixed;top:10px;left:10px;z-index:60;width:54px;height:54px;border-radius:50%;overflow:hidden;box-shadow:0 0 18px rgba(82,255,143,.45);transition:transform .2s}
+.site-logo:hover{transform:scale(1.08)}
+.site-logo img{width:100%;height:100%;object-fit:cover;display:block}
+@media(max-width:600px){.site-logo{width:46px;height:46px;top:8px;left:8px}}
+#locator .loc-wrap{max-width:780px;margin:0 auto}
+#locatorMap{width:100%;height:380px;border-radius:18px;overflow:hidden;border:1px solid var(--green-deep);background:#0a0d0a;margin:14px 0}
+.loc-controls{display:flex;flex-wrap:wrap;gap:8px}
+.loc-controls button{font-family:var(--font-display);font-size:12px;padding:12px 16px;border-radius:12px;border:0;cursor:pointer}
+.loc-geo{background:linear-gradient(90deg,var(--green-dim),var(--green));color:var(--void)}
+.loc-go{background:transparent;border:1px solid var(--green);color:var(--green)}
+.loc-controls input{flex:1;min-width:150px;background:var(--void);border:1px solid var(--green-deep);border-radius:12px;color:var(--green);font-family:var(--font-mono);padding:12px 14px}
+.loc-status{color:var(--dim);font-size:13px;min-height:18px;margin:8px 2px}
+.loc-status.err{color:var(--ember)}
+.loc-row{display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid var(--green-deep);padding:12px 4px}
+.loc-row .nm{color:var(--text);font-size:14px}.loc-row .ad{color:var(--dim);font-size:11px}
+.loc-row a{color:var(--green);font-size:12px;white-space:nowrap;text-decoration:none}
+.news-box{max-width:560px;margin:8px auto 0;background:var(--void2);border:1px solid var(--green-deep);border-radius:18px;padding:22px}
+.news-box .nrow{display:flex;gap:8px}
+.news-box input{flex:1;background:var(--void);border:1px solid var(--green-deep);border-radius:12px;color:var(--green);font-family:var(--font-mono);padding:13px 14px}
+.news-box button{font-family:var(--font-display);font-size:13px;padding:0 18px;border-radius:12px;border:0;cursor:pointer;background:linear-gradient(90deg,var(--ember2),var(--ember),var(--gold2));color:#1a0a00}
+.news-msg{font-size:12px;margin-top:10px;min-height:16px}
 </style>
 </head>
 <body>
+<a class="site-logo" href="#" aria-label="$CHRONIC"><img src="/assets/logo-chronic.png" alt="$CHRONIC"/></a>
 
 <!-- SPLASH -->
 <div class="splash" id="splash">
@@ -461,6 +487,24 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   </div>
 </section>
 
+<!-- LOCATOR -->
+<section id="locator">
+  <div class="kick">&#9656; Find your plug</div>
+  <h2 class="sec">DISPENSARY <span class="g">LOCATOR</span></h2>
+  <p class="sub">Cannabis shops near you &mdash; use your location or type a city/ZIP. Community-mapped data from OpenStreetMap. No signup, no tracking.</p>
+  <div class="loc-wrap">
+    <div class="loc-controls">
+      <button class="loc-geo" id="locGeo">&#128205; USE MY LOCATION</button>
+      <input id="locZip" type="text" placeholder="or enter city / ZIP" />
+      <button class="loc-go" id="locGo">SEARCH</button>
+    </div>
+    <div class="loc-status" id="locStatus"></div>
+    <div id="locatorMap"></div>
+    <div id="locList"></div>
+    <div class="hint" style="color:var(--dim);font-size:10px;margin-top:8px">Coverage varies by area. Always verify hours &amp; local legality yourself.</div>
+  </div>
+</section>
+
 <!-- JOIN -->
 <section id="join">
   <div class="kick">▸ Pull up</div>
@@ -480,6 +524,20 @@ footer .trib a{color:var(--ember);text-decoration:underline}
     <a class="sl" href="https://t.me/burnweedsta" target="_blank" rel="noopener"><span class="ico">✈️</span><span class="lab">TELEGRAM</span><span class="sub">the cipher</span></a>
     <a class="sl" id="xLink" href="#" target="_blank" rel="noopener"><span class="ico">𝕏</span><span class="lab">TWITTER</span><span class="sub">@burnweedsta</span></a>
     <a class="sl" id="buyLink" href="#" target="_blank" rel="noopener"><span class="ico">🔥</span><span class="lab">BUY</span><span class="sub">$CHRONIC</span></a>
+  </div>
+</section>
+
+<!-- NEWSLETTER -->
+<section id="newsletter">
+  <div class="kick">&#9656; Stay lit</div>
+  <h2 class="sec">THE WEEKLY <span class="o">BURN</span></h2>
+  <p class="sub">Burns, drops, strain releases, session highlights &mdash; once a week, no spam.</p>
+  <div class="news-box">
+    <div class="nrow">
+      <input id="newsEmail" type="email" placeholder="you@email.com" aria-label="email" />
+      <button id="newsJoin">JOIN &#128293;</button>
+    </div>
+    <div class="news-msg" id="newsMsg"></div>
   </div>
 </section>
 
@@ -742,5 +800,79 @@ loadStrains(); bootSessions();
 })();
 </script>
 <a class="buyfab" id="buyFab" href="https://nad.fun/tokens/0x52641feEdCE831247514bf7C2378513741077777" target="_blank" rel="noopener">🔥 BUY $CHRONIC<span class="mc">don’t be the last one in</span></a>
+<script>
+(function(){
+  // ---- NEWSLETTER (paste your Buttondown/Formspree/Mailchimp POST URL to go live) ----
+  var NEWSLETTER_FORM="";
+  var ne=document.getElementById('newsEmail'),nb=document.getElementById('newsJoin'),nm=document.getElementById('newsMsg');
+  function setMsg(t,ok){if(nm){nm.textContent=t;nm.style.color=ok?'var(--green)':'var(--ember)';}}
+  if(nb)nb.addEventListener('click',async function(){
+    var em=(ne.value||'').trim();
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){setMsg('enter a valid email',false);return;}
+    nb.disabled=true;
+    try{
+      if(!NEWSLETTER_FORM){
+        var l=JSON.parse(localStorage.getItem('cg_news')||'[]'); if(l.indexOf(em)<0)l.push(em);
+        localStorage.setItem('cg_news',JSON.stringify(l));
+        setMsg("you're on the list \ud83d\udd25 (goes live once the mailer's connected)",true); ne.value='';
+      } else {
+        var r=await fetch(NEWSLETTER_FORM,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em})});
+        if(!r.ok)throw 0; setMsg('check your inbox to confirm \ud83d\udd25',true); ne.value='';
+      }
+    }catch(e){setMsg('signup failed \u2014 try again',false);} finally{nb.disabled=false;}
+  });
+
+  // ---- DISPENSARY LOCATOR (keyless: Overpass + Nominatim + Leaflet) ----
+  var lmap=null,lmarkers=[],lstatus=document.getElementById('locStatus'),llist=document.getElementById('locList');
+  function lstat(t,err){if(lstatus){lstatus.textContent=t;lstatus.className='loc-status'+(err?' err':'');}}
+  function initLMap(){
+    if(lmap||!document.getElementById('locatorMap')||typeof L==='undefined')return;
+    lmap=L.map('locatorMap',{zoomControl:true}).setView([39.5,-98.35],4);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OSM &copy; CARTO'}).addTo(lmap);
+  }
+  function clearMarkers(){if(!lmap)return;lmarkers.forEach(function(m){lmap.removeLayer(m);});lmarkers=[];}
+  function km(a,b,c,d){var R=6371,p=Math.PI/180,x=Math.sin((c-a)*p/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin((d-b)*p/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
+  async function findNear(lat,lng){
+    initLMap(); if(!lmap){lstat('map failed to load',true);return;}
+    lmap.setView([lat,lng],12); clearMarkers(); llist.innerHTML=''; lstat('searching nearby\u2026');
+    var me=L.circleMarker([lat,lng],{radius:7,color:'#52ff8f',fillColor:'#52ff8f',fillOpacity:1}).addTo(lmap).bindPopup('You'); lmarkers.push(me);
+    var q='[out:json][timeout:25];(node["shop"="cannabis"](around:25000,'+lat+','+lng+');node["shop"="weed"](around:25000,'+lat+','+lng+'););out body 50;';
+    try{
+      var r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(q)});
+      var d=await r.json(); var els=(d.elements||[]).filter(function(e){return e.lat&&e.tags;});
+      if(!els.length){lstat('no mapped dispensaries within 25km \u2014 try a bigger city nearby.',false);return;}
+      els.forEach(function(e){e._k=km(lat,lng,e.lat,e.lon);}); els.sort(function(a,b){return a._k-b._k;});
+      els.slice(0,25).forEach(function(e){
+        var nm=e.tags.name||'Cannabis shop';
+        var ad=[e.tags['addr:housenumber'],e.tags['addr:street'],e.tags['addr:city']].filter(Boolean).join(' ')||'address n/a';
+        var m=L.marker([e.lat,e.lon]).addTo(lmap).bindPopup('<b>'+nm+'</b><br>'+ad); lmarkers.push(m);
+        var row=document.createElement('div'); row.className='loc-row';
+        row.innerHTML='<div><div class="nm">'+nm+'</div><div class="ad">'+ad+' \u00b7 '+e._k.toFixed(1)+'km</div></div>'+
+          '<a href="https://www.google.com/maps/dir/?api=1&destination='+e.lat+','+e.lon+'" target="_blank" rel="noopener">Directions \u2197</a>';
+        llist.appendChild(row);
+      });
+      lstat(els.length+' spots found nearby.');
+    }catch(err){lstat('lookup failed \u2014 try again in a moment.',true);}
+  }
+  var lg=document.getElementById('locGeo');
+  if(lg)lg.addEventListener('click',function(){
+    if(!navigator.geolocation){lstat('geolocation not supported \u2014 use the search box.',true);return;}
+    lstat('getting your location\u2026');
+    navigator.geolocation.getCurrentPosition(function(p){findNear(p.coords.latitude,p.coords.longitude);},
+      function(){lstat('location blocked \u2014 type a city/ZIP instead.',true);},{timeout:9000});
+  });
+  async function geo(){
+    var z=(document.getElementById('locZip').value||'').trim(); if(!z){lstat('enter a city or ZIP.',true);return;}
+    initLMap(); lstat('looking up "'+z+'"\u2026');
+    try{
+      var r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(z),{headers:{'Accept':'application/json'}});
+      var d=await r.json(); if(!d.length){lstat('couldn\u2019t find that place \u2014 try another.',true);return;}
+      findNear(parseFloat(d[0].lat),parseFloat(d[0].lon));
+    }catch(e){lstat('lookup failed \u2014 try again.',true);}
+  }
+  var gb=document.getElementById('locGo'); if(gb)gb.addEventListener('click',geo);
+  var zi=document.getElementById('locZip'); if(zi)zi.addEventListener('keydown',function(e){if(e.key==='Enter')geo();});
+})();
+</script>
 </body>
 </html>
