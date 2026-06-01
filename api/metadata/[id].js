@@ -9,10 +9,10 @@ const RPC = "https://rpc.monad.xyz";
 const BASE = "https://burnchronic.xyz";
 
 const TIERS = [
-  { key: "mids",   name: "Mids",   rarity: "Common",     burn: "1,000,000",  cap: 10000, pool: 5 },
-  { key: "loud",   name: "Loud",   rarity: "Uncommon",   burn: "2,000,000",  cap: 2500,  pool: 5 },
-  { key: "exotic", name: "Exotic", rarity: "Rare",       burn: "5,000,000",  cap: 500,   pool: 4 },
-  { key: "gas",    name: "Gas",    rarity: "Legendary",  burn: "10,000,000", cap: 100,   pool: 3 },
+  { key: "mids",   name: "Mids",   rarity: "Common",     burn: "1,000,000",  cap: 10000, pool: 2 },
+  { key: "loud",   name: "Loud",   rarity: "Uncommon",   burn: "2,000,000",  cap: 2500,  pool: 2 },
+  { key: "exotic", name: "Exotic", rarity: "Rare",       burn: "5,000,000",  cap: 500,   pool: 1 },
+  { key: "gas",    name: "Gas",    rarity: "Legendary",  burn: "10,000,000", cap: 100,   pool: 1 },
 ];
 
 // selector for tierOf(uint256) = 0x53f96df2
