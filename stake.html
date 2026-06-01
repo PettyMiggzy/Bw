@@ -40,6 +40,9 @@ h1{font-family:var(--fh);font-size:clamp(34px,11vw,64px);line-height:.9;color:va
 .card .sub{color:var(--dim);font-size:12px;margin-bottom:16px}
 label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:block;margin:12px 0 6px}
 input[type=text],input[type=number]{width:100%;background:var(--void);border:1px solid var(--line);border-radius:12px;color:var(--green);font-family:var(--fm);padding:13px 14px;font-size:15px}
+.tabs{display:flex;gap:8px;margin:18px 0 4px;flex-wrap:wrap}
+.tabBtn{flex:1;min-width:120px;font-family:var(--fd);font-size:13px;letter-spacing:.02em;padding:12px 10px;border-radius:12px;cursor:pointer;background:transparent;border:1px solid var(--line);color:var(--smoke);white-space:nowrap}
+.tabBtn.on{border-color:var(--green);color:var(--green);background:rgba(57,255,136,.06)}
 .locks{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
 .lock{flex:1;min-width:64px;text-align:center;border:1px solid var(--line);border-radius:12px;padding:10px 6px;cursor:pointer;transition:.15s;background:var(--void)}
 .lock.sel{border-color:var(--gold);background:rgba(245,207,87,.1)}
@@ -94,8 +97,15 @@ input[type=text],input[type=number]{width:100%;background:var(--void);border:1px
     <div class="stat"><div class="n g" id="sYou">—</div><div class="k">Your Stake</div></div>
   </div>
 
-  <!-- STAKE -->
-  <div class="card" id="stakeCard">
+  <!-- TABS -->
+  <div class="tabs" id="tabs">
+    <button class="tabBtn on" data-tab="token">🔒 STAKE $CHRONIC</button>
+    <button class="tabBtn" data-tab="nft">🖼️ STAKE STRAINS</button>
+    <button class="tabBtn" data-tab="fund">💧 FUND POOL</button>
+  </div>
+
+  <!-- STAKE (token) -->
+  <div class="card tabPane" data-pane="token" id="stakeCard">
     <h2>▸ Lock it up</h2>
     <div class="sub">Pick an amount and a lock. Longer locks weigh more in the reward split.</div>
     <label for="stakeAmt">Amount ($CHRONIC) · <span id="bal" style="color:var(--green)">—</span></label>
@@ -109,7 +119,7 @@ input[type=text],input[type=number]{width:100%;background:var(--void);border:1px
   </div>
 
   <!-- YOUR POSITIONS -->
-  <div class="card" id="posCard" style="display:none">
+  <div class="card tabPane" data-pane="token" id="posCard" style="display:none">
     <h2>▸ Your positions</h2>
     <div class="sub">Claim rewards anytime. Unstake free after the lock — early unstake takes the 15% hit.</div>
     <div id="posList"></div>
@@ -122,13 +132,44 @@ input[type=text],input[type=number]{width:100%;background:var(--void);border:1px
     <div id="lbList"><div class="msg"><span class="spin"></span> loading…</div></div>
   </div>
 
+  <!-- STAKE STRAINS (NFT) -->
+  <div class="card tabPane" data-pane="nft" id="nftCard" style="display:none">
+    <h2>▸ Stake your Strains</h2>
+    <div class="sub">Stake Chronic Strain NFTs to earn from the NFT reward pool. Rarer tiers weigh more. No lock, no penalty — unstake anytime.</div>
+    <div id="nftWallet"><div class="msg"><span class="spin"></span> connect to load your Strains…</div></div>
+    <button class="btn" id="nftStakeBtn" disabled>CONNECT WALLET</button>
+    <div class="msg" id="nftMsg"></div>
+  </div>
+
+  <!-- YOUR STAKED STRAINS -->
+  <div class="card tabPane" data-pane="nft" id="nftPosCard" style="display:none">
+    <h2>▸ Your staked Strains</h2>
+    <div class="sub">Claim or unstake anytime — flexible pool.</div>
+    <div id="nftPosList"><div class="msg">none staked yet.</div></div>
+  </div>
+
+  <!-- FUND POOL -->
+  <div class="card tabPane" data-pane="fund" id="fundCard" style="display:none">
+    <h2>▸ Fund a reward pool</h2>
+    <div class="sub">Add $CHRONIC to a reward pool. It drips to stakers linearly over 7 days (anti-snipe). <b style="color:var(--ember)">Use this — never send tokens straight to the contract</b> (a raw transfer won't count as rewards and can't be recovered).</div>
+    <label>Which pool?</label>
+    <div class="locks" id="fundPick"></div>
+    <label for="fundAmt">Amount ($CHRONIC) · <span id="fundBal" style="color:var(--green)">—</span></label>
+    <input id="fundAmt" type="number" placeholder="0" min="0" />
+    <div class="msg" style="color:var(--smoke)">Heads up: a pool only accepts funding while it has at least one active staker. Stake a little first, then fund.</div>
+    <button class="btn" id="fundBtn" disabled>CONNECT WALLET TO FUND</button>
+    <div class="msg" id="fundMsg"></div>
+  </div>
+
   <div class="foot">Free to stake · gas only · Monad chain 143 · contract is non-custodial, owner can't touch stakes.<br>Not financial advice — DYOR. 🔥</div>
 </div>
 
 <script>
 // ============ CONFIG (set STAKING_ADDR after deploy → page goes live) ============
 var CONFIG = {
-  STAKING_ADDR: "0x2429D01A12f35e53e82E2AD46FbA71F5CFD3F1D3",  // ChronicStaking on Monad mainnet (verified)
+  STAKING_ADDR: "0x2429D01A12f35e53e82E2AD46FbA71F5CFD3F1D3",  // ChronicStaking (token pool)
+  NFTSTAKE_ADDR:"0x8c64A42cD276D0B1E95C2D97A6604a546E5B6c1F",  // ChronicNFTStaking (NFT pool)
+  STRAINS_ADDR: "0x7779cd49760BDefa066D7707E7EA28A2A638CCEC",  // ChronicStrains NFT
   TOKEN_ADDR:   "0x52641feEdCE831247514bf7C2378513741077777",
   CHAIN_ID:     143,
   RPC:          "https://rpc.monad.xyz",
@@ -139,7 +180,20 @@ var STAKE_ABI=[
  "function pendingReward(address,uint256) view returns (uint256)","function positionCount(address) view returns (uint256)",
  "function positions(address,uint256) view returns (uint256 amount,uint256 weight,uint256 lockEnd,uint256 rewardDebt,bool active)",
  "function stakedOf(address) view returns (uint256)","function stakers(uint256) view returns (address)","function stakerCount() view returns (uint256)",
- "function poolStats() view returns (uint256 principal,uint256 reserve,uint256 weight,uint256 numStakers)","function lockMultiplier(uint256) view returns (uint256)"
+ "function poolStats() view returns (uint256 principal,uint256 reserve,uint256 weight,uint256 numStakers)","function lockMultiplier(uint256) view returns (uint256)",
+ "function fundRewards(uint256 amount)"
+];
+var NFTSTAKE_ABI=[
+ "function stake(uint256[] ids)","function unstake(uint256[] ids)","function claim(uint256[] ids)",
+ "function pendingReward(uint256 tokenId) view returns (uint256)",
+ "function stakedTokensOf(address) view returns (uint256[])","function stakerCount() view returns (uint256)",
+ "function poolStats() view returns (uint256 reserve,uint256 weight,uint256 numStakers)",
+ "function tierWeight(uint8) view returns (uint256)","function fundRewards(uint256 amount)"
+];
+var STRAINS_ABI=[
+ "function balanceOf(address) view returns (uint256)","function tokenOfOwnerByIndex(address,uint256) view returns (uint256)",
+ "function tierOf(uint256) view returns (uint8)","function isApprovedForAll(address,address) view returns (bool)",
+ "function setApprovalForAll(address,bool)","function nextId() view returns (uint256)","function ownerOf(uint256) view returns (address)"
 ];
 var ERC20_ABI=["function balanceOf(address) view returns (uint256)","function decimals() view returns (uint8)","function allowance(address,address) view returns (uint256)","function approve(address,uint256) returns (bool)"];
 
@@ -150,6 +204,8 @@ var fmt=function(n){n=Number(n);return n>=1e9?(n/1e9).toFixed(2)+"B":n>=1e6?(n/1
 var short=function(a){return a.slice(0,6)+"…"+a.slice(-4);};
 function stakeCtr(p){return new ethers.Contract(CONFIG.STAKING_ADDR,STAKE_ABI,p);}
 function tokenCtr(p){return new ethers.Contract(CONFIG.TOKEN_ADDR,ERC20_ABI,p);}
+function nftStakeCtr(p){return new ethers.Contract(CONFIG.NFTSTAKE_ADDR,NFTSTAKE_ABI,p);}
+function strainsCtr(p){return new ethers.Contract(CONFIG.STRAINS_ADDR,STRAINS_ABI,p);}
 var notDeployed=!CONFIG.STAKING_ADDR;
 
 // lock multiplier (mirror of contract: 1.0x@30d -> 5.0x@730d)
@@ -175,7 +231,10 @@ async function refreshStats(){
     var c=stakeCtr(roProvider); var ps=await c.poolStats();
     document.getElementById('sTotal').textContent=fmt(ethers.formatUnits(ps[0],18));
     document.getElementById('sPool').textContent=fmt(ethers.formatUnits(ps[1],18));
-    document.getElementById('sStakers').textContent=ps[3].toString();
+    // count only CURRENTLY-staked addresses (stakers[] only grows; filter by stakedOf>0)
+    var n=Number(ps[3]), active=0;
+    for(var i=0;i<Math.min(n,100);i++){ try{ var a=await c.stakers(i); if((await c.stakedOf(a))>0n) active++; }catch(e){} }
+    document.getElementById('sStakers').textContent=active.toString();
   }catch(e){ console.warn(e); }
   loadLeaderboard();
 }
@@ -225,6 +284,117 @@ async function refreshYou(){
   }catch(e){ console.warn(e); }
 }
 
+// ── NFT staking ─────────────────────────────────────────────
+var TIER_NAMES=['Mids','Loud','Exotic','Gas'];
+var nftSel={}; // tokenId -> true (selected to stake)
+async function loadNftWallet(){
+  var box=document.getElementById('nftWallet'); var btn=document.getElementById('nftStakeBtn');
+  if(!account){ box.innerHTML='<div class="msg"><span class="spin"></span> connect to load your Strains…</div>'; btn.disabled=true; btn.textContent='CONNECT WALLET'; return; }
+  try{
+    var s=strainsCtr(roProvider);
+    var bal=Number(await s.balanceOf(account));
+    if(!bal){ box.innerHTML='<div class="msg" style="color:var(--smoke)">No Strain NFTs in your wallet. Mint some first, then stake them here to earn.</div>'; btn.disabled=true; btn.textContent='NO STRAINS TO STAKE'; return; }
+    // enumerate owned token ids (ERC721 has no enumerable here; scan nextId range by ownerOf)
+    var maxId=Number(await s.nextId()); var owned=[];
+    for(var id=1; id<maxId && owned.length<bal; id++){ try{ if((await s.ownerOf(id)).toLowerCase()===account.toLowerCase()) owned.push(id); }catch(e){} }
+    nftSel={};
+    box.innerHTML=''; var grid=document.createElement('div'); grid.className='locks';
+    for(var k=0;k<owned.length;k++){ (function(id){
+      var d=document.createElement('div'); d.className='lock'; d.style.cursor='pointer';
+      d.innerHTML='<div class="d">#'+id+'</div><div class="m">tap</div>';
+      s.tierOf(id).then(function(t){ d.querySelector('.m').textContent=TIER_NAMES[Number(t)]||('T'+t); }).catch(function(){});
+      d.onclick=function(){ if(nftSel[id]){delete nftSel[id];d.classList.remove('sel');} else {nftSel[id]=true;d.classList.add('sel');}
+        var c=Object.keys(nftSel).length; btn.disabled=!c; btn.textContent=c?('🔒 STAKE '+c+' STRAIN'+(c>1?'S':'')):'SELECT STRAINS TO STAKE'; };
+      grid.appendChild(d);
+    })(owned[k]); }
+    box.appendChild(grid);
+    btn.disabled=true; btn.textContent='SELECT STRAINS TO STAKE';
+  }catch(e){ console.warn(e); box.innerHTML='<div class="msg" style="color:var(--ember)">failed to load Strains</div>'; }
+}
+async function doStakeNfts(){
+  var ids=Object.keys(nftSel).map(function(x){return BigInt(x);}); if(!ids.length) return;
+  var btn=document.getElementById('nftStakeBtn'); btn.disabled=true;
+  try{
+    var s=strainsCtr(signer), c=nftStakeCtr(signer);
+    var approved=await s.isApprovedForAll(account,CONFIG.NFTSTAKE_ADDR);
+    if(!approved){ nmsg('approving collection…',true); var ax=await s.setApprovalForAll(CONFIG.NFTSTAKE_ADDR,true); await ax.wait(); }
+    nmsg('staking…',true);
+    var tx=await c.stake(ids); await tx.wait();
+    nmsg('staked '+ids.length+' Strain'+(ids.length>1?'s':'')+' 🔥',true);
+    loadNftWallet(); refreshNftYou(); refreshNftStats();
+  }catch(e){ nmsg((e.shortMessage||e.message||'failed').slice(0,80),false); } finally{ btn.disabled=false; }
+}
+async function refreshNftStats(){
+  try{ var c=nftStakeCtr(roProvider); var ps=await c.poolStats(); // (reserve,weight,stakers)
+    // NFT pool has its own reserve; we surface it only on the NFT tab header sub
+  }catch(e){}
+}
+async function refreshNftYou(){
+  if(!account) return;
+  try{
+    var c=nftStakeCtr(roProvider);
+    var ids=await c.stakedTokensOf(account); var list=document.getElementById('nftPosList'); list.innerHTML='';
+    if(!ids.length){ list.innerHTML='<div class="msg" style="color:var(--smoke)">none staked yet.</div>'; document.getElementById('nftPosCard').dataset.has='0'; return; }
+    for(var i=0;i<ids.length;i++){ (function(id){
+      var d=document.createElement('div'); d.className='pos';
+      d.innerHTML='<div class="top"><div class="amt">Strain #'+id.toString()+'</div><div class="lk">staked</div></div>'+
+        '<div class="rw">🔥 <span data-pend="'+id.toString()+'">…</span> $CHRONIC claimable</div>'+
+        '<div class="acts"><button data-nclaim="'+id.toString()+'">CLAIM</button><button data-nunstake="'+id.toString()+'">UNSTAKE</button></div>';
+      list.appendChild(d);
+      c.pendingReward(id).then(function(p){ var el=d.querySelector('[data-pend]'); if(el) el.textContent=fmt(ethers.formatUnits(p,18)); }).catch(function(){});
+    })(ids[i]); }
+    list.querySelectorAll('[data-nclaim]').forEach(function(b){b.onclick=function(){doNftClaim(b.getAttribute('data-nclaim'));};});
+    list.querySelectorAll('[data-nunstake]').forEach(function(b){b.onclick=function(){doNftUnstake(b.getAttribute('data-nunstake'));};});
+  }catch(e){ console.warn(e); }
+}
+async function doNftClaim(id){ try{ var c=nftStakeCtr(signer); var tx=await c.claim([BigInt(id)]); await tx.wait(); refreshNftYou(); }catch(e){ alert(e.shortMessage||'claim failed'); } }
+async function doNftUnstake(id){ try{ var c=nftStakeCtr(signer); var tx=await c.unstake([BigInt(id)]); await tx.wait(); refreshNftYou(); loadNftWallet(); refreshNftStats(); }catch(e){ alert(e.shortMessage||'unstake failed'); } }
+function nmsg(t,ok){ var m=document.getElementById('nftMsg'); m.textContent=t; m.style.color=ok?'var(--green)':'var(--ember)'; }
+
+// ── Fund pool ───────────────────────────────────────────────
+var fundTarget='token';
+function buildFundPick(){
+  var el=document.getElementById('fundPick'); el.innerHTML='';
+  [{k:'token',label:'$CHRONIC Pool'},{k:'nft',label:'Strains Pool'}].forEach(function(o){
+    var d=document.createElement('div'); d.className='lock'+(fundTarget===o.k?' sel':'');
+    d.innerHTML='<div class="d">'+o.label+'</div><div class="m">'+(o.k==='token'?'lock pool':'NFT pool')+'</div>';
+    d.onclick=function(){ fundTarget=o.k; buildFundPick(); };
+    el.appendChild(d);
+  });
+}
+async function doFund(){
+  var amtStr=document.getElementById('fundAmt').value;
+  if(!amtStr||Number(amtStr)<=0){ fmsg('enter an amount',false); return; }
+  var btn=document.getElementById('fundBtn'); btn.disabled=true;
+  try{
+    var amt=ethers.parseUnits(amtStr,18);
+    var target=fundTarget==='token'?CONFIG.STAKING_ADDR:CONFIG.NFTSTAKE_ADDR;
+    var t=tokenCtr(signer);
+    var allow=await t.allowance(account,target);
+    if(allow<amt){ fmsg('approving…',true); var ax=await t.approve(target,amt); await ax.wait(); }
+    fmsg('funding pool…',true);
+    var c=fundTarget==='token'?stakeCtr(signer):nftStakeCtr(signer);
+    var tx=await c.fundRewards(amt); await tx.wait();
+    fmsg('pool funded 🔥 drips over 7 days',true); document.getElementById('fundAmt').value='';
+    refreshStats(); refreshNftStats();
+  }catch(e){
+    var m=(e.shortMessage||e.message||'failed');
+    if(/no stakers/i.test(m)) m='this pool needs at least one active staker first — stake a little, then fund.';
+    fmsg(m.slice(0,110),false);
+  } finally{ btn.disabled=false; }
+}
+function fmsg(t,ok){ var m=document.getElementById('fundMsg'); m.textContent=t; m.style.color=ok?'var(--green)':'var(--ember)'; }
+
+// ── Tabs ────────────────────────────────────────────────────
+function showTab(tab){
+  document.querySelectorAll('.tabBtn').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-tab')===tab); });
+  document.querySelectorAll('.tabPane').forEach(function(p){ p.style.display = (p.getAttribute('data-pane')===tab)?'block':'none'; });
+  // positions card belongs to token tab; nftPosCard to nft tab — handled by data-pane
+  if(tab==='token'){ refreshYou(); }
+  if(tab==='nft'){ loadNftWallet(); refreshNftYou(); refreshNftStats(); }
+  if(tab==='fund'){ if(account){ tokenCtr(roProvider).balanceOf(account).then(function(b){ document.getElementById('fundBal').textContent=fmt(ethers.formatUnits(b,18))+' held'; }); } }
+}
+
 async function connect(){
   if(!window.ethereum){ alert('No wallet found — install MetaMask.'); return; }
   try{
@@ -238,6 +408,7 @@ async function connect(){
     signer=await bp.getSigner(); account=await signer.getAddress();
     setConnectedUI();
     refreshYou(); loadLeaderboard();
+    var act=document.querySelector('.tabBtn.on'); if(act) showTab(act.getAttribute('data-tab'));
   }catch(e){ console.warn(e); }
 }
 
@@ -245,6 +416,7 @@ function setConnectedUI(){
   var btn=document.getElementById('connectBtn');
   btn.textContent=short(account)+'  \u2715'; btn.classList.add('on'); btn.title='Click to disconnect';
   var sb=document.getElementById('stakeBtn'); sb.disabled=false; sb.textContent='\ud83d\udd25 STAKE $CHRONIC';
+  var fb=document.getElementById('fundBtn'); fb.disabled=false; fb.textContent='\ud83d\udca7 FUND POOL';
 }
 async function disconnect(){
   // best-effort: revoke the site's wallet permission so next visit re-prompts
@@ -252,8 +424,13 @@ async function disconnect(){
   signer=null; account=null;
   var btn=document.getElementById('connectBtn'); btn.textContent='CONNECT'; btn.classList.remove('on'); btn.title='';
   var sb=document.getElementById('stakeBtn'); sb.disabled=true; sb.textContent='CONNECT WALLET TO STAKE';
+  var fb=document.getElementById('fundBtn'); fb.disabled=true; fb.textContent='CONNECT WALLET TO FUND';
+  var nb=document.getElementById('nftStakeBtn'); nb.disabled=true; nb.textContent='CONNECT WALLET';
   document.getElementById('posCard').style.display='none';
+  document.getElementById('nftWallet').innerHTML='<div class="msg"><span class="spin"></span> connect to load your Strains…</div>';
+  document.getElementById('nftPosList').innerHTML='<div class="msg">none staked yet.</div>';
   document.getElementById('sYou').textContent='\u2014'; document.getElementById('bal').textContent='\u2014';
+  document.getElementById('fundBal').textContent='\u2014';
   smsg('wallet disconnected',true); loadLeaderboard();
 }
 
@@ -288,8 +465,11 @@ if(window.ethereum&&window.ethereum.on){
   window.ethereum.on('accountsChanged',function(accs){ if(!accs||!accs.length){ if(account) disconnect(); } else if(account){ account=accs[0]; setConnectedUI(); refreshYou(); loadLeaderboard(); } });
 }
 document.getElementById('stakeBtn').addEventListener('click',doStake);
+document.getElementById('nftStakeBtn').addEventListener('click',doStakeNfts);
+document.getElementById('fundBtn').addEventListener('click',doFund);
+document.querySelectorAll('.tabBtn').forEach(function(b){ b.addEventListener('click',function(){ showTab(b.getAttribute('data-tab')); }); });
 document.getElementById('customDays')&&document.getElementById('customDays').addEventListener('input',updateMult);
-buildLocks(); updateMult(); refreshStats();
+buildLocks(); buildFundPick(); updateMult(); refreshStats();
 </script>
 </body>
 </html>
