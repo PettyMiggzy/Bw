@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CHRONIC Meme Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Mono:wght@400;700&family=Permanent+Marker&display=swap" rel="stylesheet"/>
+<style>
+:root{--void:#070a07;--void2:#0c120c;--panel:#101a12;--panel2:#16241a;--green:#52ff8f;--green-dim:#2bd96a;--green-deep:#0c3d22;--ember:#ff6a2b;--ember2:#ff3d1f;--gold:#f5cf57;--purple:#a85cff;--text:#e9ffe9;--dim:#84a78d;--line:rgba(82,255,143,.16);--disp:'Bungee',sans-serif;--mono:'Space Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--mono);background:var(--void);color:var(--text);min-height:100vh}
+a{color:inherit;text-decoration:none}
+header{position:sticky;top:0;z-index:50;background:rgba(7,10,7,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav{max-width:1100px;margin:0 auto;padding:0 20px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:var(--disp);font-size:22px;color:var(--green);display:flex;gap:8px;align-items:center}
+.logo span{color:var(--ember)}
+.btn{border:none;border-radius:10px;padding:11px 18px;font-weight:700;font-family:var(--mono);font-size:13px;color:var(--void);background:var(--green);cursor:pointer}
+.btn-ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+.btn-ember{background:var(--ember);color:#fff}
+.wrap{max-width:1100px;margin:0 auto;padding:22px 20px 60px;display:grid;grid-template-columns:1fr 320px;gap:24px}
+@media(max-width:880px){.wrap{grid-template-columns:1fr}}
+h1{font-family:var(--disp);font-size:38px;color:var(--green);margin-bottom:4px;text-shadow:3px 3px 0 var(--green-deep)}
+.sub{color:var(--dim);font-size:14px;margin-bottom:16px}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;align-items:center}
+#c{max-width:100%;border-radius:8px;background:#000}
+.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;height:max-content}
+.panel h3{font-family:var(--disp);color:var(--green);font-size:18px;margin-bottom:10px}
+label{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;display:block;margin:12px 0 5px}
+input[type=text]{width:100%;padding:11px 12px;background:var(--void2);border:1px solid var(--line);color:var(--text);border-radius:9px;font-family:var(--mono);font-size:14px}
+input[type=range]{width:100%;accent-color:var(--green)}
+.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px;max-height:260px;overflow-y:auto}
+.thumb{aspect-ratio:1;border-radius:8px;overflow:hidden;border:2px solid transparent;background:var(--void2)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb.sel{border-color:var(--green)}
+::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:var(--green-deep);border-radius:4px}
+</style>
+</head>
+<body>
+<header><div class="nav">
+  <a class="logo" href="/"><span>🔥</span> CHRONIC <span>GEN</span></a>
+  <div style="display:flex;gap:8px"><a class="btn-ghost btn" href="/nfts.html">NFTs</a><a class="btn-ghost btn" href="/">← Site</a></div>
+</div></header>
+<div class="wrap">
+  <div>
+    <h1>CHRONIC MEME GEN</h1>
+    <div class="sub">Pick art, add text, download. Burn it everywhere.</div>
+    <div class="stage">
+      <canvas id="c" width="800" height="800"></canvas>
+      <div class="actions">
+        <button class="btn" onclick="download()">⬇ Download PNG</button>
+        <button class="btn-ghost btn" onclick="copy()">📋 Copy</button>
+        <button class="btn-ghost btn" onclick="randomTemplate()">🎲 Random</button>
+        <button class="btn-ember btn" onclick="shuffleCap()">💬 Caption</button>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>Caption</h3>
+    <label>Top text</label>
+    <input type="text" id="top" placeholder="top text..." oninput="draw()" maxlength="60"/>
+    <label>Bottom text</label>
+    <input type="text" id="bot" placeholder="bottom text..." oninput="draw()" maxlength="60"/>
+    <label>Text size</label>
+    <input type="range" id="size" min="28" max="90" value="54" oninput="draw()"/>
+    <h3 style="margin-top:18px">Template</h3>
+    <button class="btn-ghost btn" style="width:100%;margin-bottom:10px" onclick="document.getElementById('up').click()">＋ Upload your own</button>
+    <input type="file" id="up" accept="image/*" style="display:none" onchange="handleUpload(event)"/>
+    <div class="thumbs" id="thumbs"></div>
+  </div>
+</div>
+<script>
+var TEMPLATES=[
+ ['/assets/chronic/chronic-1.png','Chronic 1'],['/assets/chronic/chronic-2.png','Chronic 2'],['/assets/chronic/chronic-3.png','Chronic 3'],
+ ['/assets/chronic/chronic-4.png','Chronic 4'],['/assets/chronic/chronic-5.png','Chronic 5'],['/assets/chronic/chronic-6.png','Chronic 6'],
+ ['/assets/strains/gas-1.png','Gas 1'],['/assets/strains/gas-2.png','Gas 2'],['/assets/strains/gas-3.png','Gas 3'],
+ ['/assets/strains/exotic-1.png','Exotic 1'],['/assets/strains/exotic-2.png','Exotic 2'],['/assets/strains/exotic-3.png','Exotic 3'],['/assets/strains/exotic-4.png','Exotic 4'],
+ ['/assets/strains/loud-1.png','Loud 1'],['/assets/strains/loud-2.png','Loud 2'],['/assets/strains/loud-3.png','Loud 3'],['/assets/strains/loud-4.png','Loud 4'],['/assets/strains/loud-5.png','Loud 5'],
+ ['/assets/strains/mids-1.png','Mids 1'],['/assets/strains/mids-2.png','Mids 2'],['/assets/strains/mids-3.png','Mids 3'],['/assets/strains/mids-4.png','Mids 4'],['/assets/strains/mids-5.png','Mids 5']
+];
+var CAPTIONS=["STAY CHRONIC","BURN IT DOWN","GAS ONLY","ZAZA","LOUD PACK","CHRONICALLY ONLINE","LIGHT IT UP","EXOTIC ONLY","UP IN SMOKE","HIGH SOCIETY","MIDS? NEVER","BURN TO MINT","PASS THE CHRONIC","ALL GAS NO MIDS","FEELING CHRONIC"];
+var cv=document.getElementById('c'),ctx=cv.getContext('2d');
+var img=new Image(),curSrc=TEMPLATES[0][0],isPng=false;
+function $(i){return document.getElementById(i);}
+function buildThumbs(){var t=$('thumbs');t.innerHTML='';TEMPLATES.forEach(function(tp){var d=document.createElement('div');d.className='thumb'+(tp[0]===curSrc?' sel':'');d.innerHTML='<img src="'+tp[0]+'" alt="'+tp[1]+'">';d.onclick=function(){curSrc=tp[0];load();buildThumbs();};t.appendChild(d);});}
+function handleUpload(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){load(ev.target.result,/png/i.test(f.type));buildThumbs();};r.readAsDataURL(f);}
+function load(src,png){if(src)curSrc=src;isPng=(typeof png==='boolean')?png:/\.png$/.test(curSrc);img=new Image();img.crossOrigin='anonymous';img.onload=function(){var W=800,H=Math.round(W*img.height/img.width);if(H>900){H=900;W=Math.round(H*img.width/img.height);}cv.width=W;cv.height=H;draw();};img.src=curSrc;}
+function wrap(text,maxW){var words=text.split(' '),lines=[],cur='';for(var i=0;i<words.length;i++){var t=cur?cur+' '+words[i]:words[i];if(ctx.measureText(t).width>maxW&&cur){lines.push(cur);cur=words[i];}else cur=t;}if(cur)lines.push(cur);return lines;}
+function band(text,size,pos){if(!text)return;ctx.font='900 '+size+'px Impact,"Arial Black",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineJoin='round';ctx.lineWidth=Math.max(3,size/6);ctx.strokeStyle='#000';ctx.fillStyle='#fff';var maxW=cv.width*0.92,lh=size*1.05;var lines=wrap(text.toUpperCase(),maxW);var x=cv.width/2;for(var i=0;i<lines.length;i++){var y;if(pos==='top')y=size*0.7+size*0.2+i*lh+10;else y=cv.height-10-(lines.length-1-i)*lh-size*0.5;ctx.strokeText(lines[i],x,y);ctx.fillText(lines[i],x,y);}}
+function draw(){if(!img.complete||!img.width)return;ctx.clearRect(0,0,cv.width,cv.height);if(isPng){ctx.fillStyle='#0c120c';ctx.fillRect(0,0,cv.width,cv.height);}ctx.drawImage(img,0,0,cv.width,cv.height);var s=+$('size').value;band($('top').value,s,'top');band($('bot').value,s,'bottom');}
+function download(){var a=document.createElement('a');a.download='chronic-meme.png';a.href=cv.toDataURL('image/png');a.click();}
+function copy(){cv.toBlob(function(b){if(navigator.clipboard&&window.ClipboardItem){navigator.clipboard.write([new ClipboardItem({'image/png':b})]).then(function(){toast('Copied!');},function(){toast('Copy failed - use Download');});}else toast('Use Download');});}
+function randomTemplate(){curSrc=TEMPLATES[Math.floor(Math.random()*TEMPLATES.length)][0];load();buildThumbs();}
+function shuffleCap(){if(!$('top').value){$('top').value=CAPTIONS[Math.floor(Math.random()*CAPTIONS.length)];}else{$('bot').value=CAPTIONS[Math.floor(Math.random()*CAPTIONS.length)];}draw();}
+function toast(m){var t=document.createElement('div');t.textContent=m;t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:var(--void);padding:10px 18px;border-radius:10px;font-weight:700;z-index:200';document.body.appendChild(t);setTimeout(function(){t.remove();},1600);}
+buildThumbs();load();
+</script>
+</body>
+</html>
