@@ -31,18 +31,8 @@ drop policy if exists chronic_nfts_insert on chronic_nfts;
 create policy chronic_nfts_insert on chronic_nfts
   for insert with check (true);   -- client records its own mint after the tx confirms
 
--- ───── public storage bucket for art + metadata ─────
-insert into storage.buckets (id, name, public)
-values ('chronic-nfts', 'chronic-nfts', true)
-on conflict (id) do nothing;
-
-drop policy if exists chronic_obj_read on storage.objects;
-create policy chronic_obj_read on storage.objects
-  for select using (bucket_id = 'chronic-nfts');
-
-drop policy if exists chronic_obj_insert on storage.objects;
-create policy chronic_obj_insert on storage.objects
-  for insert with check (bucket_id = 'chronic-nfts');
+-- Art + metadata live on IPFS (via /api/pin → Pinata). Supabase only indexes
+-- mints for a fast gallery feed; it is not the source of truth for the NFTs.
 
 -- Moderation: to pull an abusive post from the gallery, set hidden=true in
--- Table Editor (the chain entry stays — it's immutable — but it leaves the UI).
+-- Table Editor (the chain entry + IPFS art stay — they're immutable — but it leaves the UI).

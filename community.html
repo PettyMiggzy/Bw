@@ -93,14 +93,14 @@ h1.title{font-family:var(--fh);font-size:clamp(32px,9vw,58px);line-height:.92;te
 
 <div class="wrap">
   <h1 class="title">COMMUNITY NFTs</h1>
-  <p class="sub">Mint your own NFT. List it for sale. Buy what the community makes. All on Monad — your art, your token, your royalties.</p>
+  <p class="sub">Mint your own NFT, list it, buy what the community makes. Art stored permanently on IPFS — your token, your royalties, sellable on OpenSea.</p>
 
   <div class="notice" id="notice" style="display:none"></div>
 
   <!-- MINT -->
   <div class="mint">
     <h2>🎨 Mint your own</h2>
-    <div class="drop" id="drop"><span class="ic">📤</span><span id="dropTxt">tap to upload your art (PNG / JPG / GIF)</span><img id="prev" style="display:none"/></div>
+    <div class="drop" id="drop"><span class="ic">📤</span><span id="dropTxt">tap to upload — square art, 1000px+ looks best (PNG / JPG / GIF)</span><img id="prev" style="display:none"/></div>
     <input type="file" id="file" accept="image/*" style="display:none"/>
     <div class="fld"><label>Name</label><input id="nm" maxlength="60" placeholder="name your piece"/></div>
     <div class="fld"><label>Description (optional)</label><textarea id="ds" maxlength="500" placeholder="what is it?"></textarea></div>
@@ -175,6 +175,30 @@ $('file').onchange=function(e){
   $('drop').querySelector('.ic').style.display='none'; $('dropTxt').style.display='none';
 };
 
+/* downscale to marketplace-optimal (<=2000px, square-friendly). Animated GIFs pass through. */
+function prep(file){
+  return new Promise(function(resolve,reject){
+    if(file.type==='image/gif'){ // keep animation intact
+      if(file.size>4*1024*1024) reject(new Error('GIF too large (max 4MB)')); else resolve({blob:file,type:file.type,name:'art.gif'});
+      return;
+    }
+    var img=new Image(), url=URL.createObjectURL(file);
+    img.onload=function(){
+      var MAX=2000, w=img.width, h=img.height;
+      if(w>MAX||h>MAX){ var s=MAX/Math.max(w,h); w=Math.round(w*s); h=Math.round(h*s); }
+      var cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      var keepPng=/png|webp/.test(file.type);
+      cv.toBlob(function(b){ URL.revokeObjectURL(url); resolve({blob:b,type:keepPng?'image/png':'image/jpeg',name:keepPng?'art.png':'art.jpg'}); }, keepPng?'image/png':'image/jpeg', 0.92);
+    };
+    img.onerror=function(){ reject(new Error('bad image')); }; img.src=url;
+  });
+}
+async function pin(blob,name,type){
+  var r=await fetch('/api/pin?name='+encodeURIComponent(name)+'&type='+encodeURIComponent(type),{method:'POST',body:blob});
+  var j=await r.json(); if(!r.ok) throw new Error(j.error||'pin failed'); return j; // {cid, uri, gateway}
+}
+
 /* ───────── mint ───────── */
 $('mintBtn').onclick=async function(){
   try{
@@ -184,19 +208,15 @@ $('mintBtn').onclick=async function(){
     var name=$('nm').value.trim(); if(!name){ setMsg('give it a name',true); return; }
     $('mintBtn').disabled=true;
 
-    setMsg('uploading art…'); 
-    var ext=(pickedFile.name.split('.').pop()||'png').toLowerCase();
-    var key='images/'+me+'-'+Date.now()+'.'+ext;
-    var up=await sb.storage.from(BUCKET).upload(key,pickedFile,{contentType:pickedFile.type,upsert:false});
-    if(up.error) throw up.error;
-    var imageUrl=sb.storage.from(BUCKET).getPublicUrl(key).data.publicUrl;
+    setMsg('preparing art…');
+    var art=await prep(pickedFile);
+    setMsg('pinning art to IPFS…');
+    var image=await pin(art.blob,art.name,art.type);          // {uri: ipfs://, gateway}
 
-    setMsg('writing metadata…');
-    var meta={name:name,description:$('ds').value.trim(),image:imageUrl,attributes:[{trait_type:'Creator',value:me},{trait_type:'Collection',value:'Chronic Community'}]};
-    var mkey='meta/'+me+'-'+Date.now()+'.json';
-    var mup=await sb.storage.from(BUCKET).upload(mkey,new Blob([JSON.stringify(meta)],{type:'application/json'}),{contentType:'application/json'});
-    if(mup.error) throw mup.error;
-    var tokenURI=sb.storage.from(BUCKET).getPublicUrl(mkey).data.publicUrl;
+    setMsg('pinning metadata to IPFS…');
+    var meta={name:name,description:$('ds').value.trim(),image:image.uri,attributes:[{trait_type:'Creator',value:me},{trait_type:'Collection',value:'Chronic Community'}]};
+    var metaPin=await pin(new Blob([JSON.stringify(meta)],{type:'application/json'}),'metadata.json','application/json');
+    var tokenURI=metaPin.uri;                                  // ipfs://<metadata cid>
 
     setMsg('confirm in wallet…');
     var c=new ethers.Contract(MINT_ADDR,MINT_ABI,signer);
@@ -207,8 +227,9 @@ $('mintBtn').onclick=async function(){
     var tokenId=null;
     for(var i=0;i<rc.logs.length;i++){ try{ var p=c.interface.parseLog(rc.logs[i]); if(p&&p.name==='Minted'){ tokenId=p.args.id.toString(); } }catch(e){} }
 
-    await sb.from('chronic_nfts').insert({contract:MINT_ADDR.toLowerCase(),token_id:tokenId,creator:me,name:name,description:meta.description,image_url:imageUrl,metadata_url:tokenURI,tx:rc.hash});
-    setMsg('✅ minted! #'+tokenId);
+    // index for the gallery (art + metadata are permanent on IPFS; this is just the fast feed)
+    await sb.from('chronic_nfts').insert({contract:MINT_ADDR.toLowerCase(),token_id:tokenId,creator:me,name:name,description:meta.description,image_url:image.gateway,metadata_url:tokenURI,tx:rc.hash});
+    setMsg('✅ minted! #'+tokenId+' — live on IPFS');
     pickedFile=null; $('nm').value=''; $('ds').value=''; $('prev').style.display='none'; $('drop').querySelector('.ic').style.display=''; $('dropTxt').style.display='';
     renderGallery();
   }catch(e){ setMsg((e&&e.shortMessage)||e.message||'mint failed',true); }
