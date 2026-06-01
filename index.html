@@ -802,25 +802,19 @@ loadStrains(); bootSessions();
 <a class="buyfab" id="buyFab" href="https://nad.fun/tokens/0x52641feEdCE831247514bf7C2378513741077777" target="_blank" rel="noopener">🔥 BUY $CHRONIC<span class="mc">don’t be the last one in</span></a>
 <script>
 (function(){
-  // ---- NEWSLETTER (paste your Buttondown/Formspree/Mailchimp POST URL to go live) ----
-  var NEWSLETTER_FORM="";
+  // ---- NEWSLETTER -> beehiiv hosted subscribe (real signups, double opt-in by beehiiv) ----
+  var BEEHIIV_SUBSCRIBE="https://burnchronic.beehiiv.com/subscribe";
   var ne=document.getElementById('newsEmail'),nb=document.getElementById('newsJoin'),nm=document.getElementById('newsMsg');
   function setMsg(t,ok){if(nm){nm.textContent=t;nm.style.color=ok?'var(--green)':'var(--ember)';}}
-  if(nb)nb.addEventListener('click',async function(){
+  function subscribe(){
     var em=(ne.value||'').trim();
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){setMsg('enter a valid email',false);return;}
-    nb.disabled=true;
-    try{
-      if(!NEWSLETTER_FORM){
-        var l=JSON.parse(localStorage.getItem('cg_news')||'[]'); if(l.indexOf(em)<0)l.push(em);
-        localStorage.setItem('cg_news',JSON.stringify(l));
-        setMsg("you're on the list \ud83d\udd25 (goes live once the mailer's connected)",true); ne.value='';
-      } else {
-        var r=await fetch(NEWSLETTER_FORM,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em})});
-        if(!r.ok)throw 0; setMsg('check your inbox to confirm \ud83d\udd25',true); ne.value='';
-      }
-    }catch(e){setMsg('signup failed \u2014 try again',false);} finally{nb.disabled=false;}
-  });
+    setMsg('opening beehiiv to confirm \ud83d\udd25',true);
+    window.open(BEEHIIV_SUBSCRIBE+'?email='+encodeURIComponent(em),'_blank','noopener');
+    ne.value='';
+  }
+  if(nb)nb.addEventListener('click',subscribe);
+  if(ne)ne.addEventListener('keydown',function(e){if(e.key==='Enter')subscribe();});
 
   // ---- DISPENSARY LOCATOR (keyless: Overpass + Nominatim + Leaflet) ----
   var lmap=null,lmarkers=[],lstatus=document.getElementById('locStatus'),llist=document.getElementById('locList');
