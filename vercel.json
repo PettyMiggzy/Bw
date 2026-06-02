@@ -23,7 +23,7 @@
   "rewrites": [
     {
       "source": "/snitch",
-      "destination": "/graph.html"
+      "destination": "/graph"
     }
   ]
 }
