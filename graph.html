@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SNITCH — Monad Wallet Forensics</title>
+<meta name="description" content="Paste a Monad wallet or contract. See everyone it touched. Trace funding lineage and deployer fingerprints. On-chain forensics, Monad-only." />
+<meta property="og:title" content="SNITCH — Monad wallet forensics" />
+<meta property="og:description" content="Bubblemaps on steroids, Monad-only. Funding lineage + deployer fingerprints." />
+<style>
+:root{
+  --bg:#0c001f; --bg2:#1a0840; --panel:#15052e; --line:#2d0b5e;
+  --violet:#836EF9; --neon:#b56cff; --glow:#c896ff;
+  --ink:#e9ddff; --dim:#9a86c7;
+  --native:#6dff3a; --erc20:#836EF9; --nft:#ff1493; --call:#5b4a85; --deploy:#e8c439; --spam:#ff3b3b;
+  --mono:'SFMono-Regular',ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--mono);overflow:hidden}
+#app{display:grid;grid-template-columns:1fr 340px;grid-template-rows:auto 1fr;height:100vh}
+header{grid-column:1/3;display:flex;gap:14px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#1a0840,#0c001f)}
+header h1{font-size:18px;letter-spacing:3px;color:var(--neon);text-shadow:0 0 12px rgba(181,108,255,.5)}
+header h1 small{display:block;font-size:10px;letter-spacing:1px;color:var(--dim)}
+#addr{flex:1;min-width:120px;background:#0c001f;border:1px solid var(--line);color:var(--ink);padding:9px 12px;font-family:var(--mono);font-size:13px;border-radius:6px}
+#addr:focus{outline:none;border-color:var(--violet);box-shadow:0 0 0 2px rgba(131,110,249,.25)}
+button{background:var(--violet);color:#0c001f;border:0;padding:9px 14px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:1px;border-radius:6px;cursor:pointer}
+button:hover{background:var(--neon)}
+button.ghost{background:transparent;color:var(--glow);border:1px solid var(--line)}
+button.ghost:hover{border-color:var(--violet);color:#fff}
+button:disabled{opacity:.4;cursor:not-allowed}
+#cy{position:relative;background:radial-gradient(circle at 50% 40%,#1a0840 0%,#0c001f 70%)}
+#side{border-left:1px solid var(--line);background:var(--panel);overflow-y:auto;padding:14px}
+#side h2{font-size:11px;letter-spacing:2px;color:var(--neon);margin-bottom:8px;text-transform:uppercase}
+.muted{color:var(--dim);font-size:11px}
+.row{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:3px 0;border-bottom:1px dashed #241046}
+.row b{color:var(--glow)}
+.pill{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;letter-spacing:1px}
+.pill.wallet{background:#241046;color:var(--glow)}
+.pill.contract{background:#3a2a00;color:var(--deploy)}
+.pill.spam{background:#3a0000;color:var(--spam)}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.acts button{flex:1;min-width:92px}
+pre{white-space:pre-wrap;word-break:break-all;font-size:11px;color:var(--dim);background:#0c001f;border:1px solid var(--line);border-radius:6px;padding:8px;margin-top:8px}
+.legend{position:absolute;left:12px;bottom:12px;background:rgba(12,0,31,.82);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:10px;line-height:1.7;z-index:5}
+.legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:6px;border-radius:2px}
+#status{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(12,0,31,.9);border:1px solid var(--violet);color:var(--glow);padding:7px 14px;border-radius:20px;font-size:12px;z-index:6;display:none}
+.lin{font-size:11px;line-height:1.5;border-left:2px solid var(--native);padding:4px 0 4px 10px;margin:4px 0}
+.lin a{color:var(--glow);text-decoration:none}
+a.ext{color:var(--violet);text-decoration:none;font-size:11px}
+@media(max-width:760px){#app{grid-template-columns:1fr;grid-template-rows:auto 55vh 1fr}#side{border-left:0;border-top:1px solid var(--line)}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>SNITCH<small>monad wallet forensics · chain 143</small></h1>
+    <input id="addr" placeholder="paste a wallet or contract address (0x…)" spellcheck="false" />
+    <button id="go">TRACE</button>
+  </header>
+  <div id="cy">
+    <div id="status"></div>
+    <div class="legend">
+      <i style="background:var(--native)"></i>native MON<br>
+      <i style="background:var(--erc20)"></i>ERC-20<br>
+      <i style="background:var(--nft)"></i>NFT<br>
+      <i style="background:var(--call)"></i>call<br>
+      <i style="background:var(--deploy)"></i>deploy<br>
+      <span style="color:var(--spam)">●</span> spam token
+    </div>
+  </div>
+  <aside id="side">
+    <h2>how to read this</h2>
+    <p class="muted">Paste an address and hit <b>TRACE</b> for its 1-hop graph. <b>Tap a node</b> to select it, then expand another hop or run a forensics trace. Nothing auto-crawls — every hop is a click. Results cache for 24h.</p>
+    <div id="detail"></div>
+  </aside>
+</div>
+
+<script src="https://unpkg.com/cytoscape@3.30.2/dist/cytoscape.min.js"></script>
+<script>
+const API = ''; // same-origin Vercel functions; set to a full origin for local dev
+const EXPLORER = 'https://monadscan.com';
+const $ = (s)=>document.querySelector(s);
+const short = (a)=>a?`${a.slice(0,6)}…${a.slice(-4)}`:'';
+const KIND_COLOR = {native:'#6dff3a',erc20:'#836EF9',nft:'#ff1493',call:'#5b4a85',deploy:'#e8c439'};
+
+function status(msg){const s=$('#status');if(!msg){s.style.display='none';return}s.textContent=msg;s.style.display='block';}
+
+const cy = cytoscape({
+  container: $('#cy'),
+  minZoom:0.15, maxZoom:3, wheelSensitivity:0.25,
+  style:[
+    {selector:'node',style:{
+      'background-color':'#241046','border-width':2,'border-color':'#5b4a85',
+      'label':'data(label)','color':'#e9ddff','font-size':9,'font-family':'monospace',
+      'text-valign':'bottom','text-margin-y':4,'width':22,'height':22,
+      'text-background-color':'#0c001f','text-background-opacity':0.7,'text-background-padding':2}},
+    {selector:'node[type="contract"]',style:{'shape':'round-rectangle','background-color':'#3a2a00','border-color':'#e8c439'}},
+    {selector:'node[?isToken]',style:{'shape':'diamond','background-color':'#2a0a3a','border-color':'#b56cff'}},
+    {selector:'node[?spam]',style:{'border-color':'#ff3b3b','border-width':3}},
+    {selector:'node[?root]',style:{'background-color':'#836EF9','border-color':'#c896ff','border-width':4,'width':34,'height':34,'color':'#fff','font-size':11}},
+    {selector:'node:selected',style:{'border-color':'#fff','border-width':4}},
+    {selector:'node[?expanded]',style:{'border-style':'double'}},
+    {selector:'edge',style:{
+      'width':'data(w)','line-color':'data(color)','target-arrow-color':'data(color)',
+      'target-arrow-shape':'triangle','curve-style':'bezier','arrow-scale':0.8,'opacity':0.75,
+      'label':'data(elabel)','font-size':8,'color':'#9a86c7','text-rotation':'autorotate',
+      'text-background-color':'#0c001f','text-background-opacity':0.6,'text-background-padding':1}},
+    {selector:'edge[?spam]',style:{'line-style':'dashed','line-color':'#ff3b3b','target-arrow-color':'#ff3b3b'}}
+  ]
+});
+
+const seenNodes = new Set(), seenEdges = new Set();
+
+function mergeGraph(g, rootAddr){
+  const add=[];
+  for(const n of g.nodes){
+    const id=n.address;
+    if(seenNodes.has(id)){
+      if(id===rootAddr) cy.$id(id).data('root',true);
+      continue;
+    }
+    seenNodes.add(id);
+    add.push({group:'nodes',data:{
+      id, label:n.label||short(id), type:n.type, isToken:n.isToken,
+      spam:n.spam, root:id===rootAddr, firstSeen:n.firstSeen, raw:n
+    }});
+  }
+  for(const e of g.edges){
+    const id=`${e.from}->${e.to}:${e.kind}:${e.asset}`;
+    if(seenEdges.has(id))continue;
+    seenEdges.add(id);
+    let el='';
+    if(e.kind==='native'&&e.valueFmt!=='0') el=`${e.valueFmt} MON`;
+    else if(e.kind==='erc20'&&e.valueFmt!=='0') el=`${e.valueFmt} ${e.asset}`;
+    else if(e.kind==='nft') el=`${e.asset}`;
+    else if(e.kind==='deploy') el='deploy';
+    add.push({group:'edges',data:{
+      id, source:e.from, target:e.to, color:KIND_COLOR[e.kind]||'#5b4a85',
+      w:Math.min(1+Math.log2(1+e.txCount),6), elabel:el, spam:e.spam, raw:e
+    }});
+  }
+  cy.add(add);
+}
+
+function relayout(){
+  cy.layout({name:'cose',animate:true,animationDuration:600,nodeRepulsion:9000,idealEdgeLength:90,padding:40}).run();
+}
+
+async function api(path){
+  const r=await fetch(`${API}${path}`);
+  const j=await r.json();
+  if(!r.ok||j.error) throw new Error(j.error||`HTTP ${r.status}`);
+  return j;
+}
+
+async function trace(addr, isExpand){
+  addr=(addr||'').trim().toLowerCase();
+  if(!/^0x[0-9a-f]{40}$/.test(addr)){status('not a valid 0x address');setTimeout(()=>status(''),1800);return;}
+  status(isExpand?`expanding ${short(addr)}…`:`tracing ${short(addr)}…`);
+  try{
+    const g=await api(`/api/graph?address=${addr}`);
+    mergeGraph(g, addr);
+    if(isExpand) cy.$id(addr).data('expanded',true);
+    relayout();
+    const pf=(g.stats.partialFeeds&&g.stats.partialFeeds.length)?` · ⚠ ${g.stats.partialFeeds.join('/')} feed timed out`:'';
+    status((g.stats.truncated?`${g.stats.kept}/${g.stats.counterparties} counterparties (capped)`:`${g.stats.kept} counterparties`)+pf);
+    setTimeout(()=>status(''),pf?4500:2200);
+    if(!isExpand){cy.$id(addr).select();showDetail(addr);}
+  }catch(err){status(`✕ ${err.message}`);setTimeout(()=>status(''),3500);}
+}
+
+function showDetail(addr){
+  const n=cy.$id(addr); if(!n.length)return;
+  const d=n.data(); const r=d.raw||{};
+  const ext=`<a class="ext" href="${EXPLORER}/address/${addr}" target="_blank">↗ MonadScan</a>`;
+  $('#detail').innerHTML=`
+    <h2>selected node</h2>
+    <div class="row"><span>address</span><b>${short(addr)}</b></div>
+    <div class="row"><span>type</span><span class="pill ${d.type}">${d.type}${d.isToken?' · token':''}</span></div>
+    ${d.spam?'<div class="row"><span>flag</span><span class="pill spam">SPAM / scam name</span></div>':''}
+    ${r.firstSeen?`<div class="row"><span>first seen</span><b>${new Date(r.firstSeen*1000).toISOString().slice(0,10)}</b></div>`:''}
+    <div class="row"><span></span>${ext}</div>
+    <div class="acts">
+      <button onclick="trace('${addr}',true)">＋ EXPAND HOP</button>
+      <button class="ghost" onclick="funding('${addr}')">⛓ FUNDING</button>
+      <button class="ghost" onclick="deployer('${addr}')">🧬 DEPLOYER</button>
+    </div>
+    <div id="sub" class="muted">forensics results appear here</div>`;
+}
+
+async function funding(addr){
+  $('#sub').innerHTML='<span class="muted">tracing funding lineage…</span>';
+  try{
+    const j=await api(`/api/funding?address=${addr}&depth=6`);
+    let html=`<h2>funding lineage · ${j.hops} hops</h2>`;
+    for(const h of j.lineage){
+      if(h.terminal){html+=`<div class="lin" style="border-color:#e8c439"><b>${short(h.address)}</b><br><span class="muted">${h.terminal}</span></div>`;continue;}
+      html+=`<div class="lin"><b>${short(h.address)}</b> ⬅ funded by <a href="${EXPLORER}/address/${h.fundedBy}" target="_blank">${short(h.fundedBy)}</a>`+
+        `<br><span class="muted">${h.valueFmt} MON · ${new Date(h.ts*1000).toISOString().slice(0,10)}${h.internal?' · internal':''} · <a href="${EXPLORER}/tx/${h.txHash}" target="_blank">tx↗</a></span></div>`;
+    }
+    $('#sub').innerHTML=html;
+  }catch(err){$('#sub').innerHTML=`<span class="muted" style="color:var(--spam)">✕ ${err.message}</span>`;}
+}
+
+async function deployer(addr){
+  $('#sub').innerHTML='<span class="muted">fingerprinting deployer…</span>';
+  try{
+    const j=await api(`/api/deployer?address=${addr}`);
+    if(!j.deployer){$('#sub').innerHTML=`<span class="muted">${j.note||'no deployer record'}</span>`;return;}
+    let html=`<h2>deployer fingerprint</h2>`+
+      `<div class="row"><span>deployer</span><a class="ext" href="${EXPLORER}/address/${j.deployer}" target="_blank">${short(j.deployer)}</a></div>`+
+      `<div class="row"><span>contracts made</span><b>${j.siblingCount}${j.windowed?'+':''}</b></div>`+
+      `<p class="muted" style="margin:8px 0 4px">tap any to add it to the graph:</p>`;
+    for(const s of j.siblings.slice(0,40)){
+      html+=`<div class="row"><a href="#" onclick="trace('${s.address}',true);return false">${short(s.address)}${s.isSubject?' ◀ this':''}</a><span class="muted">blk ${s.block||'?'}</span></div>`;
+    }
+    $('#sub').innerHTML=html;
+  }catch(err){$('#sub').innerHTML=`<span class="muted" style="color:var(--spam)">✕ ${err.message}</span>`;}
+}
+window.trace=trace; window.funding=funding; window.deployer=deployer;
+
+cy.on('tap','node',(e)=>showDetail(e.target.id()));
+cy.on('dbltap','node',(e)=>trace(e.target.id(),true));
+$('#go').onclick=()=>trace($('#addr').value,false);
+$('#addr').addEventListener('keydown',(e)=>{if(e.key==='Enter')trace($('#addr').value,false);});
+
+// deep-link: graph.html?address=0x… or #0x…
+const pre=new URLSearchParams(location.search).get('address')||location.hash.slice(1);
+if(pre){$('#addr').value=pre;trace(pre,false);}
+</script>
+</body>
+</html>
