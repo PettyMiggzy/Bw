@@ -206,13 +206,14 @@ async function api(path){const r=await fetch(`${API}${path}`);const j=await r.js
 const PFP_BASE='https://api.nad.fun';
 const pfpChecked=new Set();
 async function nadJSON(u){try{const r=await fetch(u);if(!r.ok)return null;return await r.json();}catch(e){return null;}}
-function setPfp(n,url){n.style('background-image',url);n.style('background-fit','cover');n.style('background-image-opacity',1);n.style('background-image-crossorigin','anonymous');}
+function setPfp(n,url){n.style('background-image',url);n.style('background-fit','cover');n.style('background-image-opacity',1);n.style('background-image-crossorigin','null');n.style('background-fill','solid');n.style('background-color','#0c0c0c');}
 async function decorateNode(id){
   if(pfpChecked.has(id))return; pfpChecked.add(id);
   const n=cy.$id(id); if(!n.length)return; const d=n.data();
-  if(d.isToken){
+  if(d.type==='contract'||d.isToken){
     const j=await nadJSON(`${PFP_BASE}/token/${id}`); const ti=j&&j.token_info;
-    if(ti&&ti.image_uri){setPfp(n,ti.image_uri); if(ti.symbol){n.data('label',ti.symbol);n.data('named',true);}}
+    if(ti&&ti.image_uri){setPfp(n,ti.image_uri); n.data('isToken',true);
+      if(ti.symbol){n.data('label',ti.symbol);n.data('named',true);}}
   }else{
     const j=await nadJSON(`${PFP_BASE}/profile/${id}`); const ai=j&&j.account_info;
     if(ai&&ai.image_uri&&!/default_profile/.test(ai.image_uri)){setPfp(n,ai.image_uri);
