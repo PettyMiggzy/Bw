@@ -19,11 +19,5 @@
         }
       ]
     }
-  ],
-  "rewrites": [
-    {
-      "source": "/snitch",
-      "destination": "/graph"
-    }
   ]
 }
