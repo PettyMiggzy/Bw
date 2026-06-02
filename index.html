@@ -363,6 +363,14 @@ footer .trib a{color:var(--ember);text-decoration:underline}
 .news-box input{flex:1;background:var(--void);border:1px solid var(--green-deep);border-radius:12px;color:var(--green);font-family:var(--font-mono);padding:13px 14px}
 .news-box button{font-family:var(--font-display);font-size:13px;padding:0 18px;border-radius:12px;border:0;cursor:pointer;background:linear-gradient(90deg,var(--ember2),var(--ember),var(--gold2));color:#1a0a00}
 .news-msg{font-size:12px;margin-top:10px;min-height:16px}
+
+.heroburn{max-width:760px;margin:8px auto 0;padding:0 18px}
+.hbwrap{display:block;text-align:center;background:linear-gradient(180deg,rgba(255,106,43,.12),rgba(16,26,18,.6));border:1px solid rgba(255,106,43,.4);border-radius:20px;padding:22px 18px;transition:transform .2s,box-shadow .2s}
+.hbwrap:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(255,61,31,.25)}
+.hbl{font-size:12px;letter-spacing:3px;color:var(--dim);text-transform:uppercase}
+.hbnum{font-family:var(--font-display);font-size:clamp(32px,8vw,58px);color:var(--ember);line-height:1.05;margin:4px 0;text-shadow:0 0 26px rgba(255,61,31,.4)}
+.hbsub{color:var(--green);font-weight:700;font-size:14px}
+.hbcta{margin-top:10px;font-size:12px;color:var(--gold);letter-spacing:1px}
 </style>
 </head>
 <body>
@@ -426,6 +434,14 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   <div class="ca-pill">CA: <span class="a pending" id="caAddr">launching soon — drops in TG</span>
     <button id="copyCA" disabled>copy</button></div>
 </header>
+<section class="heroburn rv">
+  <a class="hbwrap" href="/burn">
+    <div class="hbl">🔥 Total $CHRONIC Burned</div>
+    <div class="hbnum" id="heroBurnNum">—</div>
+    <div class="hbsub"><span id="heroBurnPct">—</span> gone forever · supply only goes down</div>
+    <div class="hbcta">watch it burn live →</div>
+  </a>
+</section>
 
 <!-- FOMO BAND -->
 <section class="fomo">
@@ -623,6 +639,7 @@ try{await navigator.clipboard.writeText(TOKEN);toast('contract copied 🔥');}ca
 /* ===== helpers ===== */
 const fmt=n=>{n=Number(n);if(!isFinite(n)||n<=0)return'—';
 if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return n.toFixed(0);};
+function animateNum(el,to){if(!el)return;var from=parseFloat(el.getAttribute('data-v')||'0');if(!isFinite(to)||to<=0){el.textContent='—';return;}var t0=performance.now();function s(t){var p=Math.min(1,(t-t0)/1000);var e=1-Math.pow(1-p,3);el.textContent=fmt(from+(to-from)*e);if(p<1)requestAnimationFrame(s);else{el.textContent=fmt(to);el.setAttribute('data-v',to);}}requestAnimationFrame(s);}
 async function ethCall(to,data){for(let i=0;i<RPCS.length;i++){try{
 const r=await fetch(RPCS[i],{method:'POST',headers:{'Content-Type':'application/json'},
 body:JSON.stringify({jsonrpc:'2.0',method:'eth_call',params:[{to,data},'latest'],id:1})});
@@ -646,7 +663,8 @@ document.getElementById('burnMeter').style.width=pct+'%';
 document.getElementById('burnCapL').textContent=fmt(r.burned)+' of '+fmt(INITIAL_SUPPLY)+' burned to 0xdead';
 document.getElementById('burnCapR').textContent=pct.toFixed(2)+'% gone forever';
 var fb=document.getElementById('fomoBurned');if(fb)fb.textContent=fmt(r.burned);
-document.querySelectorAll('.hBurned').forEach(function(b){b.textContent=fmt(r.burned);});}
+document.querySelectorAll('.hBurned').forEach(function(b){b.textContent=fmt(r.burned);});
+animateNum(document.getElementById('heroBurnNum'),r.burned);var hp=document.getElementById('heroBurnPct');if(hp)hp.textContent=pct.toFixed(2)+'%';}
 
 /* ===== price strip (DexScreener, post-graduation) ===== */
 async function refreshPrice(){if(!TOKEN)return;
