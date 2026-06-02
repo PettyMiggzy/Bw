@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Chronic X-RAY — Monad Wallet Forensics</title>
+<meta name="description" content="See through any Monad wallet. Trace who it touched, funding lineage, and deployer fingerprints. On-chain forensics for the burn cult."/>
+<meta property="og:title" content="Chronic X-RAY"/>
+<meta property="og:description" content="See through any Monad wallet — connections, funding lineage, deployer fingerprints."/>
+<link rel="icon" type="image/png" href="/assets/favicon-32.png?v=4"/>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --void:#070a07; --void2:#0c120c; --panel:#101a12; --panel2:#16241a; --line:rgba(82,255,143,.16);
+  --green:#52ff8f; --green-dim:#2bd96a; --ember:#ff6a2b; --gold:#f5cf57; --ink:#e9ffe9; --dim:#84a78d;
+  --native:#52ff8f; --erc20:#f5cf57; --nft:#ff4fa3; --call:#5a6b5f; --deploy:#ff6a2b; --spam:#ff3b3b;
+  --disp:'Bungee',sans-serif; --mono:'Space Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--void);color:var(--ink);font-family:var(--mono);overflow:hidden}
+#app{display:grid;grid-template-columns:1fr 330px;grid-template-rows:auto auto 1fr;height:100vh}
+header{grid-column:1/3;display:flex;gap:14px;align-items:center;padding:11px 16px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,var(--void2),var(--void))}
+header h1{font-family:var(--disp);font-size:18px;letter-spacing:2px;color:var(--green);text-shadow:0 0 14px rgba(82,255,143,.4);white-space:nowrap}
+header h1 small{display:block;font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--dim)}
+#addr{flex:1;min-width:120px;background:var(--void);border:1px solid var(--line);color:var(--ink);padding:10px 12px;font-family:var(--mono);font-size:13px;border-radius:8px}
+#addr:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 2px rgba(82,255,143,.2)}
+button{background:var(--green);color:var(--void);border:0;padding:10px 16px;font-family:var(--disp);font-size:12px;letter-spacing:1px;border-radius:8px;cursor:pointer}
+button:hover{filter:brightness(1.1)}
+button.ghost{background:transparent;color:var(--green);border:1px solid var(--line)}
+button.ghost:hover{border-color:var(--green)}
+button:disabled{opacity:.4;cursor:not-allowed}
+/* filter bar */
+#filters{grid-column:1/3;display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:9px 16px;border-bottom:1px solid var(--line);background:var(--void2);font-size:11px}
+#filters .grp{display:flex;gap:6px;align-items:center}
+#filters .lbl{color:var(--dim);letter-spacing:1px;text-transform:uppercase;font-size:10px;margin-right:2px}
+.chip{border:1px solid var(--line);color:var(--dim);background:transparent;padding:6px 11px;border-radius:20px;cursor:pointer;font-family:var(--mono);font-size:11px;display:flex;align-items:center;gap:6px;user-select:none}
+.chip .dot{width:9px;height:9px;border-radius:50%}
+.chip .sq{width:9px;height:9px;border-radius:2px}
+.chip .di{width:9px;height:9px;transform:rotate(45deg)}
+.chip.on{color:var(--ink);border-color:var(--green);background:rgba(82,255,143,.08)}
+.chip.off{opacity:.45}
+.sep{width:1px;height:18px;background:var(--line);margin:0 4px}
+#cy{position:relative;background:radial-gradient(circle at 50% 40%,#0c160e 0%,var(--void) 70%)}
+#side{border-left:1px solid var(--line);background:var(--panel);overflow-y:auto;padding:14px}
+#side h2{font-size:11px;letter-spacing:2px;color:var(--green);margin-bottom:8px;text-transform:uppercase}
+.muted{color:var(--dim);font-size:11px;line-height:1.6}
+.row{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:4px 0;border-bottom:1px dashed rgba(82,255,143,.12)}
+.row b{color:var(--green)}
+.pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;letter-spacing:1px}
+.pill.wallet{background:rgba(82,255,143,.12);color:var(--green)}
+.pill.contract{background:rgba(255,106,43,.15);color:var(--ember)}
+.pill.spam{background:rgba(255,59,59,.15);color:var(--spam)}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.acts button{flex:1;min-width:90px}
+.legend{position:absolute;left:12px;bottom:12px;background:rgba(7,10,7,.88);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:10px;line-height:1.8;z-index:5}
+.legend .hd{color:var(--dim);letter-spacing:1px;text-transform:uppercase;font-size:9px;margin:2px 0 4px}
+.legend .sh{display:inline-block;width:11px;height:11px;vertical-align:middle;margin-right:6px;border:1.5px solid var(--green)}
+.legend .sh.circ{border-radius:50%}
+.legend .sh.sq{border-radius:2px;border-color:var(--ember)}
+.legend .sh.di{transform:rotate(45deg);border-color:var(--gold);width:9px;height:9px}
+.legend i{display:inline-block;width:16px;height:3px;vertical-align:middle;margin-right:6px;border-radius:2px}
+#status{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(7,10,7,.92);border:1px solid var(--green);color:var(--green);padding:7px 14px;border-radius:20px;font-size:12px;z-index:6;display:none}
+.lin{font-size:11px;line-height:1.5;border-left:2px solid var(--native);padding:4px 0 4px 10px;margin:4px 0}
+.lin a{color:var(--green);text-decoration:none}
+a.ext{color:var(--green);text-decoration:none;font-size:11px}
+@media(max-width:760px){#app{grid-template-columns:1fr;grid-template-rows:auto auto 52vh 1fr}#side{border-left:0;border-top:1px solid var(--line)}#filters{overflow-x:auto;flex-wrap:nowrap}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>🦴 X-RAY<small>chronic · monad forensics · chain 143</small></h1>
+    <input id="addr" placeholder="paste any Monad wallet or contract (0x…)" spellcheck="false"/>
+    <button id="go">X-RAY IT</button>
+  </header>
+  <div id="filters">
+    <span class="lbl">Show</span>
+    <div class="grp">
+      <span class="chip on" data-f="wallet"><span class="dot" style="background:var(--green)"></span>Wallets</span>
+      <span class="chip on" data-f="contract"><span class="sq" style="background:var(--ember)"></span>Contracts</span>
+      <span class="chip on" data-f="token"><span class="di" style="background:var(--gold)"></span>Tokens</span>
+    </div>
+    <span class="sep"></span>
+    <span class="lbl">Links</span>
+    <div class="grp">
+      <span class="chip on" data-f="native"><span class="dot" style="background:var(--native)"></span>MON</span>
+      <span class="chip on" data-f="erc20"><span class="dot" style="background:var(--erc20)"></span>ERC-20</span>
+      <span class="chip on" data-f="nft"><span class="dot" style="background:var(--nft)"></span>NFT</span>
+      <span class="chip on" data-f="call"><span class="dot" style="background:var(--call)"></span>Calls</span>
+    </div>
+    <span class="sep"></span>
+    <span class="chip on" data-f="hideSpam"><span class="dot" style="background:var(--spam)"></span>Hide spam</span>
+  </div>
+  <div id="cy">
+    <div id="status"></div>
+    <div class="legend">
+      <div class="hd">shapes</div>
+      <span class="sh circ"></span>wallet<br>
+      <span class="sh sq"></span>contract<br>
+      <span class="sh di"></span>token<br>
+      <div class="hd" style="margin-top:6px">links</div>
+      <i style="background:var(--native)"></i>MON&nbsp;&nbsp;<i style="background:var(--erc20)"></i>ERC-20<br>
+      <i style="background:var(--nft)"></i>NFT&nbsp;&nbsp;<i style="background:var(--call)"></i>call&nbsp;&nbsp;<i style="background:var(--deploy)"></i>deploy<br>
+      <span style="color:var(--spam)">●</span> spam token
+    </div>
+  </div>
+  <aside id="side">
+    <h2>how to read this</h2>
+    <p class="muted">Paste an address and hit <b>X-RAY IT</b> to see its 1-hop web. <b>Tap a node</b> to select it, then expand a hop, trace funding, or fingerprint the deployer. Hover a node to see its address. Nothing auto-crawls — every hop is a click. Cached 24h.</p>
+    <div id="detail"></div>
+  </aside>
+</div>
+
+<script src="https://unpkg.com/cytoscape@3.30.2/dist/cytoscape.min.js"></script>
+<script>
+const API='';
+const EXPLORER='https://monadscan.com';
+const $=(s)=>document.querySelector(s);
+const short=(a)=>a?`${a.slice(0,6)}…${a.slice(-4)}`:'';
+const KIND_COLOR={native:'#52ff8f',erc20:'#f5cf57',nft:'#ff4fa3',call:'#5a6b5f',deploy:'#ff6a2b'};
+function status(msg){const s=$('#status');if(!msg){s.style.display='none';return}s.textContent=msg;s.style.display='block';}
+
+const cy=cytoscape({
+  container:$('#cy'), minZoom:0.15, maxZoom:3, wheelSensitivity:0.25,
+  style:[
+    {selector:'node',style:{
+      'background-color':'#16241a','border-width':2,'border-color':'#2bd96a','shape':'ellipse',
+      'label':'','color':'#e9ffe9','font-size':9,'font-family':'monospace',
+      'text-valign':'bottom','text-margin-y':4,'width':20,'height':20,
+      'text-background-color':'#070a07','text-background-opacity':0.75,'text-background-padding':2}},
+    {selector:'node[type="contract"]',style:{'shape':'round-rectangle','background-color':'#241600','border-color':'#ff6a2b'}},
+    {selector:'node[?isToken]',style:{'shape':'diamond','background-color':'#241a00','border-color':'#f5cf57'}},
+    {selector:'node[?named]',style:{'label':'data(label)'}},
+    {selector:'node[?spam]',style:{'border-color':'#ff3b3b','border-width':3}},
+    {selector:'node[?root]',style:{'background-color':'#52ff8f','border-color':'#eafff2','border-width':4,'width':36,'height':36,'color':'#fff','font-size':12,'label':'data(label)'}},
+    {selector:'node.hov',style:{'label':'data(label)','z-index':99}},
+    {selector:'node:selected',style:{'border-color':'#fff','border-width':4,'label':'data(label)'}},
+    {selector:'node[?expanded]',style:{'border-style':'double'}},
+    {selector:'edge',style:{
+      'width':'data(w)','line-color':'data(color)','target-arrow-color':'data(color)',
+      'target-arrow-shape':'triangle','curve-style':'bezier','arrow-scale':0.8,'opacity':0.7,
+      'label':'','font-size':8,'color':'#84a78d','text-rotation':'autorotate',
+      'text-background-color':'#070a07','text-background-opacity':0.7,'text-background-padding':1}},
+    {selector:'edge.hov',style:{'label':'data(elabel)','opacity':1,'width':3}},
+    {selector:'edge[?spam]',style:{'line-style':'dashed','line-color':'#ff3b3b','target-arrow-color':'#ff3b3b'}}
+  ]
+});
+
+const seenNodes=new Set(), seenEdges=new Set();
+function mergeGraph(g, rootAddr){
+  const add=[];
+  for(const n of g.nodes){
+    const id=n.address;
+    if(seenNodes.has(id)){ if(id===rootAddr) cy.$id(id).data('root',true); continue; }
+    seenNodes.add(id);
+    const named=!!(n.label && n.label!==short(id));
+    add.push({group:'nodes',data:{id,label:n.label||short(id),type:n.type,isToken:n.isToken,spam:n.spam,named,root:id===rootAddr,firstSeen:n.firstSeen,raw:n}});
+  }
+  for(const e of g.edges){
+    const id=`${e.from}->${e.to}:${e.kind}:${e.asset}`;
+    if(seenEdges.has(id))continue; seenEdges.add(id);
+    let el='';
+    if(e.kind==='native'&&e.valueFmt!=='0') el=`${e.valueFmt} MON`;
+    else if(e.kind==='erc20'&&e.valueFmt!=='0') el=`${e.valueFmt} ${e.asset}`;
+    else if(e.kind==='nft') el=`${e.asset}`;
+    else if(e.kind==='deploy') el='deploy';
+    add.push({group:'edges',data:{id,source:e.from,target:e.to,kind:e.kind,color:KIND_COLOR[e.kind]||'#5a6b5f',w:Math.min(1+Math.log2(1+e.txCount),6),elabel:el,spam:e.spam,raw:e}});
+  }
+  cy.add(add);
+}
+
+/* ---- filters ---- */
+const F={wallet:true,contract:true,token:true,native:true,erc20:true,nft:true,call:true,deploy:true,hideSpam:true};
+function nodeVisible(n){const d=n.data();if(d.root)return true;if(F.hideSpam&&d.spam)return false;if(d.isToken)return F.token;if(d.type==='contract')return F.contract;return F.wallet;}
+function applyFilters(){
+  cy.batch(function(){
+    cy.nodes().forEach(function(n){n.style('display',nodeVisible(n)?'element':'none');});
+    cy.edges().forEach(function(ed){
+      const d=ed.data();
+      const kindOn=F[d.kind]!==false;
+      const ends=nodeVisible(ed.source())&&nodeVisible(ed.target());
+      const spamOk=!F.hideSpam||!d.spam;
+      ed.style('display',(kindOn&&ends&&spamOk)?'element':'none');
+    });
+  });
+}
+document.querySelectorAll('#filters .chip').forEach(function(c){
+  c.onclick=function(){
+    const k=c.getAttribute('data-f');
+    if(k==='hideSpam'){F.hideSpam=!F.hideSpam;}else{F[k]=!F[k];}
+    const active=(k==='hideSpam')?F.hideSpam:F[k];
+    c.classList.toggle('on',active);c.classList.toggle('off',!active);
+    applyFilters();
+  };
+});
+
+function relayout(){cy.layout({name:'cose',animate:true,animationDuration:650,nodeRepulsion:16000,idealEdgeLength:120,gravity:0.25,padding:50,componentSpacing:140}).run();}
+
+async function api(path){const r=await fetch(`${API}${path}`);const j=await r.json();if(!r.ok||j.error)throw new Error(j.error||`HTTP ${r.status}`);return j;}
+
+async function trace(addr,isExpand){
+  addr=(addr||'').trim().toLowerCase();
+  if(!/^0x[0-9a-f]{40}$/.test(addr)){status('not a valid 0x address');setTimeout(()=>status(''),1800);return;}
+  status(isExpand?`expanding ${short(addr)}…`:`x-raying ${short(addr)}…`);
+  try{
+    const g=await api(`/api/graph?address=${addr}`);
+    mergeGraph(g,addr);
+    if(isExpand) cy.$id(addr).data('expanded',true);
+    relayout(); applyFilters();
+    const pf=(g.stats.partialFeeds&&g.stats.partialFeeds.length)?` · ⚠ ${g.stats.partialFeeds.join('/')} feed timed out`:'';
+    status((g.stats.truncated?`${g.stats.kept}/${g.stats.counterparties} links (capped)`:`${g.stats.kept} links`)+pf);
+    setTimeout(()=>status(''),pf?4500:2200);
+    if(!isExpand){cy.$id(addr).select();showDetail(addr);}
+  }catch(err){status(`✕ ${err.message}`);setTimeout(()=>status(''),3500);}
+}
+
+function showDetail(addr){
+  const n=cy.$id(addr);if(!n.length)return;const d=n.data();const r=d.raw||{};
+  const ext=`<a class="ext" href="${EXPLORER}/address/${addr}" target="_blank">↗ MonadScan</a>`;
+  $('#detail').innerHTML=`
+    <h2>selected node</h2>
+    <div class="row"><span>address</span><b>${short(addr)}</b></div>
+    <div class="row"><span>type</span><span class="pill ${d.type}">${d.type}${d.isToken?' · token':''}</span></div>
+    ${d.spam?'<div class="row"><span>flag</span><span class="pill spam">SPAM / scam name</span></div>':''}
+    ${r.firstSeen?`<div class="row"><span>first seen</span><b>${new Date(r.firstSeen*1000).toISOString().slice(0,10)}</b></div>`:''}
+    <div class="row"><span></span>${ext}</div>
+    <div class="acts">
+      <button onclick="trace('${addr}',true)">＋ EXPAND</button>
+      <button class="ghost" onclick="funding('${addr}')">⛓ FUNDING</button>
+      <button class="ghost" onclick="deployer('${addr}')">🧬 DEPLOYER</button>
+    </div>
+    <div id="sub" class="muted">forensics results appear here</div>`;
+}
+async function funding(addr){
+  $('#sub').innerHTML='<span class="muted">tracing funding lineage…</span>';
+  try{
+    const j=await api(`/api/funding?address=${addr}&depth=6`);
+    let html=`<h2>funding lineage · ${j.hops} hops</h2>`;
+    for(const h of j.lineage){
+      if(h.terminal){html+=`<div class="lin" style="border-color:#f5cf57"><b>${short(h.address)}</b><br><span class="muted">${h.terminal}</span></div>`;continue;}
+      html+=`<div class="lin"><b>${short(h.address)}</b> ⬅ funded by <a href="${EXPLORER}/address/${h.fundedBy}" target="_blank">${short(h.fundedBy)}</a><br><span class="muted">${h.valueFmt} MON · ${new Date(h.ts*1000).toISOString().slice(0,10)}${h.internal?' · internal':''} · <a href="${EXPLORER}/tx/${h.txHash}" target="_blank">tx↗</a></span></div>`;
+    }
+    $('#sub').innerHTML=html;
+  }catch(err){$('#sub').innerHTML=`<span class="muted" style="color:var(--spam)">✕ ${err.message}</span>`;}
+}
+async function deployer(addr){
+  $('#sub').innerHTML='<span class="muted">fingerprinting deployer…</span>';
+  try{
+    const j=await api(`/api/deployer?address=${addr}`);
+    if(!j.deployer){$('#sub').innerHTML=`<span class="muted">${j.note||'no deployer record'}</span>`;return;}
+    let html=`<h2>deployer fingerprint</h2><div class="row"><span>deployer</span><a class="ext" href="${EXPLORER}/address/${j.deployer}" target="_blank">${short(j.deployer)}</a></div><div class="row"><span>contracts made</span><b>${j.siblingCount}${j.windowed?'+':''}</b></div><p class="muted" style="margin:8px 0 4px">tap any to add it to the graph:</p>`;
+    for(const s of j.siblings.slice(0,40)){html+=`<div class="row"><a href="#" onclick="trace('${s.address}',true);return false">${short(s.address)}${s.isSubject?' ◀ this':''}</a><span class="muted">blk ${s.block||'?'}</span></div>`;}
+    $('#sub').innerHTML=html;
+  }catch(err){$('#sub').innerHTML=`<span class="muted" style="color:var(--spam)">✕ ${err.message}</span>`;}
+}
+window.trace=trace;window.funding=funding;window.deployer=deployer;
+
+cy.on('tap','node',(e)=>showDetail(e.target.id()));
+cy.on('dbltap','node',(e)=>trace(e.target.id(),true));
+cy.on('mouseover','node',(e)=>e.target.addClass('hov'));
+cy.on('mouseout','node',(e)=>e.target.removeClass('hov'));
+cy.on('mouseover','edge',(e)=>e.target.addClass('hov'));
+cy.on('mouseout','edge',(e)=>e.target.removeClass('hov'));
+$('#go').onclick=()=>trace($('#addr').value,false);
+$('#addr').addEventListener('keydown',(e)=>{if(e.key==='Enter')trace($('#addr').value,false);});
+const pre=new URLSearchParams(location.search).get('address')||location.hash.slice(1);
+if(pre){$('#addr').value=pre;trace(pre,false);}
+</script>
+</body>
+</html>
