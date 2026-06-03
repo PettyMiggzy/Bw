@@ -3,375 +3,108 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Chronic X-RAY — Monad Wallet Forensics</title>
-<meta name="description" content="See through any Monad wallet — who it touched, funding lineage, deployer fingerprints. On-chain forensics, Monad-only."/>
-<meta property="og:title" content="Chronic X-RAY — Monad Wallet Forensics"/>
+<title>Chronic X-RAY — Holder Bubble Map</title>
 <link rel="icon" type="image/svg+xml" href="/assets/xray-icon.svg"/>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
 <style>
-:root{
-  --void:#070a07;--void2:#0c120c;--panel:#101a12;--panel2:#16241a;--line:rgba(82,255,143,.16);
-  --accent:#52ff8f;--accentdim:#2bd96a;--ember:#ff6a2b;--gold:#f5cf57;--ink:#e9ffe9;--dim:#84a78d;
-  --native:#52ff8f;--erc20:#f5cf57;--nft:#ff4fa3;--call:#5a6b5f;--deploy:#ff6a2b;--spam:#ff3b3b;
-  --disp:'Bungee',sans-serif;--mono:'Space Mono',monospace;
-}
+:root{--void:#070a07;--void2:#0c120c;--panel:#101a12;--line:rgba(82,255,143,.16);--accent:#52ff8f;--ink:#e9ffe9;--dim:#84a78d;--green:#3ad17a;--red:#ff4d4d;--disp:'Bungee',sans-serif;--mono:'Space Mono',monospace}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{background:var(--void);color:var(--ink);font-family:var(--mono);overflow:hidden}
-#app{display:grid;grid-template-columns:1fr 330px;grid-template-rows:auto auto 1fr;height:100vh}
-header{grid-column:1/3;display:flex;gap:14px;align-items:center;padding:11px 16px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,var(--void2),var(--void))}
-header h1{font-family:var(--disp);font-size:18px;letter-spacing:2px;color:var(--accent);text-shadow:0 0 14px rgba(82,255,143,.12);white-space:nowrap}
-header h1 small{display:block;font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--dim)}
-#addr{flex:1;min-width:120px;background:var(--void);border:1px solid var(--line);color:var(--ink);padding:10px 12px;font-family:var(--mono);font-size:13px;border-radius:8px}
-#addr:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(82,255,143,.12)}
-button{background:var(--accent);color:var(--void);border:0;padding:10px 16px;font-family:var(--disp);font-size:12px;letter-spacing:1px;border-radius:8px;cursor:pointer}
-button:hover{filter:brightness(1.12)}
-button.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
-button.ghost:hover{border-color:var(--accent)}
-button:disabled{opacity:.4;cursor:not-allowed}
-#filters{grid-column:1/3;display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:9px 16px;border-bottom:1px solid var(--line);background:var(--void2);font-size:11px}
-#filters .grp{display:flex;gap:6px;align-items:center}
-#filters .lbl{color:var(--dim);letter-spacing:1px;text-transform:uppercase;font-size:10px;margin-right:2px}
-.chip{border:1px solid var(--line);color:var(--dim);background:transparent;padding:6px 11px;border-radius:20px;cursor:pointer;font-family:var(--mono);font-size:11px;display:flex;align-items:center;gap:6px;user-select:none}
-.chip .dot{width:9px;height:9px;border-radius:50%}
-.chip .sq{width:9px;height:9px;border-radius:2px}
-.chip .di{width:9px;height:9px;transform:rotate(45deg)}
-.chip.on{color:var(--ink);border-color:var(--accent);background:rgba(82,255,143,.12)}
-.chip.off{opacity:.42}
-.sep{width:1px;height:18px;background:var(--line);margin:0 4px}
-#filters .sel{background:var(--void);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 8px;font-family:var(--mono);font-size:11px;cursor:pointer}
-#cy{position:relative;background:radial-gradient(circle at 50% 38%,#0c160e 0%,var(--void) 72%)}
-#side{border-left:1px solid var(--line);background:var(--panel);overflow-y:auto;padding:14px}
-#side h2{font-size:11px;letter-spacing:2px;color:var(--accent);margin-bottom:8px;text-transform:uppercase}
-.muted{color:var(--dim);font-size:11px;line-height:1.6}
-.row{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:4px 0;border-bottom:1px dashed var(--line)}
-.row b{color:var(--accent)}
-.pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;letter-spacing:1px}
-.pill.wallet{background:rgba(82,255,143,.12);color:var(--accent)}
-.pill.contract{background:rgba(255,140,40,.16);color:var(--ember)}
-.pill.spam{background:rgba(255,59,59,.16);color:var(--spam)}
-.acts{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
-.acts button{flex:1;min-width:90px}
-.legend{position:absolute;left:12px;bottom:12px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:10px;line-height:1.8;z-index:5}
-.legend .hd{color:var(--dim);letter-spacing:1px;text-transform:uppercase;font-size:9px;margin:2px 0 4px}
-.legend .sh{display:inline-block;width:11px;height:11px;vertical-align:middle;margin-right:6px;border:1.5px solid var(--accent)}
-.legend .sh.circ{border-radius:50%}
-.legend .sh.sq{border-radius:2px;border-color:var(--ember)}
-.legend .sh.di{transform:rotate(45deg);border-color:var(--gold);width:9px;height:9px}
-.legend i{display:inline-block;width:16px;height:3px;vertical-align:middle;margin-right:6px;border-radius:2px}
-#status{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);backdrop-filter:blur(6px);border:1px solid var(--accent);color:var(--accent);padding:7px 14px;border-radius:20px;font-size:12px;z-index:6;display:none}
-.lin{font-size:11px;line-height:1.5;border-left:2px solid var(--native);padding:4px 0 4px 10px;margin:4px 0}
-.lin a{color:var(--accent);text-decoration:none}
-a.ext{color:var(--accent);text-decoration:none;font-size:11px}
-@media(max-width:760px){#app{grid-template-columns:1fr;grid-template-rows:auto auto 52vh 1fr}#side{border-left:0;border-top:1px solid var(--line)}#filters{overflow-x:auto;flex-wrap:nowrap}}
+body{background:var(--void);color:var(--ink);font-family:var(--mono);-webkit-font-smoothing:antialiased}
+.wrap{max-width:920px;margin:0 auto;padding:0 14px 50px}
+header{padding:16px 0 8px}
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.back{color:var(--accent);text-decoration:none;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:7px 11px;white-space:nowrap}
+.back:hover{border-color:var(--accent)}
+h1{font-family:var(--disp);font-size:18px;letter-spacing:1px;color:var(--accent)}
+.sub{color:var(--dim);font-size:11px}
+.search{display:flex;gap:8px;margin:12px 0 6px}
+#addr{flex:1;background:var(--void2);border:1px solid var(--line);color:var(--ink);padding:11px 13px;font-family:var(--mono);font-size:13px;border-radius:10px}
+#addr:focus{outline:none;border-color:var(--accent)}
+#go{background:var(--accent);color:var(--void);border:0;padding:11px 18px;font-family:var(--disp);font-size:12px;border-radius:10px;cursor:pointer}
+#msg{min-height:16px;color:var(--dim);font-size:12px;margin:4px 0}
+.legend{display:flex;gap:16px;align-items:center;font-size:12px;color:var(--dim);margin:6px 0 4px;flex-wrap:wrap}
+.legend b{color:var(--ink);font-weight:400}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:-1px;margin-right:5px}
+#chart{width:100%;background:radial-gradient(circle at 50% 42%,var(--void2) 0%,var(--void) 72%);border:1px solid var(--line);border-radius:14px;margin-top:6px}
+.bub{cursor:pointer;transition:opacity .15s}
+.bub:hover{opacity:.85}
+.blab{font-family:var(--mono);fill:#fff;pointer-events:none;text-anchor:middle;font-weight:700}
+#info{margin-top:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px;font-size:13px;display:none}
+#info .a{color:var(--accent);text-decoration:none;font-weight:700}
+#info .badge{font-size:10px;padding:2px 8px;border-radius:20px;margin-left:6px}
+.bought{background:rgba(58,209,122,.16);color:var(--green)}
+.free{background:rgba(255,77,77,.16);color:var(--red)}
+.disc{font-size:10px;color:var(--dim);margin-top:12px;line-height:1.6}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:s .7s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes s{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
-<div id="app">
+<div class="wrap">
   <header>
-    <h1>🦴 X-RAY<small>chronic · monad forensics · chain 143</small></h1>
-    <input id="addr" placeholder="paste any Monad wallet or contract (0x…)" spellcheck="false"/>
-    <button id="go">X-RAY IT</button>
+    <div class="top">
+      <a class="back" href="/xray">← back to scan</a>
+      <div><h1>🦴 X-RAY · bubble map</h1><div class="sub">every holder = a bubble · size = how much they hold</div></div>
+    </div>
+    <div class="search">
+      <input id="addr" placeholder="paste a token contract (0x…)" spellcheck="false"/>
+      <button id="go">MAP IT</button>
+    </div>
+    <div id="msg"></div>
+    <div class="legend"><span><span class="dot" style="background:var(--green)"></span><b>bought it</b> (real holder)</span><span><span class="dot" style="background:var(--red)"></span><b>got it free</b> (insider)</span><span>bigger = holds more</span></div>
   </header>
-  <div id="filters">
-    <span class="lbl">Show</span>
-    <div class="grp">
-      <span class="chip on" data-f="wallet"><span class="dot" style="background:var(--accent)"></span>Wallets</span>
-      <span class="chip on" data-f="contract"><span class="sq" style="background:var(--ember)"></span>Contracts</span>
-      <span class="chip on" data-f="token"><span class="di" style="background:var(--gold)"></span>Tokens</span>
-    </div>
-    <span class="sep"></span>
-    <span class="lbl">Links</span>
-    <div class="grp">
-      <span class="chip on" data-f="native"><span class="dot" style="background:var(--native)"></span>MON</span>
-      <span class="chip on" data-f="erc20"><span class="dot" style="background:var(--erc20)"></span>ERC-20</span>
-      <span class="chip on" data-f="nft"><span class="dot" style="background:var(--nft)"></span>NFT</span>
-      <span class="chip off" data-f="call"><span class="dot" style="background:var(--call)"></span>Calls</span>
-    </div>
-    <span class="sep"></span>
-    <span class="chip on" data-f="hideSpam"><span class="dot" style="background:var(--spam)"></span>Hide spam</span>
-    <span class="sep"></span>
-    <span class="lbl">Arrange</span>
-    <select id="arrange" class="sel"><option value="force">Force</option><option value="hubs">Hubs in center</option><option value="grid">Grid</option></select>
-  </div>
-  <div id="cy">
-    <div id="status"></div>
-    <div class="legend">
-      <div class="hd">what the dots are</div>
-      <span class="sh circ"></span>wallet (a person)<br>
-      <span class="sh di"></span>token<br>
-      <span class="sh sq"></span>app / contract<br>
-      <div class="hd" style="margin-top:6px">what the lines mean</div>
-      <i style="background:var(--native)"></i>sent MON<br>
-      <i style="background:var(--erc20)"></i>sent tokens<br>
-      <i style="background:var(--nft)"></i>sent an NFT<br>
-      <span style="color:var(--spam)">●</span> likely scam &nbsp;·&nbsp; bigger dot = holds more
-    </div>
-  </div>
-  <aside id="side">
-    <h2>how to read this</h2>
-    <p class="muted">Paste a wallet or token address and hit <b>X-RAY IT</b>. Each <b>dot</b> is a wallet (a person) or a token/app. A <b>line</b> means one sent the other tokens or MON. <b>Bigger dot = holds more</b> of the token. <b>Tap a dot</b> to see what it is and follow the trail. Don't sweat the tech — follow the biggest dots and the lines between them.</p>
-    <div id="detail"></div>
-  </aside>
+  <svg id="chart" viewBox="0 0 920 600" preserveAspectRatio="xMidYMid meet"></svg>
+  <div id="info"></div>
+  <p class="disc">Bubbles are current holders only (wallets that already sold show up in the scan, not here). Green = acquired by buying from the pool; red = received free without ever buying. Tap a bubble for the wallet. Heuristic research tool, not financial advice.</p>
 </div>
-<script src="https://unpkg.com/cytoscape@3.30.2/dist/cytoscape.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script>
-const API='';
 const EXPLORER='https://monadscan.com';
 const $=(s)=>document.querySelector(s);
-const short=(a)=>a?`${a.slice(0,6)}…${a.slice(-4)}`:'';
-const KIND_COLOR={native:'#52ff8f',erc20:'#f5cf57',nft:'#ff4fa3',call:'#5a6b5f',deploy:'#ff6a2b'};
-const KNOWN={
- '0x0000000000000000000000000000000000000000':'🌱 new coins (mint)',
- '0x000000000000000000000000000000000000dead':'🔥 burned',
- '0x3bd359c1119da7da1d913d1c4d2b7c461115433a':'WMON (wrapped MON)',
- '0xa9f6b6656e32f223d778b01642f32d00f5310526':'Crust DEX'
-};
-function status(msg){const s=$('#status');if(!msg){s.style.display='none';return}s.textContent=msg;s.style.display='block';}
-const cy=cytoscape({
-  container:$('#cy'), minZoom:0.12, maxZoom:3, wheelSensitivity:0.25,
-  style:[
-    {selector:'node',style:{
-      'background-fill':'radial-gradient','background-gradient-stop-colors':'#1f3a29 #0e1c13','background-gradient-stop-positions':'0 100',
-      'border-width':2,'border-color':'#52ff8f','border-opacity':0.95,'shape':'ellipse',
-      'underlay-color':'#52ff8f','underlay-opacity':0.18,'underlay-padding':5,'underlay-shape':'ellipse',
-      'label':'','color':'#e9ffe9','font-size':9,'font-family':'monospace','text-outline-color':'#070a07','text-outline-width':2,
-      'text-valign':'bottom','text-margin-y':5,'width':'mapData(sz,0,100,18,66)','height':'mapData(sz,0,100,18,66)'}},
-    {selector:'node[type="contract"]',style:{'shape':'round-rectangle','background-gradient-stop-colors':'#3a2400 #170e00','border-color':'#ff6a2b','underlay-color':'#ff6a2b'}},
-    {selector:'node[?isToken]',style:{'shape':'diamond','background-gradient-stop-colors':'#3a2e00 #171200','border-color':'#f5cf57','underlay-color':'#f5cf57'}},
-    {selector:'node[?named]',style:{'label':'data(label)'}},
-    {selector:'node[?spam]',style:{'border-color':'#ff3b3b','border-width':3,'underlay-color':'#ff3b3b','underlay-opacity':0.28}},
-    {selector:'node[?root]',style:{'background-gradient-stop-colors':'#d6ffe6 #52ff8f','border-color':'#ffffff','border-width':4,'underlay-color':'#52ff8f','underlay-opacity':0.42,'underlay-padding':9,'width':46,'height':46,'color':'#fff','font-size':12,'label':'data(label)'}},
-    {selector:'node.hov',style:{'label':'data(label)','z-index':99,'underlay-opacity':0.42}},
-    {selector:'node:selected',style:{'border-color':'#ffffff','border-width':4,'label':'data(label)'}},
-    {selector:'node[?expanded]',style:{'border-style':'double'}},
-    {selector:'edge',style:{
-      'width':'data(w)','line-color':'data(color)','target-arrow-color':'data(color)',
-      'target-arrow-shape':'triangle','curve-style':'bezier','arrow-scale':0.85,'opacity':0.82,'line-cap':'round',
-      'label':'','font-size':8,'color':'#84a78d','text-rotation':'autorotate',
-      'text-background-color':'#070a07','text-background-opacity':0.7,'text-background-padding':1}},
-    {selector:'edge.hov',style:{'label':'data(elabel)','opacity':1,'width':3}},
-    {selector:'edge[?spam]',style:{'line-style':'dashed','line-color':'#ff3b3b','target-arrow-color':'#ff3b3b'}}
-  ]
-});
-const seenNodes=new Set(), seenEdges=new Set();
-function mergeGraph(g, rootAddr){
-  const add=[];
-  for(const n of g.nodes){
-    const id=n.address;
-    if(seenNodes.has(id)){ if(id===rootAddr) cy.$id(id).data('root',true); continue; }
-    seenNodes.add(id);
-    let label=n.label||short(id), named=!!(n.label && n.label!==short(id));
-    if(KNOWN[id]){label=KNOWN[id];named=true;}
-    add.push({group:'nodes',data:{id,label,type:n.type,isToken:n.isToken,spam:n.spam,named,known:!!KNOWN[id],root:id===rootAddr,deg:1,sz:6,firstSeen:n.firstSeen,raw:n}});
-  }
-  for(const e of g.edges){
-    const id=`${e.from}->${e.to}:${e.kind}:${e.asset}`;
-    if(seenEdges.has(id))continue; seenEdges.add(id);
-    let el='';
-    if(e.kind==='native'&&e.valueFmt!=='0') el=`${e.valueFmt} MON`;
-    else if(e.kind==='erc20'&&e.valueFmt!=='0') el=`${e.valueFmt} ${e.asset}`;
-    else if(e.kind==='nft') el=`${e.asset}`;
-    else if(e.kind==='deploy') el='deploy';
-    add.push({group:'edges',data:{id,source:e.from,target:e.to,kind:e.kind,color:KIND_COLOR[e.kind]||'#5a6b5f',w:Math.min(1.6+Math.log2(1+e.txCount),7),elabel:el,spam:e.spam,raw:e}});
-  }
-  cy.add(add);
+const short=(a)=>a?a.slice(0,6)+'…'+a.slice(-4):'';
+const fmtPct=(p)=>p>=0.01?p.toFixed(2)+'%':(p>0?'<0.01%':'0%');
+function msg(t,sp){$('#msg').innerHTML=(sp?'<span class="spin"></span>':'')+(t||'');}
+const isFree=(c)=>c==='loaded'||c==='mover';
+function draw(holders){
+  const svg=d3.select('#chart'); svg.selectAll('*').remove();
+  const W=920,H=600;
+  if(!holders||!holders.length){svg.append('text').attr('x',W/2).attr('y',H/2).attr('fill','#888').attr('text-anchor','middle').text('no current holders found');return;}
+  const data={children:holders.map(h=>({...h,value:Math.max(h.pct,0.02)}))};
+  const root=d3.hierarchy(data).sum(d=>d.value);
+  d3.pack().size([W-8,H-8]).padding(3)(root);
+  const g=svg.append('g').attr('transform','translate(4,4)');
+  const node=g.selectAll('g').data(root.leaves()).join('g').attr('transform',d=>`translate(${d.x},${d.y})`).attr('class','bub').on('click',(e,d)=>info(d.data));
+  node.append('circle').attr('r',d=>d.r)
+    .attr('fill',d=>isFree(d.data.cat)?'var(--red)':'var(--green)')
+    .attr('fill-opacity',d=>isFree(d.data.cat)?0.85:0.55)
+    .attr('stroke',d=>d.data.fromDeployer?'#fff':(isFree(d.data.cat)?'#ff8a8a':'#7fffb4'))
+    .attr('stroke-width',d=>d.data.fromDeployer?2:1);
+  node.filter(d=>d.r>20).append('text').attr('class','blab').attr('dy','.35em').attr('font-size',d=>Math.min(d.r/2.6,15)).text(d=>fmtPct(d.data.pct));
 }
-const F={wallet:true,contract:true,token:true,native:true,erc20:true,nft:true,call:false,deploy:true,hideSpam:true};
-function nodeVisible(n){const d=n.data();if(d.root)return true;if(F.hideSpam&&d.spam)return false;if(d.isToken)return F.token;if(d.type==='contract')return F.contract;return F.wallet;}
-function applyFilters(){
-  cy.batch(function(){
-    cy.nodes().forEach(function(n){n.style('display',nodeVisible(n)?'element':'none');});
-    cy.edges().forEach(function(ed){
-      const d=ed.data();
-      const kindOn=F[d.kind]!==false;
-      const ends=nodeVisible(ed.source())&&nodeVisible(ed.target());
-      const spamOk=!F.hideSpam||!d.spam;
-      ed.style('display',(kindOn&&ends&&spamOk)?'element':'none');
-    });
-    // drop dots with no visible connection — keeps it clean for non-technical users
-    cy.nodes().forEach(function(n){
-      if(n.data('root')||n.style('display')==='none')return;
-      const vis=n.connectedEdges().filter(e=>e.style('display')!=='none').length;
-      if(vis===0)n.style('display','none');
-    });
-  });
+function info(d){
+  const box=$('#info'); box.style.display='block';
+  box.innerHTML='<a class="a" href="'+EXPLORER+'/address/'+d.address+'" target="_blank">'+short(d.address)+' ↗</a>'+
+    '<span class="badge '+(isFree(d.cat)?'free':'bought')+'">'+(isFree(d.cat)?'GOT FREE (insider)':'BOUGHT IT')+'</span>'+
+    (d.fromDeployer?' <span class="badge free">⚠ funded by dev</span>':'')+
+    '<div style="margin-top:6px;color:var(--dim)">holds <b style="color:#fff">'+fmtPct(d.pct)+'</b> of supply</div>';
 }
-document.querySelectorAll('#filters .chip').forEach(function(c){
-  c.onclick=function(){
-    const k=c.getAttribute('data-f');
-    F[k]=!F[k];
-    c.classList.toggle('on',F[k]);c.classList.toggle('off',!F[k]);
-    applyFilters();
-  };
-});
-let LAYOUT='force';
-function relayout(){
-  cy.nodes().forEach(n=>{const dg=n.connectedEdges().length;n.data('deg',Math.max(1,dg));if(!n.data('posSet')&&!n.data('root'))n.data('sz',Math.min(100,8+dg*7));});
-  let opt;
-  if(LAYOUT==='hubs') opt={name:'concentric',concentric:n=>n.degree(),levelWidth:()=>2,minNodeSpacing:36,animate:true,animationDuration:600,padding:50};
-  else if(LAYOUT==='grid') opt={name:'grid',animate:true,animationDuration:500,padding:40,avoidOverlap:true};
-  else opt={name:'cose',animate:true,animationDuration:650,nodeRepulsion:18000,idealEdgeLength:120,gravity:0.22,padding:55,componentSpacing:150};
-  cy.layout(opt).run();
-}
-$('#arrange').onchange=function(){LAYOUT=this.value;relayout();};
-async function api(path){const r=await fetch(`${API}${path}`);const j=await r.json();if(!r.ok||j.error)throw new Error(j.error||`HTTP ${r.status}`);return j;}
-// nad.fun pfp/logo decoration — throttled + cached (nad.fun rate-limits hard)
-const PFP_BASE='https://api.nad.fun';
-const pfpChecked=new Set();
-let _nadChain=Promise.resolve(), _nadLast=0; const NAD_GAP=650;
-function nadGate(){const p=_nadChain.then(()=>new Promise(res=>{const w=Math.max(0,NAD_GAP-(Date.now()-_nadLast));setTimeout(()=>{_nadLast=Date.now();res();},w);}));_nadChain=p.catch(()=>{});return p;}
-async function nadJSON(u,attempt){attempt=attempt||0;await nadGate();
-  try{const r=await fetch(u);
-    if(r.status===429||r.status>=500){if(attempt<5){await new Promise(s=>setTimeout(s,700*(attempt+1)));return nadJSON(u,attempt+1);}return null;}
-    if(!r.ok)return {};
-    return await r.json();
-  }catch(e){if(attempt<3){await new Promise(s=>setTimeout(s,600));return nadJSON(u,attempt+1);}return null;}
-}
-function pfpGet(id){try{return JSON.parse(localStorage.getItem('pfp:'+id));}catch(e){return null;}}
-function pfpSet(id,v){try{localStorage.setItem('pfp:'+id,JSON.stringify(v));}catch(e){}}
-function setPfp(n,url){n.style('background-image',url);n.style('background-fit','cover');n.style('background-image-opacity',1);n.style('background-image-crossorigin','null');n.style('background-fill','solid');n.style('background-color','#0c0c0c');}
-function applyRec(n,rec){if(!rec||rec.none)return;if(rec.img)setPfp(n,rec.img);if(rec.token)n.data('isToken',true);if(rec.label){n.data('label',rec.label);n.data('named',true);}}
-async function decorateNode(id){
-  if(pfpChecked.has(id))return;
-  const n=cy.$id(id); if(!n.length)return; const d=n.data();
-  const cached=pfpGet(id);
-  if(cached){pfpChecked.add(id);applyRec(n,cached);return;}
-  let rec;
-  if(d.type==='contract'||d.isToken){
-    const j=await nadJSON(`${PFP_BASE}/token/${id}`);
-    if(j===null)return; const ti=j.token_info||{};
-    rec=ti.image_uri?{img:ti.image_uri,label:ti.symbol||'',token:true}:{none:1};
-  }else{
-    const j=await nadJSON(`${PFP_BASE}/profile/${id}`);
-    if(j===null)return; const ai=j.account_info||{};
-    const custom=ai.image_uri&&!/default_profile/.test(ai.image_uri);
-    rec=custom?{img:ai.image_uri,label:(ai.nickname&&ai.nickname.toLowerCase()!==id.toLowerCase())?ai.nickname:''}:{none:1};
-  }
-  pfpChecked.add(id); pfpSet(id,rec); applyRec(n,rec);
-}
-function decorateAll(){
-  const ids=cy.nodes().map(n=>n.id()).filter(id=>!pfpChecked.has(id));
-  ids.sort((a,b)=>{const da=cy.$id(a).data(),db=cy.$id(b).data();return ((da.type==='contract'||da.isToken)?0:1)-((db.type==='contract'||db.isToken)?0:1);});
-  ids.forEach(id=>decorateNode(id));
-}
-// size bubbles by each node's balance of the traced token (Bubblemaps-style)
-const RPC_URL='/api/rpc';
-let ROOT_ADDR='', posMode=false;
-async function rpcBatch(calls){
-  try{const r=await fetch(RPC_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(calls)});
-    const a=await r.json(); const out={};
-    (Array.isArray(a)?a:[]).forEach(x=>{out[x.id]=x.result||'0x';});
-    return out;
-  }catch(e){return {};}
-}
-const hexToBig=(h)=>{try{return (h&&h!=='0x')?BigInt(h):0n;}catch(e){return 0n;}};
-function decodeAbiString(hex){
-  if(!hex||hex==='0x')return '';
-  try{const h=hex.slice(2);let b='';
-    if(h.length>=128){const len=parseInt(h.slice(64,128),16);if(len>0&&len<=64)b=h.slice(128,128+len*2);}
-    if(!b)b=h.slice(0,64);
-    let s='';for(let i=0;i<b.length;i+=2){const c=parseInt(b.substr(i,2),16);if(c>=32&&c<127)s+=String.fromCharCode(c);}
-    return s.trim();
-  }catch(e){return '';}
-}
-async function fetchPositions(){
-  const token=ROOT_ADDR; if(!token)return;
-  const sup=await rpcBatch([{jsonrpc:'2.0',id:0,method:'eth_call',params:[{to:token,data:'0x18160ddd'},'latest']}]);
-  const supply=hexToBig(sup[0]); if(supply===0n)return; // root isn't a token
-  const ids=cy.nodes().map(n=>n.id()).filter(id=>id!==token);
-  const calls=ids.map((id,i)=>({jsonrpc:'2.0',id:i,method:'eth_call',params:[{to:token,data:'0x70a08231000000000000000000000000'+id.slice(2).toLowerCase()},'latest']}));
-  const bal={}; const CH=60;
-  for(let i=0;i<calls.length;i+=CH){Object.assign(bal, await rpcBatch(calls.slice(i,i+CH)));}
-  let maxBal=0n; ids.forEach((id,i)=>{const b=hexToBig(bal[i]); if(b>maxBal)maxBal=b;});
-  if(maxBal===0n)return; posMode=true;
-  ids.forEach((id,i)=>{
-    const b=hexToBig(bal[i]);
-    const frac=maxBal>0n?Number(b*10000n/maxBal)/10000:0;
-    const sz=b>0n?Math.max(14,Math.round(Math.sqrt(frac)*100)):8;
-    const pct=Number(b*1000000n/supply)/10000;
-    const n=cy.$id(id); if(n.length){n.data('sz',sz);n.data('pos',pct);n.data('posSet',true);}
-  });
-}
-// name unidentified contracts by reading their on-chain name()
-const idChecked=new Set();
-async function identifyContracts(){
-  const targets=cy.nodes().filter(n=>{const d=n.data();return (d.type==='contract'||d.isToken)&&!d.known&&!idChecked.has(n.id())&&d.label===short(n.id());}).map(n=>n.id());
-  if(!targets.length)return;
-  targets.forEach(id=>idChecked.add(id));
-  const calls=targets.map((id,i)=>({jsonrpc:'2.0',id:i,method:'eth_call',params:[{to:id,data:'0x06fdde03'},'latest']}));
-  const res={}; const CH=50;
-  for(let i=0;i<calls.length;i+=CH){Object.assign(res, await rpcBatch(calls.slice(i,i+CH)));}
-  targets.forEach((id,i)=>{const nm=decodeAbiString(res[i]); const n=cy.$id(id);
-    if(n.length&&nm&&nm.length>=2&&nm.length<=42&&n.data('label')===short(id)){n.data('label',nm);n.data('named',true);}});
-}
-async function trace(addr,isExpand){
+async function map(addr){
   addr=(addr||'').trim().toLowerCase();
-  if(!/^0x[0-9a-f]{40}$/.test(addr)){status('not a valid 0x address');setTimeout(()=>status(''),1800);return;}
-  status(isExpand?`expanding ${short(addr)}…`:`x-raying ${short(addr)}…`);
+  if(!/^0x[0-9a-f]{40}$/.test(addr)){msg('paste a valid token address');return;}
+  $('#info').style.display='none'; msg('reading holders + how each got in… ~10-20s',true);
   try{
-    const g=await api(`/api/graph?address=${addr}`);
-    mergeGraph(g,addr);
-    if(isExpand) cy.$id(addr).data('expanded',true); else ROOT_ADDR=addr;
-    relayout(); applyFilters(); decorateAll(); fetchPositions(); identifyContracts();
-    const pf=(g.stats.partialFeeds&&g.stats.partialFeeds.length)?` · ⚠ ${g.stats.partialFeeds.join('/')} feed timed out`:'';
-    status((g.stats.truncated?`${g.stats.kept}/${g.stats.counterparties} links (capped)`:`${g.stats.kept} links`)+pf);
-    setTimeout(()=>status(''),pf?4500:2200);
-    if(!isExpand){cy.$id(addr).select();showDetail(addr);}
-  }catch(err){status(`✕ ${err.message}`);setTimeout(()=>status(''),3500);}
+    const r=await fetch('/api/insiders?address='+addr);
+    const d=await r.json();
+    if(d.error){msg('⚠ '+d.error);return;}
+    const free=(d.holders||[]).filter(h=>isFree(h.cat)).length;
+    msg(d.holders.length+' holders · '+free+' got in free (insiders)');
+    draw(d.holders);
+  }catch(e){msg('⚠ '+(e.message||e));}
 }
-function showDetail(addr){
-  const n=cy.$id(addr);if(!n.length)return;const d=n.data();const r=d.raw||{};
-  const ext=`<a class="ext" href="${EXPLORER}/address/${addr}" target="_blank">↗ MonadScan</a>`;
-  $('#detail').innerHTML=`
-    <h2>selected node</h2>
-    <div class="row"><span>address</span><b>${short(addr)}</b></div>
-    ${(d.named&&d.label&&d.label!==short(addr))?`<div class="row"><span>what is it</span><b>${d.label}</b></div>`:''}
-    <div class="row"><span>type</span><span class="pill ${d.type}">${d.type}${d.isToken?' · token':''}</span></div>
-    ${(d.pos!==undefined&&d.pos>0)?`<div class="row"><span>holds</span><b>${d.pos<0.01?'<0.01':d.pos.toFixed(2)}% of supply</b></div>`:''}
-    ${d.spam?'<div class="row"><span>flag</span><span class="pill spam">SPAM / scam name</span></div>':''}
-    ${r.firstSeen?`<div class="row"><span>first seen</span><b>${new Date(r.firstSeen*1000).toISOString().slice(0,10)}</b></div>`:''}
-    <div class="row"><span></span>${ext}</div>
-    <div class="acts">
-      <button onclick="trace('${addr}',true)">＋ EXPAND</button>
-      <button class="ghost" onclick="funding('${addr}')">⛓ FUNDING</button>
-      <button class="ghost" onclick="deployer('${addr}')">🧬 DEPLOYER</button>
-    </div>
-    <div id="sub" class="muted">forensics results appear here</div>`;
-}
-async function funding(addr){
-  $('#sub').innerHTML='<span class="muted">tracing funding lineage…</span>';
-  try{
-    const j=await api(`/api/funding?address=${addr}&depth=6`);
-    let html=`<h2>funding lineage · ${j.hops} hops</h2>`;
-    for(const h of j.lineage){
-      if(h.terminal){html+=`<div class="lin" style="border-color:#f5cf57"><b>${short(h.address)}</b><br><span class="muted">${h.terminal}</span></div>`;continue;}
-      html+=`<div class="lin"><b>${short(h.address)}</b> ⬅ funded by <a href="${EXPLORER}/address/${h.fundedBy}" target="_blank">${short(h.fundedBy)}</a><br><span class="muted">${h.valueFmt} MON · ${new Date(h.ts*1000).toISOString().slice(0,10)}${h.internal?' · internal':''} · <a href="${EXPLORER}/tx/${h.txHash}" target="_blank">tx↗</a></span></div>`;
-    }
-    $('#sub').innerHTML=html;
-  }catch(err){$('#sub').innerHTML=`<span class="muted" style="color:var(--spam)">✕ ${err.message}</span>`;}
-}
-async function deployer(addr){
-  $('#sub').innerHTML='<span class="muted">fingerprinting deployer…</span>';
-  try{
-    const j=await api(`/api/deployer?address=${addr}`);
-    if(!j.deployer){$('#sub').innerHTML=`<span class="muted">${j.note||'no deployer record'}</span>`;return;}
-    let html=`<h2>deployer fingerprint</h2><div class="row"><span>deployer</span><a class="ext" href="${EXPLORER}/address/${j.deployer}" target="_blank">${short(j.deployer)}</a></div><div class="row"><span>contracts made</span><b>${j.siblingCount}${j.windowed?'+':''}</b></div><p class="muted" style="margin:8px 0 4px">tap any to add it to the graph:</p>`;
-    for(const s of j.siblings.slice(0,40)){html+=`<div class="row"><a href="#" onclick="trace('${s.address}',true);return false">${short(s.address)}${s.isSubject?' ◀ this':''}</a><span class="muted">blk ${s.block||'?'}</span></div>`;}
-    $('#sub').innerHTML=html;
-  }catch(err){$('#sub').innerHTML=`<span class="muted" style="color:var(--spam)">✕ ${err.message}</span>`;}
-}
-window.trace=trace;window.funding=funding;window.deployer=deployer;
-cy.on('tap','node',(e)=>showDetail(e.target.id()));
-cy.on('dbltap','node',(e)=>trace(e.target.id(),true));
-cy.on('mouseover','node',(e)=>e.target.addClass('hov'));
-cy.on('mouseout','node',(e)=>e.target.removeClass('hov'));
-cy.on('mouseover','edge',(e)=>e.target.addClass('hov'));
-cy.on('mouseout','edge',(e)=>e.target.removeClass('hov'));
-$('#go').onclick=()=>trace($('#addr').value,false);
-$('#addr').addEventListener('keydown',(e)=>{if(e.key==='Enter')trace($('#addr').value,false);});
+$('#go').onclick=()=>map($('#addr').value);
+$('#addr').addEventListener('keydown',(e)=>{if(e.key==='Enter')map($('#addr').value);});
 const pre=new URLSearchParams(location.search).get('address')||location.hash.slice(1);
-if(pre){$('#addr').value=pre;trace(pre,false);}
+if(pre){$('#addr').value=pre;map(pre);}
 </script>
 </body>
 </html>

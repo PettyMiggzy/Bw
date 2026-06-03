@@ -104,6 +104,11 @@ async function buildInsiders(token) {
   const sidePct = side.reduce((s, r) => s + r.pct, 0);
   const loadedPct = loaded.reduce((s, r) => s + r.pct, 0);
 
+  // current holders (bal>0) for the bubble map: bought (green) vs got-free insider (red)
+  const holders = byPct(rows.filter((r) => { try { return BigInt(r.bal) > 0n; } catch (_) { return false; } }))
+    .slice(0, 80)
+    .map((r) => ({ address: r.address, pct: r.pct, cat: r.cat, fromDeployer: r.fromDeployer }));
+
   // risk driven by supply actually held by free-bag insiders (forward dump risk), not harmless historical movers
   let risk = 'low';
   if (loadedPct >= 8) risk = 'high';
@@ -123,6 +128,7 @@ async function buildInsiders(token) {
     loaded: byPct(loaded).slice(0, 60),
     dumpers: byPct(dumpers).slice(0, 60),
     side: byPct(side).slice(0, 120),
+    holders,
   };
 }
 
