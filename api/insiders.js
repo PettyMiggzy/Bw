@@ -104,10 +104,11 @@ async function buildInsiders(token) {
   const sidePct = side.reduce((s, r) => s + r.pct, 0);
   const loadedPct = loaded.reduce((s, r) => s + r.pct, 0);
 
-  // simple risk score
+  // risk driven by supply actually held by free-bag insiders (forward dump risk), not harmless historical movers
   let risk = 'low';
-  if (sidePct >= 15 || side.length >= 25) risk = 'high';
-  else if (sidePct >= 5 || side.length >= 8) risk = 'medium';
+  if (loadedPct >= 8) risk = 'high';
+  else if (loadedPct >= 2.5) risk = 'medium';
+  if (risk === 'low' && dumpers.length >= 10) risk = 'medium';
 
   return {
     token, deployer, pools: [...pools], supply: supply.toString(),
