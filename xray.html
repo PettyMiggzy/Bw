@@ -202,29 +202,44 @@ function relayout(){
 }
 $('#arrange').onchange=function(){LAYOUT=this.value;relayout();};
 async function api(path){const r=await fetch(`${API}${path}`);const j=await r.json();if(!r.ok||j.error)throw new Error(j.error||`HTTP ${r.status}`);return j;}
-// nad.fun pfp/logo decoration — token nodes get their coin logo, wallets get custom nad.fun pfps
+// nad.fun pfp/logo decoration — throttled + cached (nad.fun rate-limits hard)
 const PFP_BASE='https://api.nad.fun';
 const pfpChecked=new Set();
-async function nadJSON(u){try{const r=await fetch(u);if(!r.ok)return null;return await r.json();}catch(e){return null;}}
-function setPfp(n,url){n.style('background-image',url);n.style('background-fit','cover');n.style('background-image-opacity',1);n.style('background-image-crossorigin','null');n.style('background-fill','solid');n.style('background-color','#0c0c0c');}
-async function decorateNode(id){
-  if(pfpChecked.has(id))return; pfpChecked.add(id);
-  const n=cy.$id(id); if(!n.length)return; const d=n.data();
-  if(d.type==='contract'||d.isToken){
-    const j=await nadJSON(`${PFP_BASE}/token/${id}`); const ti=j&&j.token_info;
-    if(ti&&ti.image_uri){setPfp(n,ti.image_uri); n.data('isToken',true);
-      if(ti.symbol){n.data('label',ti.symbol);n.data('named',true);}}
-  }else{
-    const j=await nadJSON(`${PFP_BASE}/profile/${id}`); const ai=j&&j.account_info;
-    if(ai&&ai.image_uri&&!/default_profile/.test(ai.image_uri)){setPfp(n,ai.image_uri);
-      if(ai.nickname&&ai.nickname.toLowerCase()!==id.toLowerCase()){n.data('label',ai.nickname);n.data('named',true);}}
-  }
+let _nadChain=Promise.resolve(), _nadLast=0; const NAD_GAP=650;
+function nadGate(){const p=_nadChain.then(()=>new Promise(res=>{const w=Math.max(0,NAD_GAP-(Date.now()-_nadLast));setTimeout(()=>{_nadLast=Date.now();res();},w);}));_nadChain=p.catch(()=>{});return p;}
+async function nadJSON(u,attempt){attempt=attempt||0;await nadGate();
+  try{const r=await fetch(u);
+    if(r.status===429||r.status>=500){if(attempt<5){await new Promise(s=>setTimeout(s,700*(attempt+1)));return nadJSON(u,attempt+1);}return null;}
+    if(!r.ok)return {};
+    return await r.json();
+  }catch(e){if(attempt<3){await new Promise(s=>setTimeout(s,600));return nadJSON(u,attempt+1);}return null;}
 }
-async function decorateAll(){
+function pfpGet(id){try{return JSON.parse(localStorage.getItem('pfp:'+id));}catch(e){return null;}}
+function pfpSet(id,v){try{localStorage.setItem('pfp:'+id,JSON.stringify(v));}catch(e){}}
+function setPfp(n,url){n.style('background-image',url);n.style('background-fit','cover');n.style('background-image-opacity',1);n.style('background-image-crossorigin','null');n.style('background-fill','solid');n.style('background-color','#0c0c0c');}
+function applyRec(n,rec){if(!rec||rec.none)return;if(rec.img)setPfp(n,rec.img);if(rec.token)n.data('isToken',true);if(rec.label){n.data('label',rec.label);n.data('named',true);}}
+async function decorateNode(id){
+  if(pfpChecked.has(id))return;
+  const n=cy.$id(id); if(!n.length)return; const d=n.data();
+  const cached=pfpGet(id);
+  if(cached){pfpChecked.add(id);applyRec(n,cached);return;}
+  let rec;
+  if(d.type==='contract'||d.isToken){
+    const j=await nadJSON(`${PFP_BASE}/token/${id}`);
+    if(j===null)return; const ti=j.token_info||{};
+    rec=ti.image_uri?{img:ti.image_uri,label:ti.symbol||'',token:true}:{none:1};
+  }else{
+    const j=await nadJSON(`${PFP_BASE}/profile/${id}`);
+    if(j===null)return; const ai=j.account_info||{};
+    const custom=ai.image_uri&&!/default_profile/.test(ai.image_uri);
+    rec=custom?{img:ai.image_uri,label:(ai.nickname&&ai.nickname.toLowerCase()!==id.toLowerCase())?ai.nickname:''}:{none:1};
+  }
+  pfpChecked.add(id); pfpSet(id,rec); applyRec(n,rec);
+}
+function decorateAll(){
   const ids=cy.nodes().map(n=>n.id()).filter(id=>!pfpChecked.has(id));
-  let i=0; const POOL=4;
-  const worker=async()=>{while(i<ids.length){await decorateNode(ids[i++]);}};
-  await Promise.all(Array.from({length:Math.min(POOL,ids.length||1)},worker));
+  ids.sort((a,b)=>{const da=cy.$id(a).data(),db=cy.$id(b).data();return ((da.type==='contract'||da.isToken)?0:1)-((db.type==='contract'||db.isToken)?0:1);});
+  ids.forEach(id=>decorateNode(id));
 }
 async function trace(addr,isExpand){
   addr=(addr||'').trim().toLowerCase();
