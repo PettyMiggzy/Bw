@@ -20,7 +20,7 @@ const ES_KEY = process.env.ETHERSCAN_API_KEY || '';
 
 const NATIVE_DECIMALS = 18;
 const DUST_WEI = 10n ** 13n;        // 0.00001 MON — below this a native edge is "dust"
-const DEFAULT_FANOUT = 50;          // max counterparties kept per expanded node
+const DEFAULT_FANOUT = 32;          // max counterparties kept per expanded node
 const PAGE_OFFSET = 1000;           // recency window per Etherscan list call (v1 bound)
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 

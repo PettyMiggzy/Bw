@@ -86,7 +86,7 @@ a.ext{color:var(--accent);text-decoration:none;font-size:11px}
       <span class="chip on" data-f="native"><span class="dot" style="background:var(--native)"></span>MON</span>
       <span class="chip on" data-f="erc20"><span class="dot" style="background:var(--erc20)"></span>ERC-20</span>
       <span class="chip on" data-f="nft"><span class="dot" style="background:var(--nft)"></span>NFT</span>
-      <span class="chip on" data-f="call"><span class="dot" style="background:var(--call)"></span>Calls</span>
+      <span class="chip off" data-f="call"><span class="dot" style="background:var(--call)"></span>Calls</span>
     </div>
     <span class="sep"></span>
     <span class="chip on" data-f="hideSpam"><span class="dot" style="background:var(--spam)"></span>Hide spam</span>
@@ -97,19 +97,20 @@ a.ext{color:var(--accent);text-decoration:none;font-size:11px}
   <div id="cy">
     <div id="status"></div>
     <div class="legend">
-      <div class="hd">shapes</div>
-      <span class="sh circ"></span>wallet<br>
-      <span class="sh sq"></span>contract<br>
+      <div class="hd">what the dots are</div>
+      <span class="sh circ"></span>wallet (a person)<br>
       <span class="sh di"></span>token<br>
-      <div class="hd" style="margin-top:6px">links</div>
-      <i style="background:var(--native)"></i>MON&nbsp;&nbsp;<i style="background:var(--erc20)"></i>ERC-20<br>
-      <i style="background:var(--nft)"></i>NFT&nbsp;&nbsp;<i style="background:var(--call)"></i>call&nbsp;&nbsp;<i style="background:var(--deploy)"></i>deploy<br>
-      <span style="color:var(--spam)">●</span> spam &nbsp;·&nbsp; bigger = bigger holding
+      <span class="sh sq"></span>app / contract<br>
+      <div class="hd" style="margin-top:6px">what the lines mean</div>
+      <i style="background:var(--native)"></i>sent MON<br>
+      <i style="background:var(--erc20)"></i>sent tokens<br>
+      <i style="background:var(--nft)"></i>sent an NFT<br>
+      <span style="color:var(--spam)">●</span> likely scam &nbsp;·&nbsp; bigger dot = holds more
     </div>
   </div>
   <aside id="side">
     <h2>how to read this</h2>
-    <p class="muted">Paste an address and hit <b>X-RAY IT</b> to see its 1-hop web. <b>Tap a node</b> to select it, then expand a hop, trace funding, or fingerprint the deployer. Hover any node for its address. Bigger bubbles = bigger holding of the traced token. Tokens show their nad.fun logo. Nothing auto-crawls — every hop is a click. Cached 24h.</p>
+    <p class="muted">Paste a wallet or token address and hit <b>X-RAY IT</b>. Each <b>dot</b> is a wallet (a person) or a token/app. A <b>line</b> means one sent the other tokens or MON. <b>Bigger dot = holds more</b> of the token. <b>Tap a dot</b> to see what it is and follow the trail. Don't sweat the tech — follow the biggest dots and the lines between them.</p>
     <div id="detail"></div>
   </aside>
 </div>
@@ -120,6 +121,12 @@ const EXPLORER='https://monadscan.com';
 const $=(s)=>document.querySelector(s);
 const short=(a)=>a?`${a.slice(0,6)}…${a.slice(-4)}`:'';
 const KIND_COLOR={native:'#52ff8f',erc20:'#f5cf57',nft:'#ff4fa3',call:'#5a6b5f',deploy:'#ff6a2b'};
+const KNOWN={
+ '0x0000000000000000000000000000000000000000':'🌱 new coins (mint)',
+ '0x000000000000000000000000000000000000dead':'🔥 burned',
+ '0x3bd359c1119da7da1d913d1c4d2b7c461115433a':'WMON (wrapped MON)',
+ '0xa9f6b6656e32f223d778b01642f32d00f5310526':'Crust DEX'
+};
 function status(msg){const s=$('#status');if(!msg){s.style.display='none';return}s.textContent=msg;s.style.display='block';}
 const cy=cytoscape({
   container:$('#cy'), minZoom:0.12, maxZoom:3, wheelSensitivity:0.25,
@@ -154,8 +161,9 @@ function mergeGraph(g, rootAddr){
     const id=n.address;
     if(seenNodes.has(id)){ if(id===rootAddr) cy.$id(id).data('root',true); continue; }
     seenNodes.add(id);
-    const named=!!(n.label && n.label!==short(id));
-    add.push({group:'nodes',data:{id,label:n.label||short(id),type:n.type,isToken:n.isToken,spam:n.spam,named,root:id===rootAddr,deg:1,sz:6,firstSeen:n.firstSeen,raw:n}});
+    let label=n.label||short(id), named=!!(n.label && n.label!==short(id));
+    if(KNOWN[id]){label=KNOWN[id];named=true;}
+    add.push({group:'nodes',data:{id,label,type:n.type,isToken:n.isToken,spam:n.spam,named,known:!!KNOWN[id],root:id===rootAddr,deg:1,sz:6,firstSeen:n.firstSeen,raw:n}});
   }
   for(const e of g.edges){
     const id=`${e.from}->${e.to}:${e.kind}:${e.asset}`;
@@ -169,7 +177,7 @@ function mergeGraph(g, rootAddr){
   }
   cy.add(add);
 }
-const F={wallet:true,contract:true,token:true,native:true,erc20:true,nft:true,call:true,deploy:true,hideSpam:true};
+const F={wallet:true,contract:true,token:true,native:true,erc20:true,nft:true,call:false,deploy:true,hideSpam:true};
 function nodeVisible(n){const d=n.data();if(d.root)return true;if(F.hideSpam&&d.spam)return false;if(d.isToken)return F.token;if(d.type==='contract')return F.contract;return F.wallet;}
 function applyFilters(){
   cy.batch(function(){
@@ -180,6 +188,12 @@ function applyFilters(){
       const ends=nodeVisible(ed.source())&&nodeVisible(ed.target());
       const spamOk=!F.hideSpam||!d.spam;
       ed.style('display',(kindOn&&ends&&spamOk)?'element':'none');
+    });
+    // drop dots with no visible connection — keeps it clean for non-technical users
+    cy.nodes().forEach(function(n){
+      if(n.data('root')||n.style('display')==='none')return;
+      const vis=n.connectedEdges().filter(e=>e.style('display')!=='none').length;
+      if(vis===0)n.style('display','none');
     });
   });
 }
@@ -247,27 +261,49 @@ let ROOT_ADDR='', posMode=false;
 async function rpcBatch(calls){
   try{const r=await fetch(RPC_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(calls)});
     const a=await r.json(); const out={};
-    (Array.isArray(a)?a:[]).forEach(x=>{out[x.id]=(x.result&&x.result!=='0x')?BigInt(x.result):0n;});
+    (Array.isArray(a)?a:[]).forEach(x=>{out[x.id]=x.result||'0x';});
     return out;
   }catch(e){return {};}
+}
+const hexToBig=(h)=>{try{return (h&&h!=='0x')?BigInt(h):0n;}catch(e){return 0n;}};
+function decodeAbiString(hex){
+  if(!hex||hex==='0x')return '';
+  try{const h=hex.slice(2);let b='';
+    if(h.length>=128){const len=parseInt(h.slice(64,128),16);if(len>0&&len<=64)b=h.slice(128,128+len*2);}
+    if(!b)b=h.slice(0,64);
+    let s='';for(let i=0;i<b.length;i+=2){const c=parseInt(b.substr(i,2),16);if(c>=32&&c<127)s+=String.fromCharCode(c);}
+    return s.trim();
+  }catch(e){return '';}
 }
 async function fetchPositions(){
   const token=ROOT_ADDR; if(!token)return;
   const sup=await rpcBatch([{jsonrpc:'2.0',id:0,method:'eth_call',params:[{to:token,data:'0x18160ddd'},'latest']}]);
-  const supply=sup[0]||0n; if(supply===0n)return; // root isn't a token
+  const supply=hexToBig(sup[0]); if(supply===0n)return; // root isn't a token
   const ids=cy.nodes().map(n=>n.id()).filter(id=>id!==token);
   const calls=ids.map((id,i)=>({jsonrpc:'2.0',id:i,method:'eth_call',params:[{to:token,data:'0x70a08231000000000000000000000000'+id.slice(2).toLowerCase()},'latest']}));
   const bal={}; const CH=60;
   for(let i=0;i<calls.length;i+=CH){Object.assign(bal, await rpcBatch(calls.slice(i,i+CH)));}
-  let maxBal=0n; ids.forEach((id,i)=>{if((bal[i]||0n)>maxBal)maxBal=bal[i]||0n;});
+  let maxBal=0n; ids.forEach((id,i)=>{const b=hexToBig(bal[i]); if(b>maxBal)maxBal=b;});
   if(maxBal===0n)return; posMode=true;
   ids.forEach((id,i)=>{
-    const b=bal[i]||0n;
+    const b=hexToBig(bal[i]);
     const frac=maxBal>0n?Number(b*10000n/maxBal)/10000:0;
     const sz=b>0n?Math.max(14,Math.round(Math.sqrt(frac)*100)):8;
     const pct=Number(b*1000000n/supply)/10000;
     const n=cy.$id(id); if(n.length){n.data('sz',sz);n.data('pos',pct);n.data('posSet',true);}
   });
+}
+// name unidentified contracts by reading their on-chain name()
+const idChecked=new Set();
+async function identifyContracts(){
+  const targets=cy.nodes().filter(n=>{const d=n.data();return (d.type==='contract'||d.isToken)&&!d.known&&!idChecked.has(n.id())&&d.label===short(n.id());}).map(n=>n.id());
+  if(!targets.length)return;
+  targets.forEach(id=>idChecked.add(id));
+  const calls=targets.map((id,i)=>({jsonrpc:'2.0',id:i,method:'eth_call',params:[{to:id,data:'0x06fdde03'},'latest']}));
+  const res={}; const CH=50;
+  for(let i=0;i<calls.length;i+=CH){Object.assign(res, await rpcBatch(calls.slice(i,i+CH)));}
+  targets.forEach((id,i)=>{const nm=decodeAbiString(res[i]); const n=cy.$id(id);
+    if(n.length&&nm&&nm.length>=2&&nm.length<=42&&n.data('label')===short(id)){n.data('label',nm);n.data('named',true);}});
 }
 async function trace(addr,isExpand){
   addr=(addr||'').trim().toLowerCase();
@@ -277,7 +313,7 @@ async function trace(addr,isExpand){
     const g=await api(`/api/graph?address=${addr}`);
     mergeGraph(g,addr);
     if(isExpand) cy.$id(addr).data('expanded',true); else ROOT_ADDR=addr;
-    relayout(); applyFilters(); decorateAll(); fetchPositions();
+    relayout(); applyFilters(); decorateAll(); fetchPositions(); identifyContracts();
     const pf=(g.stats.partialFeeds&&g.stats.partialFeeds.length)?` · ⚠ ${g.stats.partialFeeds.join('/')} feed timed out`:'';
     status((g.stats.truncated?`${g.stats.kept}/${g.stats.counterparties} links (capped)`:`${g.stats.kept} links`)+pf);
     setTimeout(()=>status(''),pf?4500:2200);
@@ -290,6 +326,7 @@ function showDetail(addr){
   $('#detail').innerHTML=`
     <h2>selected node</h2>
     <div class="row"><span>address</span><b>${short(addr)}</b></div>
+    ${(d.named&&d.label&&d.label!==short(addr))?`<div class="row"><span>what is it</span><b>${d.label}</b></div>`:''}
     <div class="row"><span>type</span><span class="pill ${d.type}">${d.type}${d.isToken?' · token':''}</span></div>
     ${(d.pos!==undefined&&d.pos>0)?`<div class="row"><span>holds</span><b>${d.pos<0.01?'<0.01':d.pos.toFixed(2)}% of supply</b></div>`:''}
     ${d.spam?'<div class="row"><span>flag</span><span class="pill spam">SPAM / scam name</span></div>':''}
