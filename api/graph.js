@@ -50,9 +50,10 @@ async function buildGraph(root) {
     L.esCall({ module: 'account', action: 'txlistinternal', ...common }),
     L.esCall({ module: 'account', action: 'tokentx', ...common }),
     L.esCall({ module: 'account', action: 'tokennfttx', ...common }),
+    L.esCall({ module: 'account', action: 'tokentx', contractaddress: root, page: '1', offset: String(L.PAGE_OFFSET), sort: 'desc' }),
   ]);
-  const names = ['txlist', 'internal', 'erc20', 'nft'];
-  const [txs, internals, erc20, nfts] = settled.map((s, i) => {
+  const names = ['txlist', 'internal', 'erc20', 'nft', 'holders'];
+  const [txs, internals, erc20, nfts, holders] = settled.map((s, i) => {
     if (s.status === 'fulfilled') return s.value;
     partial.push(names[i]);
     return [];
@@ -98,6 +99,14 @@ async function buildGraph(root) {
     const spam = L.SPAMMY.test(t.tokenName || '') || L.SPAMMY.test(t.tokenSymbol || '');
     if (!assetMeta.has(ca)) assetMeta.set(ca, { symbol: t.tokenSymbol || L.short(ca), decimals: '0', spam });
     addEdge(edges, t.from, t.to, 'nft', ca, '1', t.blockNumber, t.timeStamp, { spam });
+  }
+
+  // When root itself is a token: pull its transfers so holders link to each other (real mesh)
+  for (const t of holders) {
+    const ca = L.lc(t.contractAddress);
+    const spam = L.SPAMMY.test(t.tokenName || '') || L.SPAMMY.test(t.tokenSymbol || '');
+    if (!assetMeta.has(ca)) assetMeta.set(ca, { symbol: t.tokenSymbol || L.short(ca), decimals: t.tokenDecimal, spam });
+    addEdge(edges, t.from, t.to, 'erc20', ca, t.value, t.blockNumber, t.timeStamp, { spam });
   }
 
   // ---- rank counterparties & cap fan-out -------------------------------------
@@ -175,7 +184,7 @@ async function buildGraph(root) {
       truncated,
       window: L.PAGE_OFFSET,
       partialFeeds: partial,   // feeds that timed out / errored (graph still usable)
-      rawCounts: { txlist: txs.length, internal: internals.length, erc20: erc20.length, nft: nfts.length },
+      rawCounts: { txlist: txs.length, internal: internals.length, erc20: erc20.length, nft: nfts.length, holders: holders.length },
     },
   };
 }
