@@ -53,6 +53,12 @@ h1{font-family:var(--disp);font-size:26px;letter-spacing:1px;color:var(--accent)
 .adv{display:inline-block;margin:14px 0 4px;color:var(--accent);text-decoration:none;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:9px 14px}
 .adv:hover{border-color:var(--accent)}
 .disc{font-size:10px;color:var(--dim);margin-top:14px;line-height:1.6}
+.gate{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:11px 13px;font-size:12px;color:var(--dim);margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.gate.ok{border-color:rgba(82,255,143,.5);color:var(--green)}
+.gate.no{border-color:rgba(245,181,63,.5);color:var(--amber)}
+.gate a{color:var(--accent);text-decoration:none}
+.gate button{background:var(--accent);color:var(--void);border:0;padding:8px 14px;font-family:var(--disp);font-size:11px;letter-spacing:.5px;border-radius:8px;cursor:pointer;margin-left:auto}
+.row .lock{color:var(--dim);font-size:11px;font-style:italic;opacity:.8}
 .spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:s .7s linear infinite;vertical-align:-2px;margin-right:6px}
 @keyframes s{to{transform:rotate(360deg)}}
 </style>
@@ -68,6 +74,7 @@ h1{font-family:var(--disp);font-size:26px;letter-spacing:1px;color:var(--accent)
     <button id="go">SCAN</button>
   </div>
   <div id="msg"></div>
+  <div id="gate" class="gate"></div>
   <div id="out"></div>
 </div>
 <script>
@@ -77,6 +84,34 @@ const short=(a)=>a?a.slice(0,6)+'…'+a.slice(-4):'';
 const fmtPct=(p)=>p>=0.01?p.toFixed(2)+'%':(p>0?'<0.01%':'0%');
 function msg(t,sp){$('#msg').innerHTML=(sp?'<span class="spin"></span>':'')+(t||'');}
 function busy(b,t){$('#go').disabled=b;if(t!==undefined)msg(t,b);}
+// ---- token hold-gate ----
+const GATE_TOKEN='0x52641feEdCE831247514bf7C2378513741077777', GATE_SYM='CHRONIC', GATE_MIN=250000, GETURL='https://www.burnchronic.xyz';
+let HOLDER=false, ACCOUNT=null, BAL=0, lastData=null, lastAddr=null;
+function fmtAmt(n){return n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':String(Math.floor(n));}
+async function connectWallet(){
+  if(!window.ethereum){updateGate('No EVM wallet found');return;}
+  try{const a=await window.ethereum.request({method:'eth_requestAccounts'});ACCOUNT=(a[0]||'').toLowerCase();
+    try{await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:'0x8f'}]});}catch(e){}
+    await checkHold();
+  }catch(e){updateGate('connect cancelled');}
+}
+async function checkHold(){
+  if(!ACCOUNT)return;
+  try{
+    const data='0x70a08231'+'0'.repeat(24)+ACCOUNT.slice(2);
+    const r=await fetch('https://rpc.monad.xyz',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'eth_call',params:[{to:GATE_TOKEN,data},'latest']})});
+    const j=await r.json(); BAL=(j.result&&j.result!=='0x')?Number(BigInt(j.result)/(10n**18n)):0;
+  }catch(e){BAL=0;}
+  HOLDER=BAL>=GATE_MIN; updateGate();
+  if(lastData)render(lastData,lastAddr);
+}
+function updateGate(note){
+  const g=$('#gate');
+  if(HOLDER){g.className='gate ok';g.innerHTML='✓ Holder — '+fmtAmt(BAL)+' '+GATE_SYM+' · the insider wallets are unlocked below';return;}
+  if(ACCOUNT){g.className='gate no';g.innerHTML='<span>You hold '+fmtAmt(BAL)+' '+GATE_SYM+' · need ≥ '+fmtAmt(GATE_MIN)+' to reveal who the wallets are</span><a href="'+GETURL+'" target="_blank">get '+GATE_SYM+' ↗</a>';return;}
+  g.className='gate';g.innerHTML='<span>🔒 '+(note?note+' · ':'')+'Hold ≥ '+fmtAmt(GATE_MIN)+' '+GATE_SYM+' to reveal the insider wallets</span><button onclick="connectWallet()">Connect wallet</button>';
+}
+window.connectWallet=connectWallet;
 function stat(label,val){return '<div class="stat"><div class="n">'+val+'</div><div class="l">'+label+'</div></div>';}
 function rowsHTML(arr){
   if(!arr||!arr.length)return '<div class="none">none found ✓</div>';
@@ -84,9 +119,10 @@ function rowsHTML(arr){
   return arr.map(function(r,i){
     const bw=Math.max(3,Math.round(r.pct/max*100));
     const badge=r.cat==='loaded'?'<span class="badge hold">HOLDING FREE</span>':r.cat==='dumper'?'<span class="badge dump">DUMPED</span>':'<span class="badge move">MOVED ON</span>';
-    return '<div class="row"><span class="rk">#'+(i+1)+'</span>'+
-      '<a class="addr" href="'+EXPLORER+'/address/'+r.address+'" target="_blank">'+short(r.address)+'</a>'+
-      (r.fromDeployer?'<span class="flag">⚠ from dev</span>':'')+
+    const who=HOLDER
+      ? '<a class="addr" href="'+EXPLORER+'/address/'+r.address+'" target="_blank">'+short(r.address)+'</a>'+(r.fromDeployer?'<span class="flag">⚠ from dev</span>':'')
+      : '<span class="lock">🔒 hold to reveal</span>';
+    return '<div class="row"><span class="rk">#'+(i+1)+'</span>'+who+
       '<span class="bar"><i style="width:'+bw+'%"></i></span>'+
       '<b class="pc">'+fmtPct(r.pct)+'</b>'+badge+'</div>';
   }).join('');
@@ -95,6 +131,7 @@ function section(title,desc,arr){
   return '<div class="sec"><h2>'+title+'</h2><div class="d">'+desc+'</div>'+rowsHTML(arr)+'</div>';
 }
 function render(d,addr){
+  lastData=d; lastAddr=addr;
   const s=d.stats, rk=d.risk;
   const vc=rk==='high'?'r':rk==='medium'?'m':'g';
   const vt=rk==='high'?'🔴 High insider risk':rk==='medium'?'🟡 Some insider activity':'🟢 Looks clean';
@@ -108,6 +145,7 @@ function render(d,addr){
   h+='<a class="adv" href="/xray-graph?address='+addr+'">Advanced: full interaction graph →</a>';
   h+='<p class="disc">Read ~'+s.transfers+' transfers'+(s.partial?' (high-volume token — most recent snapshot)':'')+'. A "side wallet" received tokens without ever buying from the pool; "holding" uses live balances. The LP/pool & routers are excluded automatically. Research tool, heuristic — not financial advice.</p>';
   $('#out').innerHTML=h;
+  updateGate();
 }
 async function scan(addr){
   addr=(addr||'').trim().toLowerCase();
@@ -123,6 +161,7 @@ async function scan(addr){
 }
 $('#go').onclick=()=>scan($('#addr').value);
 $('#addr').addEventListener('keydown',(e)=>{if(e.key==='Enter')scan($('#addr').value);});
+updateGate();
 const pre=new URLSearchParams(location.search).get('address')||location.hash.slice(1);
 if(pre){$('#addr').value=pre;scan(pre);}
 </script>
