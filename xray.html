@@ -59,6 +59,14 @@ h1{font-family:var(--disp);font-size:26px;letter-spacing:1px;color:var(--accent)
 .gate a{color:var(--accent);text-decoration:none}
 .gate button{background:var(--accent);color:var(--void);border:0;padding:8px 14px;font-family:var(--disp);font-size:11px;letter-spacing:.5px;border-radius:8px;cursor:pointer;margin-left:auto}
 .row .lock{color:var(--dim);font-size:11px;font-style:italic;opacity:.8}
+.thead{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:14px}
+.thead img{width:46px;height:46px;border-radius:50%;object-fit:cover;border:1px solid var(--line);background:var(--void2)}
+.thead .noimg{width:46px;height:46px;border-radius:50%;background:var(--void2);display:flex;align-items:center;justify-content:center;font-size:20px}
+.thead .tn{font-family:var(--disp);font-size:17px;color:var(--ink)}
+.thead .tn span{color:var(--accent);font-size:14px}
+.thead .ts{display:flex;gap:12px;font-size:11px;color:var(--dim);margin-top:3px;flex-wrap:wrap}
+.thead .tlink{margin-left:auto;color:var(--accent);text-decoration:none;font-size:18px}
+.row .hlogo{width:20px;display:inline-flex}.row .hlogo img{width:20px;height:20px;border-radius:50%}
 .spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:s .7s linear infinite;vertical-align:-2px;margin-right:6px}
 @keyframes s{to{transform:rotate(360deg)}}
 </style>
@@ -67,14 +75,15 @@ h1{font-family:var(--disp);font-size:26px;letter-spacing:1px;color:var(--accent)
 <div class="wrap">
   <header>
     <h1>🦴 X-RAY</h1>
-    <div class="sub">chronic · paste a token, see the insiders</div>
+    <div class="sub">chronic · paste a token or wallet</div>
   </header>
   <div class="search">
-    <input id="addr" placeholder="paste a token contract (0x…)" spellcheck="false"/>
+    <input id="addr" placeholder="paste a token or wallet (0x…)" spellcheck="false"/>
     <button id="go">SCAN</button>
   </div>
   <div id="msg"></div>
   <div id="gate" class="gate"></div>
+  <div id="thead"></div>
   <div id="out"></div>
 </div>
 <script>
@@ -151,15 +160,43 @@ function render(d,addr){
 }
 async function scan(addr){
   addr=(addr||'').trim().toLowerCase();
-  if(!/^0x[0-9a-f]{40}$/.test(addr)){msg('paste a valid token address (0x + 40 hex)');return;}
-  $('#out').innerHTML=''; busy(true,'Reading every transfer + balances… this takes ~10-20s');
+  if(!/^0x[0-9a-f]{40}$/.test(addr)){msg('paste a valid address (0x + 40 hex)');return;}
+  $('#out').innerHTML=''; $('#thead').innerHTML=''; busy(true,'Reading transfers + balances… ~10-20s');
   try{
     const r=await fetch('/api/insiders?address='+addr);
     const d=await r.json();
-    if(d.error){msg('⚠ '+d.error);busy(false);return;}
-    msg(''); render(d,addr);
+    if(d.error){ if(/token|transfer/i.test(d.error)){ await scanWallet(addr); busy(false); return; } msg('⚠ '+d.error); busy(false); return; }
+    msg(''); render(d,addr); fillHeader(addr);
   }catch(e){msg('⚠ scan failed: '+(e.message||e));}
   busy(false);
+}
+// nad.fun identity (throttled)
+let _ng=Promise.resolve(),_nl=0;
+function ngate(){const p=_ng.then(()=>new Promise(r=>{const w=Math.max(0,600-(Date.now()-_nl));setTimeout(()=>{_nl=Date.now();r();},w);}));_ng=p.catch(()=>{});return p;}
+async function nad(u){await ngate();try{const r=await fetch('https://api.nad.fun'+u);if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+function fmtUsd(n){if(!n||!isFinite(n))return '0';return n>=1e9?(n/1e9).toFixed(1)+'B':n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':n.toFixed(0);}
+async function fillHeader(addr){
+  const t=await nad('/token/'+addr); const ti=t&&t.token_info;
+  const m=await nad('/trade/market/'+addr); const mi=m&&m.market_info;
+  const logo=ti&&ti.image_uri, name=(ti&&ti.name)||short(addr), sym=(ti&&ti.symbol)||'';
+  let stats='';
+  if(mi){const price=parseFloat(mi.price_usd||0), sup=parseFloat(mi.total_supply||0)/1e18, mc=price*sup;
+    if(mc)stats+='<span>$'+fmtUsd(mc)+' mcap</span>'; if(mi.holder_count!=null)stats+='<span>'+mi.holder_count+' holders</span>'; if(price)stats+='<span>$'+price.toPrecision(3)+'</span>';}
+  $('#thead').innerHTML='<div class="thead">'+(logo?'<img src="'+logo+'" onerror="this.style.display=\'none\'"/>':'<div class="noimg">🪙</div>')+
+    '<div><div class="tn">'+name+(sym?' <span>$'+sym+'</span>':'')+'</div><div class="ts">'+(stats||'<span>not a nad.fun token</span>')+'</div></div>'+
+    '<a class="tlink" href="'+EXPLORER+'/token/'+addr+'" target="_blank">↗</a></div>';
+}
+async function scanWallet(addr){
+  msg('reading wallet bags…',true);
+  let d; try{ d=await (await fetch('/api/wallet?address='+addr)).json(); }catch(e){ msg('⚠ '+(e.message||e)); return; }
+  if(d.error){msg('⚠ '+d.error);return;} msg('');
+  $('#thead').innerHTML='<div class="thead"><div class="noimg">👛</div><div><div class="tn">Wallet <span>'+short(addr)+'</span></div><div class="ts"><span>'+(d.native||'0')+' MON</span><span>'+d.count+' token bags</span></div></div><a class="tlink" href="'+EXPLORER+'/address/'+addr+'" target="_blank">↗</a></div>';
+  let h='<div class="sec"><h2>🪙 What this wallet holds</h2><div class="d">Current token bags in this wallet.</div>';
+  if(!d.holdings.length) h+='<div class="none">no token bags held</div>';
+  else h+=d.holdings.map((x,i)=>'<div class="row"><span class="rk">#'+(i+1)+'</span><span class="hlogo" id="hl'+i+'"></span><a class="addr" href="'+EXPLORER+'/token/'+x.token+'" target="_blank">'+(x.symbol||short(x.token))+'</a><span class="bar"><i style="width:0"></i></span><b class="pc" style="width:auto">'+x.amount+'</b></div>').join('');
+  h+='</div><p class="disc">Wallet view (rough): current token bags from on-chain balances. $-value sorting + bubble view next.</p>';
+  $('#out').innerHTML=h;
+  for(let i=0;i<Math.min(d.holdings.length,30);i++){(function(i){nad('/token/'+d.holdings[i].token).then(j=>{const im=j&&j.token_info&&j.token_info.image_uri;const el=$('#hl'+i);if(im&&el)el.innerHTML='<img src="'+im+'" onerror="this.style.display=\'none\'"/>';});})(i);}
 }
 $('#go').onclick=()=>scan($('#addr').value);
 $('#addr').addEventListener('keydown',(e)=>{if(e.key==='Enter')scan($('#addr').value);});
