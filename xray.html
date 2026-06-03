@@ -100,7 +100,7 @@ async function checkHold(){
   if(!ACCOUNT)return;
   try{
     const data='0x70a08231'+'0'.repeat(24)+ACCOUNT.slice(2);
-    const r=await fetch('https://rpc.monad.xyz',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'eth_call',params:[{to:GATE_TOKEN,data},'latest']})});
+    const r=await fetch('/api/rpc',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'eth_call',params:[{to:GATE_TOKEN,data},'latest']})});
     const j=await r.json(); BAL=(j.result&&j.result!=='0x')?Number(BigInt(j.result)/(10n**18n)):0;
   }catch(e){BAL=0;}
   HOLDER=BAL>=GATE_MIN; updateGate();

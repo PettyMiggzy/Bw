@@ -256,7 +256,7 @@ function decorateAll(){
   ids.forEach(id=>decorateNode(id));
 }
 // size bubbles by each node's balance of the traced token (Bubblemaps-style)
-const RPC_URL='https://rpc.monad.xyz';
+const RPC_URL='/api/rpc';
 let ROOT_ADDR='', posMode=false;
 async function rpcBatch(calls){
   try{const r=await fetch(RPC_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(calls)});
