@@ -138,7 +138,7 @@ var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 var ro = new ethers.JsonRpcProvider(RPC);
 var MINT_ABI = ['function mint(string uri) payable returns (uint256)','function mintFee() view returns (uint256)','event Minted(uint256 indexed id, address indexed creator, string uri)'];
 var MARKET_ABI = ['function list(address nft,uint256 id,uint256 price)','function cancel(address nft,uint256 id)','function buy(address nft,uint256 id) payable','function listings(address,uint256) view returns (address seller,uint256 price)'];
-var ERC721_ABI = ['function ownerOf(uint256) view returns (address)','function isApprovedForAll(address,address) view returns (bool)','function setApprovalForAll(address,bool)'];
+var ERC721_ABI = ['function ownerOf(uint256) view returns (address)','function getApproved(uint256) view returns (address)','function isApprovedForAll(address,address) view returns (bool)','function setApprovalForAll(address,bool)'];
 var signer=null, me=null, activeFilter='all', pickedFile=null;
 
 function $(id){return document.getElementById(id);}
@@ -270,7 +270,10 @@ async function decorate(el,n){
     var mine = me && owner===me;
     var prEl=el.querySelector('[data-pr]'), acEl=el.querySelector('[data-act]');
     if(listed){ prEl.textContent=ethers.formatEther(l.price)+' MON'; }
-    if(listed && !mine){ acEl.innerHTML='<button class="b buy">BUY</button>'; acEl.firstChild.onclick=function(){buy(n,l.price);}; }
+    var seller=(l.seller||'').toLowerCase();
+    var fulfillable = listed && owner && owner===seller;
+    if(fulfillable && !mine){ acEl.innerHTML='<button class="b buy">BUY</button>'; acEl.firstChild.onclick=function(){buy(n,l.price);}; }
+    else if(listed && !mine && owner && owner!==seller){ acEl.innerHTML='<span class="b" style="opacity:.45;cursor:default">UNAVAILABLE</span>'; prEl.textContent=ethers.formatEther(l.price)+' MON · stale'; }
     else if(mine && listed){ acEl.innerHTML='<button class="b cancel">CANCEL LISTING</button>'; acEl.firstChild.onclick=function(){cancel(n);}; }
     else if(mine){ acEl.innerHTML='<button class="b list">LIST FOR SALE</button>'; acEl.firstChild.onclick=function(){listIt(n);}; }
   }catch(e){}
@@ -288,8 +291,29 @@ async function listIt(n){
 }
 async function buy(n,price){
   if(!signer){await connect();if(!signer)return;}
-  try{ var mkt=new ethers.Contract(MARKET_ADDR,MARKET_ABI,signer); var tx=await mkt.buy(n.contract,n.token_id,{value:price}); await tx.wait(); renderGallery(); }
-  catch(e){ alert((e&&e.shortMessage)||e.message); }
+  try{
+    var mktR=new ethers.Contract(MARKET_ADDR,MARKET_ABI,ro);
+    var l=await mktR.listings(n.contract,n.token_id);
+    if(!(l.price>0n)){ alert('This listing is no longer active (sold or cancelled).'); renderGallery(); return; }
+    price=l.price;
+    var nft=new ethers.Contract(n.contract,ERC721_ABI,ro);
+    var owner=(await nft.ownerOf(n.token_id)).toLowerCase();
+    if(owner!==l.seller.toLowerCase()){ alert('Stale listing — the seller moved this NFT out of their wallet, so it can\u2019t be bought.'); renderGallery(); return; }
+    var appr=false; try{ appr = await nft.isApprovedForAll(l.seller,MARKET_ADDR); if(!appr){ appr=(await nft.getApproved(n.token_id)).toLowerCase()===MARKET_ADDR.toLowerCase(); } }catch(e){}
+    if(!appr){ alert('Stale listing — the seller revoked the marketplace approval, so it can\u2019t be bought right now.'); return; }
+    var bal=await ro.getBalance(me);
+    if(bal < price){ alert('Not enough MON. This costs '+ethers.formatEther(price)+' MON (plus a little gas). Your balance: '+(+ethers.formatEther(bal)).toFixed(3)+' MON.'); return; }
+    var mkt=new ethers.Contract(MARKET_ADDR,MARKET_ABI,signer);
+    var tx=await mkt.buy(n.contract,n.token_id,{value:price}); await tx.wait(); renderGallery();
+  }catch(e){
+    var m=(e&&(e.shortMessage||e.reason||e.message))||'buy failed';
+    if(/insufficient funds/i.test(m)) m='Not enough MON to cover the price + gas.';
+    else if(/missing revert data|cannot estimate|execution reverted/i.test(m)) m='Couldn\u2019t complete the buy — usually that means not enough MON for the price + gas, or the listing just became unavailable. Try refreshing.';
+    else if(/seller moved/i.test(m)) m='The seller moved this NFT — the listing is stale.';
+    else if(/bad price/i.test(m)) m='The price changed — refresh and try again.';
+    else if(/user rejected|denied/i.test(m)) return;
+    alert(m);
+  }
 }
 async function cancel(n){
   if(!signer){await connect();if(!signer)return;}
