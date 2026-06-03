@@ -86,6 +86,7 @@ function msg(t,sp){$('#msg').innerHTML=(sp?'<span class="spin"></span>':'')+(t||
 function busy(b,t){$('#go').disabled=b;if(t!==undefined)msg(t,b);}
 // ---- token hold-gate ----
 const GATE_TOKEN='0x52641feEdCE831247514bf7C2378513741077777', GATE_SYM='CHRONIC', GATE_MIN=250000, GETURL='https://www.burnchronic.xyz';
+const GATE_ON=false; // free for now — flip to true to lock wallets behind holding
 let HOLDER=false, ACCOUNT=null, BAL=0, lastData=null, lastAddr=null;
 function fmtAmt(n){return n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':String(Math.floor(n));}
 async function connectWallet(){
@@ -107,6 +108,7 @@ async function checkHold(){
 }
 function updateGate(note){
   const g=$('#gate');
+  if(!GATE_ON){g.className='gate ok';g.innerHTML='🟢 Free preview — full insider results open to everyone. Holding '+GATE_SYM+' will unlock it later.';return;}
   if(HOLDER){g.className='gate ok';g.innerHTML='✓ Holder — '+fmtAmt(BAL)+' '+GATE_SYM+' · the insider wallets are unlocked below';return;}
   if(ACCOUNT){g.className='gate no';g.innerHTML='<span>You hold '+fmtAmt(BAL)+' '+GATE_SYM+' · need ≥ '+fmtAmt(GATE_MIN)+' to reveal who the wallets are</span><a href="'+GETURL+'" target="_blank">get '+GATE_SYM+' ↗</a>';return;}
   g.className='gate';g.innerHTML='<span>🔒 '+(note?note+' · ':'')+'Hold ≥ '+fmtAmt(GATE_MIN)+' '+GATE_SYM+' to reveal the insider wallets</span><button onclick="connectWallet()">Connect wallet</button>';
@@ -119,7 +121,7 @@ function rowsHTML(arr){
   return arr.map(function(r,i){
     const bw=Math.max(3,Math.round(r.pct/max*100));
     const badge=r.cat==='loaded'?'<span class="badge hold">HOLDING FREE</span>':r.cat==='dumper'?'<span class="badge dump">DUMPED</span>':'<span class="badge move">MOVED ON</span>';
-    const who=HOLDER
+    const who=(!GATE_ON||HOLDER)
       ? '<a class="addr" href="'+EXPLORER+'/address/'+r.address+'" target="_blank">'+short(r.address)+'</a>'+(r.fromDeployer?'<span class="flag">⚠ from dev</span>':'')
       : '<span class="lock">🔒 hold to reveal</span>';
     return '<div class="row"><span class="rk">#'+(i+1)+'</span>'+who+
