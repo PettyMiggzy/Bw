@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>CHRONIC · Claim Rewards</title>
+<meta name="description" content="Claim your CHRONIC XP rewards. Chat, earn, claim. Hold 1M CHRONIC to unlock MON rewards too." />
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
+<style>
+:root{--bg:#04130a;--panel:#0a1f12;--line:rgba(57,255,20,.18);--green:#39ff14;--green2:#00d455;--dim:#6fae7e;--ink:#e8ffe9;--mon:#9d7bff;--fd:'Orbitron',sans-serif;--fm:'Outfit',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--ink);font-family:var(--fm);min-height:100vh;overflow-x:hidden;
+background-image:radial-gradient(120% 60% at 50% -10%,rgba(57,255,20,.14),transparent 60%);background-attachment:fixed}
+#rain{position:fixed;inset:0;z-index:0;opacity:.10;pointer-events:none}
+.wrap{position:relative;z-index:1;max-width:540px;margin:0 auto;padding:0 18px 70px}
+.bar{display:flex;align-items:center;justify-content:space-between;padding:14px 4px;border-bottom:1px solid var(--line)}
+.bar a{color:var(--green);text-decoration:none;font-family:var(--fd);font-size:15px;letter-spacing:1px}
+#connectBtn{font-family:var(--fd);font-size:12px;letter-spacing:1px;border:1px solid var(--green);background:transparent;color:var(--green);border-radius:30px;padding:9px 16px;cursor:pointer}
+#connectBtn.on{background:rgba(57,255,20,.12)}
+.hero{text-align:center;padding:30px 0 6px}
+.hero h1{font-family:var(--fd);font-size:clamp(30px,8vw,48px);letter-spacing:2px;color:var(--green);text-shadow:0 0 24px rgba(57,255,20,.5)}
+.hero p{color:var(--dim);font-size:14px;margin-top:10px}
+.preview{margin:14px 0;text-align:center;font-size:12px;letter-spacing:.1em;color:#ffd84d;border:1px dashed rgba(255,216,77,.4);border-radius:10px;padding:8px}
+.card{background:linear-gradient(180deg,var(--panel),rgba(4,19,10,.9));border:1px solid var(--line);border-radius:18px;padding:22px;margin:16px 0}
+.rowline{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+.rowline:last-child{border-bottom:0}
+.rowline .k{color:var(--dim);font-size:13px;text-transform:uppercase;letter-spacing:.1em}
+.rowline .v{font-family:var(--fd);font-size:22px}
+.v.green{color:var(--green)}.v.mon{color:var(--mon)}
+.rank{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:8px}
+.rank .emoji{font-size:34px}.rank .name{font-family:var(--fd);font-size:24px;color:var(--green);letter-spacing:1px}
+.xpbar{height:8px;background:rgba(57,255,20,.12);border-radius:6px;overflow:hidden;margin-top:6px}
+.xpbar i{display:block;height:100%;background:linear-gradient(90deg,var(--green2),var(--green))}
+.claim{margin-top:8px;width:100%;font-family:var(--fd);font-size:18px;letter-spacing:1px;border:0;border-radius:14px;padding:16px;cursor:pointer;background:linear-gradient(90deg,var(--green2),var(--green));color:#04130a}
+.claim:disabled{opacity:.45;cursor:not-allowed}
+.locked{font-size:13px;color:var(--dim);text-align:center;margin-top:10px}
+.locked b{color:var(--mon)}
+.msg{text-align:center;color:var(--dim);font-size:14px;padding:18px}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--green);border-radius:50%;animation:s .7s linear infinite;vertical-align:middle}
+@keyframes s{to{transform:rotate(360deg)}}
+.foot{text-align:center;color:var(--dim);font-size:11px;margin-top:24px;line-height:1.8}.foot a{color:var(--green);text-decoration:none}
+.tx{font-size:12px;color:var(--green);text-align:center;margin-top:10px;word-break:break-all}
+</style>
+</head>
+<body>
+<canvas id="rain"></canvas>
+<div class="wrap">
+  <div class="bar">
+    <a href="/">‹ $CHRONIC</a>
+    <button id="connectBtn">CONNECT</button>
+  </div>
+
+  <div class="hero">
+    <h1>CLAIM XP</h1>
+    <p>chat → earn → claim. you pay the gas, the pool pays you. 🌿</p>
+  </div>
+
+  <div class="preview" id="previewBanner">⚙️ PREVIEW MODE — showing sample data. real claims go live once the contract's deployed.</div>
+
+  <div id="content">
+    <div class="msg">connect your wallet to see your rewards.</div>
+  </div>
+
+  <div class="foot">
+    Rewards come from the community pool. Holding <b style="color:var(--green)">1,000,000 CHRONIC</b> unlocks MON rewards on top of CHRONIC.<br>
+    <a href="/">home</a>
+  </div>
+</div>
+
+<script>
+// ============ CONFIG ============
+// MOCK_MODE shows the full UI with sample data so you can SEE it.
+// To go live: set MOCK_MODE=false, fill CONTRACT_ADDR + BOT_API, after the contract is deployed+audited.
+const MOCK_MODE   = true;
+const CONTRACT_ADDR = "0x0000000000000000000000000000000000000000"; // ChronicXPClaim (set after deploy)
+const BOT_API     = "";                 // e.g. https://your-bot-host/claimdata?wallet=
+const CHRONIC_TOKEN = "0x52641feEdCE831247514bf7C2378513741077777";
+const CHAIN_ID    = 143;
+const HOLD_REQ    = 1000000;
+
+const CLAIM_ABI = [
+  "function claim(uint256 totalChronic, uint256 totalMon, bytes signature) external",
+  "function claimedChronic(address) view returns (uint256)",
+  "function claimedMon(address) view returns (uint256)"
+];
+const ERC20_ABI = ["function balanceOf(address) view returns (uint256)"];
+
+function $(i){return document.getElementById(i);}
+function short(a){return a.slice(0,6)+"…"+a.slice(-4);}
+let account=null, signer=null;
+
+// ---- matrix rain (chronic vibe) ----
+(function(){
+  const c=$('rain'), x=c.getContext('2d'); let cols;
+  function rs(){ c.width=innerWidth; c.height=innerHeight; cols=Math.floor(c.width/14); drops=Array(cols).fill(0); }
+  let drops=[]; addEventListener('resize',rs); rs();
+  const ch='01アイウエオカキクケコ$CHRONIC';
+  setInterval(()=>{ x.fillStyle='rgba(4,19,10,.08)'; x.fillRect(0,0,c.width,c.height); x.fillStyle='#39ff14'; x.font='13px monospace';
+    for(let i=0;i<cols;i++){ x.fillText(ch[Math.random()*ch.length|0], i*14, drops[i]*14); if(drops[i]*14>c.height&&Math.random()>.975)drops[i]=0; drops[i]++; } },70);
+})();
+
+// ---- connect (explicit only, no auto-connect) ----
+$('connectBtn').addEventListener('click', async ()=>{
+  if(account){ account=null;signer=null; $('connectBtn').textContent='CONNECT'; $('connectBtn').classList.remove('on'); $('content').innerHTML='<div class="msg">connect your wallet to see your rewards.</div>'; return; }
+  if(!window.ethereum){ alert('No wallet found. Install MetaMask or open in a wallet browser.'); return; }
+  try{
+    const bp=new ethers.BrowserProvider(window.ethereum);
+    await bp.send('eth_requestAccounts',[]);
+    signer=await bp.getSigner(); account=await signer.getAddress();
+    $('connectBtn').textContent=short(account)+' ✕'; $('connectBtn').classList.add('on');
+    loadRewards();
+  }catch(e){}
+});
+
+// ---- fetch a wallet's signed reward data ----
+async function getClaimData(wallet){
+  if(MOCK_MODE){
+    // sample data so you can see the UI/flow
+    return { xp: 4200, rankEmoji:'💨', rankName:'Stoner', nextAt:8000,
+             totalChronic: "12500", totalMon: "11.5",
+             claimedChronic:"2500", claimedMon:"0",
+             holds1M: true, signature:"0xMOCK" };
+  }
+  const r=await fetch(BOT_API+encodeURIComponent(wallet),{cache:'no-store'});
+  if(!r.ok) throw new Error('could not load rewards');
+  return await r.json(); // { xp, rankEmoji, rankName, nextAt, totalChronic, totalMon, claimedChronic, claimedMon, holds1M, signature }
+}
+
+async function loadRewards(){
+  $('content').innerHTML='<div class="msg"><span class="spin"></span> reading your rewards…</div>';
+  try{
+    const d=await getClaimData(account);
+    const claimableChr = Math.max(0, Number(d.totalChronic)-Number(d.claimedChronic));
+    const claimableMon = d.holds1M ? Math.max(0, Number(d.totalMon)-Number(d.claimedMon)) : 0;
+    const pct = d.nextAt? Math.min(100, Math.round(d.xp/d.nextAt*100)) : 100;
+    let html='<div class="card">'+
+      '<div class="rank"><span class="emoji">'+d.rankEmoji+'</span><span class="name">'+d.rankName+'</span></div>'+
+      '<div style="text-align:center;color:var(--dim);font-size:13px">'+d.xp+' XP</div>'+
+      '<div class="xpbar"><i style="width:'+pct+'%"></i></div>'+
+    '</div>';
+    html+='<div class="card">'+
+      '<div class="rowline"><span class="k">Claimable CHRONIC</span><span class="v green">'+claimableChr.toLocaleString()+'</span></div>'+
+      '<div class="rowline"><span class="k">Claimable MON</span><span class="v mon">'+(d.holds1M? claimableMon : '🔒')+'</span></div>';
+    if(!d.holds1M) html+='<div class="locked">Hold <b>1,000,000 CHRONIC</b> to unlock MON rewards.</div>';
+    html+='<button class="claim" id="claimBtn"'+((claimableChr<=0&&claimableMon<=0)?' disabled':'')+'>'+
+          ((claimableChr<=0&&claimableMon<=0)?'NOTHING TO CLAIM':'CLAIM NOW')+'</button>';
+    html+='<div class="tx" id="txOut"></div>';
+    html+='</div>';
+    $('content').innerHTML=html;
+    const btn=$('claimBtn'); if(btn) btn.addEventListener('click',()=>doClaim(d));
+  }catch(e){
+    $('content').innerHTML='<div class="msg" style="color:#ff6b6b">'+((e&&e.message)||e)+'</div>';
+  }
+}
+
+async function doClaim(d){
+  const btn=$('claimBtn'); btn.disabled=true; btn.textContent='CLAIMING…';
+  try{
+    if(MOCK_MODE){
+      await new Promise(r=>setTimeout(r,1200));
+      $('txOut').innerHTML='✅ (preview) would claim — you sign & pay gas, pool sends your CHRONIC'+(d.holds1M?' + MON':'')+'. wire the real contract to make it live.';
+      btn.textContent='CLAIMED ✅'; return;
+    }
+    const c=new ethers.Contract(CONTRACT_ADDR, CLAIM_ABI, signer);
+    const totalChr = ethers.parseUnits(String(d.totalChronic),18);
+    const totalMon = ethers.parseEther(String(d.totalMon));
+    const tx=await c.claim(totalChr, totalMon, d.signature);
+    $('txOut').textContent='sent — waiting for confirmation…';
+    await tx.wait(1);
+    $('txOut').innerHTML='✅ claimed! tx: '+tx.hash;
+    btn.textContent='CLAIMED ✅';
+  }catch(e){
+    $('txOut').textContent='claim failed: '+((e&&e.shortMessage)||e.message||e);
+    btn.disabled=false; btn.textContent='CLAIM NOW';
+  }
+}
+
+if(MOCK_MODE===false) $('previewBanner').style.display='none';
+</script>
+</body>
+</html>
