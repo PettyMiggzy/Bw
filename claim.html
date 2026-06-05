@@ -116,14 +116,19 @@ button.ghost.on{background:rgba(93,255,139,.16)}
 
 
 <script>
-const MOCK_MODE     = true;
-const CONTRACT_ADDR = "0x0000000000000000000000000000000000000000";
-const BOT_API       = "";
+const MOCK_MODE     = false;
+const CONTRACT_ADDR = "0xa226c2d7735F5D0d433059CAb572D8bc461e8890";
+const BOT_API       = "/api/claim?wallet=";
 const CHRONIC_TOKEN = "0x52641feEdCE831247514bf7C2378513741077777";
 const CHAIN_ID      = 143;
 const HOLD_REQ      = 1000000;
 
-const CLAIM_ABI=["function claim(uint256 totalChronic,uint256 totalMon,bytes signature) external"];
+const CLAIM_ABI=[
+  "function claim(uint256 totalChronic,uint256 totalMon,bytes signature) external",
+  "function claimedChronic(address) view returns (uint256)",
+  "function claimedMon(address) view returns (uint256)",
+  "function poolBalances() view returns (uint256,uint256)"
+];
 function $(i){return document.getElementById(i);}
 function short(a){return a.slice(0,6)+"…"+a.slice(-4);}
 let account=null, signer=null;
@@ -182,7 +187,22 @@ async function getClaimData(wallet){
   }
   const r=await fetch(BOT_API+encodeURIComponent(wallet),{cache:'no-store'});
   if(!r.ok) throw new Error('could not load rewards');
-  return await r.json();
+  const d=await r.json();
+  if(!d.found) throw new Error(d.message||'wallet not linked — use /wallet in the group');
+  // read REAL claimed amounts from the contract so claimable is accurate
+  try{
+    const ro=new ethers.JsonRpcProvider('https://monad-mainnet.g.alchemy.com/v2/_ZfKSl1YD2Yur6eajfKkN',143);
+    const c=new ethers.Contract(CONTRACT_ADDR,CLAIM_ABI,ro);
+    const [cc,cm]=await Promise.all([c.claimedChronic(wallet),c.claimedMon(wallet)]);
+    d.claimedChronic = cc.toString();
+    d.claimedMon = cm.toString();
+    // bot returns totals in WEI now; convert display values
+    d.totalChronic = ethers.formatUnits(d.totalChronic,18);
+    d.totalMon = ethers.formatEther(d.totalMon);
+    d.claimedChronic = ethers.formatUnits(cc,18);
+    d.claimedMon = ethers.formatEther(cm);
+  }catch(e){ /* if reads fail, fall back to bot-provided values */ }
+  return d;
 }
 
 async function loadRewards(){
