@@ -162,6 +162,9 @@ const BOT_API       = "/api/claim?wallet=";
 const CHRONIC_TOKEN = "0x52641feEdCE831247514bf7C2378513741077777";
 const CHAIN_ID      = 143;
 const HOLD_REQ      = 1000000;
+const READ_RPC      = "https://rpc.monad.xyz";
+const NNS_ADDR      = "0xCc7a1bfF8845573dbF0B3b96e25B9b549d4a2eC7";
+const NNS_ABI       = ["function getPrimaryNameForAddress(address) view returns (string)"];
 
 const CLAIM_ABI=[
   "function claim(uint256 totalChronic,uint256 totalMon,bytes signature) external",
@@ -171,6 +174,16 @@ const CLAIM_ABI=[
 ];
 function $(i){return document.getElementById(i);}
 function short(a){return a.slice(0,6)+"…"+a.slice(-4);}
+// NNS reverse lookup: address -> .nad name (empty if none). Falls back to short address.
+async function nnsLabel(addr){
+  try{
+    const ro=new ethers.JsonRpcProvider(READ_RPC,CHAIN_ID);
+    const nm=(await new ethers.Contract(NNS_ADDR,NNS_ABI,ro).getPrimaryNameForAddress(addr))||'';
+    if(!nm) return short(addr);
+    const full = nm.includes('.') ? nm : nm+'.nad';
+    return full.length>20 ? full.slice(0,17)+'…' : full;
+  }catch{ return short(addr); }
+}
 let account=null, signer=null;
 
 (function(){
@@ -215,6 +228,7 @@ $('connectBtn').addEventListener('click', async function(){
     await bp.send('eth_requestAccounts',[]);
     signer=await bp.getSigner(); account=await signer.getAddress();
     $('connectBtn').textContent=short(account)+' ✕'; $('connectBtn').classList.add('on');
+    nnsLabel(account).then(function(l){ if(account) $('connectBtn').textContent=l+' ✕'; });
     loadRewards();
   }catch(e){}
 });
@@ -231,7 +245,7 @@ async function getClaimData(wallet){
   if(!d.found) throw new Error(d.message||'wallet not linked — use /wallet in the group');
   // read REAL claimed amounts from the contract so claimable is accurate
   try{
-    const ro=new ethers.JsonRpcProvider('https://monad-mainnet.g.alchemy.com/v2/_ZfKSl1YD2Yur6eajfKkN',143);
+    const ro=new ethers.JsonRpcProvider('https://rpc.monad.xyz',143);
     const c=new ethers.Contract(CONTRACT_ADDR,CLAIM_ABI,ro);
     const [cc,cm]=await Promise.all([c.claimedChronic(wallet),c.claimedMon(wallet)]);
     d.claimedChronic = cc.toString();
@@ -284,7 +298,7 @@ async function doClaim(d){
 // live pool balance display (so users see it's stocked; King sees when to resupply)
 async function loadPool(){
   try{
-    const ro=new ethers.JsonRpcProvider('https://monad-mainnet.g.alchemy.com/v2/_ZfKSl1YD2Yur6eajfKkN',143);
+    const ro=new ethers.JsonRpcProvider('https://rpc.monad.xyz',143);
     const c=new ethers.Contract(CONTRACT_ADDR,CLAIM_ABI,ro);
     const [chr,mon]=await c.poolBalances();
     $('poolChr').textContent=Number(ethers.formatUnits(chr,18)).toLocaleString(undefined,{maximumFractionDigits:0});
