@@ -24,12 +24,12 @@ html,body{height:100%}
 body{font-family:var(--fm);color:var(--ink);overflow-x:hidden;position:relative;
   background:linear-gradient(180deg,#02060a 0%,#04110b 42%,#062013 78%,#0a2d18 100%);}
 /* photo field as its own bottom layer: cover-filled, soft top fade so it blends into the sky (no hard seam / no thin strip; reliable on mobile) */
-#cfield{position:fixed;left:0;right:0;bottom:0;height:46vh;z-index:0;pointer-events:none;
-  background:url('/assets/claim-field-v2.jpg') center bottom / 100% auto no-repeat;
-  -webkit-mask-image:linear-gradient(to top,#000 50%,transparent 100%);
-  mask-image:linear-gradient(to top,#000 50%,transparent 100%);}
+#cfield{position:fixed;left:0;right:0;bottom:0;height:54vh;z-index:0;pointer-events:none;
+  background:url('/assets/claim-field-wide.jpg') center bottom / 100% auto no-repeat;
+  -webkit-mask-image:linear-gradient(to top,#000 46%,transparent 100%);
+  mask-image:linear-gradient(to top,#000 46%,transparent 100%);}
 /* narrow phones: the field is very wide/short, so cover-fill it instead of a thin strip */
-@media (max-width:700px){#cfield{height:42vh;background-size:cover}}
+@media (max-width:700px){#cfield{height:40vh;background-size:cover}}
 /* top scrim (text legibility) + edge vignette */
 body::before{content:'';position:fixed;inset:0;z-index:1;pointer-events:none;
   background:
