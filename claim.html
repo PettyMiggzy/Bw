@@ -17,12 +17,15 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
 body{font-family:var(--fm);color:var(--ink);overflow-x:hidden;position:relative;
-  background:#03100a url('/assets/claim-field.jpg') center top / cover no-repeat fixed;}
-/* legibility veil over the photo field */
+  background:
+    url('/assets/claim-field.jpg') center bottom / cover no-repeat fixed,
+    linear-gradient(180deg,#02060a 0%,#04110b 42%,#062013 78%,#0a2d18 100%);}
+/* legibility veil + top glow tint over the photo field */
 body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background:radial-gradient(120% 80% at 50% 22%,transparent 0%,rgba(2,8,5,.32) 60%,rgba(2,8,5,.6) 100%);}
+  background:radial-gradient(120% 75% at 50% 20%,transparent 0%,rgba(2,8,5,.30) 62%,rgba(2,8,5,.58) 100%);}
 
-#scene{display:none}
+#scene{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+#field{display:none}
 .stars{position:absolute;inset:0}
 .star{position:absolute;width:2px;height:2px;background:#bfffe0;border-radius:50%;opacity:.7;animation:tw 3s infinite ease-in-out}
 @keyframes tw{0%,100%{opacity:.2}50%{opacity:.9}}
