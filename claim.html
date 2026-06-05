@@ -114,7 +114,6 @@ button.ghost.on{background:rgba(93,255,139,.16)}
   </div>
 </div>
 
-<audio id="anthem" loop preload="none" src="/assets/anthem.mp3"></audio>
 
 <script>
 const MOCK_MODE     = true;
@@ -162,13 +161,6 @@ function leafSVG(depth){
   return '<svg width="80" height="100" viewBox="0 0 80 100">'+blades+'<rect x="38.5" y="92" width="3" height="8" fill="'+stem+'"/></svg>';
 }
 
-const anthem=$('anthem'), aBtn=$('anthemBtn');
-aBtn.addEventListener('click', async function(){
-  try{
-    if(anthem.paused){ await anthem.play(); aBtn.textContent='⏸ ANTHEM'; aBtn.classList.add('playing'); }
-    else { anthem.pause(); aBtn.textContent='▶ ANTHEM'; aBtn.classList.remove('playing'); }
-  }catch(e){ aBtn.textContent='♪ no audio yet'; setTimeout(function(){aBtn.textContent='▶ ANTHEM';},1800); }
-});
 
 $('connectBtn').addEventListener('click', async function(){
   if(account){ account=null;signer=null; $('connectBtn').textContent='CONNECT'; $('connectBtn').classList.remove('on'); $('content').innerHTML='<div class="msg">connect your wallet to see your harvest.</div>'; return; }
@@ -230,5 +222,25 @@ async function doClaim(d){
 
 if(MOCK_MODE===false) $('previewBanner').style.display='none';
 </script>
+<!-- ANTHEM (same YouTube track as homepage) -->
+<div id="ytwrap" style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none"><div id="ytplayer"></div></div>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+(function(){
+  var player, ready=false, on=false;
+  var btn=document.getElementById('anthemBtn');
+  window.onYouTubeIframeAPIReady=function(){
+    player=new YT.Player('ytplayer',{height:'1',width:'1',videoId:'STIOPbEkX6M',
+      playerVars:{autoplay:0,controls:0,loop:1,playlist:'STIOPbEkX6M',playsinline:1,rel:0},
+      events:{onReady:function(){ready=true;},
+        onStateChange:function(e){ if(e.data===YT.PlayerState.PLAYING){on=true;render();} if(e.data===YT.PlayerState.PAUSED){on=false;render();} }}});
+  };
+  function render(){ btn.textContent=on?'\u23f8 ANTHEM':'\u25b6 ANTHEM'; btn.classList.toggle('playing',on); }
+  function play(){ if(!ready)return; try{player.unMute();player.setVolume(70);player.playVideo();}catch(e){} }
+  function pause(){ if(!ready)return; try{player.pauseVideo();}catch(e){} }
+  btn.addEventListener('click',function(e){ e.stopPropagation(); on?pause():play(); });
+})();
+</script>
+
 </body>
 </html>
