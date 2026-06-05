@@ -209,6 +209,7 @@ async function loadRewards(){
   $('content').innerHTML='<div class="msg"><span class="spin"></span> checking the field…</div>';
   try{
     const d=await getClaimData(account);
+    if(d && d.cooldown){ $('content').innerHTML='<div class="card"><div class="msg">🌿 '+(d.message||'already harvested this week')+'<br><br>your plants are still growing. come back next week.</div></div>'; return; }
     const cChr=Math.max(0,Number(d.totalChronic)-Number(d.claimedChronic));
     const cMon=d.holds1M?Math.max(0,Number(d.totalMon)-Number(d.claimedMon)):0;
     const pct=d.nextAt?Math.min(100,Math.round(d.xp/d.nextAt*100)):100;
