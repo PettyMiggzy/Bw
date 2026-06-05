@@ -102,7 +102,10 @@ button.ghost.on{background:rgba(93,255,139,.16)}
     <p><span class="leaf">🌿</span> chat → earn → claim from the field. you pay gas, the pool pays you. <span class="leaf">🌿</span></p>
   </div>
 
-  <div class="preview" id="previewBanner">⚙️ PREVIEW MODE — sample data. real claims go live once the contract's deployed.</div>
+  <div class="pool" id="pool" style="text-align:center;margin:10px 0 2px;font-size:12px;color:var(--dim)">
+    <span style="font-family:var(--fd);letter-spacing:.08em">REWARD POOL</span><br>
+    <span id="poolChr" style="color:var(--green)">…</span> CHRONIC &nbsp;·&nbsp; <span id="poolMon" style="color:var(--mon)">…</span> MON
+  </div>
 
   <div id="content">
     <div class="msg">connect your wallet to see your harvest.</div>
@@ -241,7 +244,18 @@ async function doClaim(d){
   }catch(e){ $('txOut').textContent='failed: '+((e&&e.shortMessage)||e.message||e); b.disabled=false; b.textContent='HARVEST NOW'; }
 }
 
-if(MOCK_MODE===false) $('previewBanner').style.display='none';
+// live pool balance display (so users see it's stocked; King sees when to resupply)
+async function loadPool(){
+  try{
+    const ro=new ethers.JsonRpcProvider('https://monad-mainnet.g.alchemy.com/v2/_ZfKSl1YD2Yur6eajfKkN',143);
+    const c=new ethers.Contract(CONTRACT_ADDR,CLAIM_ABI,ro);
+    const [chr,mon]=await c.poolBalances();
+    $('poolChr').textContent=Number(ethers.formatUnits(chr,18)).toLocaleString(undefined,{maximumFractionDigits:0});
+    $('poolMon').textContent=Number(ethers.formatEther(mon)).toLocaleString(undefined,{maximumFractionDigits:2});
+  }catch(e){ $('poolChr').textContent='—'; $('poolMon').textContent='—'; }
+}
+loadPool();
+
 </script>
 <!-- ANTHEM (same YouTube track as homepage) -->
 <div id="ytwrap" style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none"><div id="ytplayer"></div></div>
