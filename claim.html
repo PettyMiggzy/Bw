@@ -26,8 +26,10 @@ body{font-family:var(--fm);color:var(--ink);overflow-x:hidden;position:relative;
 /* photo field as its own bottom layer: cover-filled, soft top fade so it blends into the sky (no hard seam / no thin strip; reliable on mobile) */
 #cfield{position:fixed;left:0;right:0;bottom:0;height:50vh;z-index:0;pointer-events:none;
   background:url('/assets/claim-field-v2.jpg') center bottom / 100% auto no-repeat;
+  filter:url(#wind);
   -webkit-mask-image:linear-gradient(to top,#000 46%,transparent 100%);
   mask-image:linear-gradient(to top,#000 46%,transparent 100%);}
+@media (prefers-reduced-motion:reduce){#cfield{filter:none}}
 /* narrow phones: the field is very wide/short, so cover-fill it instead of a thin strip */
 @media (max-width:700px){#cfield{height:40vh;background-size:cover}}
 /* top scrim (text legibility) + edge vignette */
@@ -110,6 +112,18 @@ button.ghost.on{background:rgba(93,255,139,.16)}
   <div id="field"></div>
 </div>
 <div id="cfield"></div>
+<svg aria-hidden="true" style="position:absolute;width:0;height:0;pointer-events:none">
+  <filter id="wind" x="-6%" y="-6%" width="112%" height="112%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.008 0.02" numOctaves="2" seed="11" stitchTiles="stitch" result="n">
+      <animate attributeName="baseFrequency" dur="17s" values="0.008 0.02;0.011 0.024;0.008 0.02"
+        repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/>
+    </feTurbulence>
+    <feDisplacementMap in="SourceGraphic" in2="n" xChannelSelector="R" yChannelSelector="G" scale="10">
+      <animate attributeName="scale" dur="11s" values="6;13;6"
+        repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/>
+    </feDisplacementMap>
+  </filter>
+</svg>
 
 <div class="wrap">
   <div class="bar">
