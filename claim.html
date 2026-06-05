@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>CHRONIC · Claim Rewards</title>
 <meta name="description" content="Claim your CHRONIC XP rewards. Chat, earn, climb the field. Hold 1M CHRONIC to unlock MON too." />
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Orbitron:wght@600;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
 <style>
 :root{
@@ -17,9 +17,12 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
 body{font-family:var(--fm);color:var(--ink);overflow-x:hidden;position:relative;
-  background:linear-gradient(180deg,#02060a 0%,#04110b 35%,#06170e 60%,#0a2114 100%);}
+  background:#03100a url('/assets/claim-field.jpg') center top / cover no-repeat fixed;}
+/* legibility veil over the photo field */
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(120% 80% at 50% 22%,transparent 0%,rgba(2,8,5,.32) 60%,rgba(2,8,5,.6) 100%);}
 
-#scene{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+#scene{display:none}
 .stars{position:absolute;inset:0}
 .star{position:absolute;width:2px;height:2px;background:#bfffe0;border-radius:50%;opacity:.7;animation:tw 3s infinite ease-in-out}
 @keyframes tw{0%,100%{opacity:.2}50%{opacity:.9}}
@@ -42,6 +45,9 @@ body{font-family:var(--fm);color:var(--ink);overflow-x:hidden;position:relative;
 .wrap{position:relative;z-index:3;max-width:540px;margin:0 auto;padding:0 18px 80px;min-height:100%}
 .bar{display:flex;align-items:center;justify-content:space-between;padding:14px 4px}
 .bar a{color:var(--green);text-decoration:none;font-family:var(--fd);font-size:15px;letter-spacing:1px;text-shadow:0 0 10px rgba(93,255,139,.5)}
+.bar a.brand{display:flex;align-items:center;gap:10px;font-family:'Bungee',sans-serif;font-size:15px;letter-spacing:.04em;text-shadow:none}
+.bar a.brand img{width:38px;height:38px;border-radius:50%;box-shadow:0 0 0 1px #d9a93a,0 0 18px rgba(245,207,87,.4)}
+.bar a.brand .c{color:var(--green)}
 .right{display:flex;gap:8px;align-items:center}
 button.ghost{font-family:var(--fd);font-size:12px;letter-spacing:1px;border:1px solid var(--green);background:rgba(6,20,13,.6);color:var(--green);border-radius:30px;padding:9px 14px;cursor:pointer;backdrop-filter:blur(4px)}
 button.ghost.on{background:rgba(93,255,139,.16)}
@@ -90,7 +96,7 @@ button.ghost.on{background:rgba(93,255,139,.16)}
 
 <div class="wrap">
   <div class="bar">
-    <a href="/">‹ $CHRONIC</a>
+    <a class="brand" href="/"><img src="/assets/logo-chronic.png" alt="" /> <span class="c">$CHRONIC</span></a>
     <div class="right">
       <button class="ghost" id="anthemBtn">▶ ANTHEM</button>
       <button class="ghost" id="connectBtn">CONNECT</button>
