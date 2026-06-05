@@ -23,11 +23,13 @@
 html,body{height:100%}
 body{font-family:var(--fm);color:var(--ink);overflow-x:hidden;position:relative;
   background:
-    url('/assets/claim-field-v2.jpg') center bottom / cover no-repeat fixed,
+    url('/assets/claim-field-v2.jpg') center bottom / 100% auto no-repeat fixed,
     linear-gradient(180deg,#02060a 0%,#04110b 42%,#062013 78%,#0a2d18 100%);}
-/* legibility veil + top glow tint over the photo field */
+/* top scrim (text legibility) + edge vignette over the photo field */
 body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background:radial-gradient(120% 75% at 50% 20%,transparent 0%,rgba(2,8,5,.30) 62%,rgba(2,8,5,.58) 100%);}
+  background:
+    linear-gradient(180deg,rgba(2,8,5,.62) 0%,rgba(2,8,5,.34) 30%,transparent 56%),
+    radial-gradient(120% 75% at 50% 20%,transparent 0%,rgba(2,8,5,.22) 64%,rgba(2,8,5,.5) 100%);}
 
 #scene{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
 #field{display:none}
@@ -65,7 +67,7 @@ button.ghost.on{background:rgba(93,255,139,.16)}
 .hero{text-align:center;padding:26px 0 4px}
 .hero h1{font-family:var(--fd);font-size:clamp(32px,9vw,52px);letter-spacing:2px;color:var(--green);
   text-shadow:0 0 26px rgba(93,255,139,.6),0 0 4px #fff}
-.hero p{color:var(--dim);font-size:14px;margin-top:10px}
+.hero p{color:#d4f4e3;font-size:14px;margin-top:10px;text-shadow:0 2px 9px rgba(0,0,0,.92)}
 .leaf{font-size:20px;filter:drop-shadow(0 0 6px var(--green))}
 
 .preview{margin:14px 0;text-align:center;font-size:12px;letter-spacing:.08em;color:#ffe27a;border:1px dashed rgba(255,226,122,.4);border-radius:10px;padding:8px;background:rgba(6,20,13,.5)}
@@ -88,10 +90,11 @@ button.ghost.on{background:rgba(93,255,139,.16)}
   background:linear-gradient(90deg,var(--green2),var(--acid));color:#04130a;box-shadow:0 0 24px rgba(182,255,60,.4)}
 .claim:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
 .tx{font-size:12px;color:var(--green);text-align:center;margin-top:10px;word-break:break-all}
-.msg{text-align:center;color:var(--dim);font-size:14px;padding:22px}
+.msg{text-align:center;color:#bfe8d2;font-size:14px;padding:22px;text-shadow:0 2px 8px rgba(0,0,0,.88)}
+.pool{text-shadow:0 2px 8px rgba(0,0,0,.85)}
 .spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(93,255,139,.25);border-top-color:var(--green);border-radius:50%;animation:s .7s linear infinite;vertical-align:middle}
 @keyframes s{to{transform:rotate(360deg)}}
-.foot{text-align:center;color:var(--dim);font-size:11px;margin-top:24px;line-height:1.9}.foot a{color:var(--green);text-decoration:none}
+.foot{text-align:center;color:#a9d9c0;font-size:11px;margin-top:24px;line-height:1.9;text-shadow:0 1px 7px rgba(0,0,0,.88)}.foot a{color:var(--green);text-decoration:none}
 </style>
 </head>
 <body>
