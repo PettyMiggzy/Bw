@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>$CHRONIC · Burn It Don’t Hoard It · Monad</title>
-<meta name="description" content="$CHRONIC — burn it, don’t hoard it. 1% of every trade burns forever, no mint, no add. Skeleton-crew memecoin on Monad mainnet (chain 143)." />
+<title>$CHRONIC · Burn It Don’t Hoard It · Solana</title>
+<meta name="description" content="$CHRONIC — the people's smoke, now on Solana. burn it, don’t hoard it. a skeleton who smoked himself to the bone and never put it out." />
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=4" />
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png?v=4" />
 <link rel="shortcut icon" href="/assets/favicon.ico?v=4" />
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=4" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://burnchronic.xyz/" />
-<meta property="og:title" content="$CHRONIC — Burn on Monad" />
-<meta property="og:description" content="Burn it don’t hoard it. 1% of every trade burns forever. Live on Monad." />
+<meta property="og:title" content="$CHRONIC — Burn on Solana" />
+<meta property="og:description" content="Burn it don’t hoard it. the last head standing, now live on Solana." />
 <meta property="og:image" content="https://burnchronic.xyz/assets/og-chronic.jpg" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="$CHRONIC — Burn on Monad" />
-<meta name="twitter:description" content="Burn it don’t hoard it. 1% of every trade burns forever. Live on Monad." />
+<meta name="twitter:title" content="$CHRONIC — Burn on Solana" />
+<meta name="twitter:description" content="Burn it don’t hoard it. the last head standing, now live on Solana." />
 <meta name="twitter:image" content="https://burnchronic.xyz/assets/og-chronic.jpg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -396,9 +396,8 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   <a class="brand" href="/"><img src="/assets/logo-chronic.png" alt="" /> <span class="c">$CHRONIC</span></a>
   <div style="display:flex;align-items:center">
   <a class="nav-stake" href="/nfts">🎴 NFTs</a>
-  <a class="nav-stake" href="/stake">💰 STAKE</a>
   <a class="nav-stake" href="/claim">🌿 CLAIM</a>
-  <a class="nav-stake" href="/burn">🔥 BURN</a>
+  <a class="nav-stake" href="#burn">🔥 BURN</a>
   <a class="nav-stake" href="/generator">🔥 MEMES</a>
   <a class="nav-stake" href="https://ai.burnchronic.xyz">🤖 AGENTS</a>
   <a class="nav-buy" id="navBuyBtn" href="#" target="_blank" rel="noopener">🔥 BUY $CHRONIC</a>
@@ -419,26 +418,25 @@ footer .trib a{color:var(--ember);text-decoration:underline}
 
 <!-- HERO -->
 <header class="hero">
-  <div class="stamp"><span class="dot"></span> LIT ON MONAD · CHAIN 143 · TICKER <b>$CHRONIC</b></div>
+  <div class="stamp"><span class="dot"></span> LIT ON SOLANA · TICKER <b>$CHRONIC</b></div>
   <h1><span class="b">BURN</span><span class="c">$CHRONIC</span></h1>
   <div class="script">~ the smoke that came after ~</div>
-  <p class="lead"><b>Skeleton crew, full send.</b> 1% of every trade burns forever — no mint, no add, <em>just smoke</em>. Burn it, don’t hoard it.</p>
+  <p class="lead"><b>"i'm good bro, i'm not even that high."</b> — a literal skeleton. he smoked till the skin tapped out and kept passing it left. now he’s posted up on Solana, red-eyed and unbothered. <em>burn it, don’t hoard it.</em></p>
   <div class="hero-art">
     <video autoplay muted loop playsinline poster="/assets/hero-banner.jpg">
       <source src="/assets/hero-banner.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cta">
-    <a class="btn btn-fire" id="heroBuyBtn" href="#" target="_blank" rel="noopener">🔥 BUY $CHRONIC ON NAD.FUN</a>
+    <a class="btn btn-fire" id="heroBuyBtn" href="#" target="_blank" rel="noopener">🔥 BUY $CHRONIC ON PUMP.FUN</a>
     <a class="btn btn-ghost" href="https://ai.burnchronic.xyz">🤖 MEET THE AGENTS</a>
-    <a class="btn btn-ghost" href="/stake">💰 STAKE &amp; EARN</a>
     <a class="btn btn-ghost" href="#sessions">💨 THE SMOKE MAP</a>
   </div>
   <div class="ca-pill">CA: <span class="a pending" id="caAddr">launching soon — drops in TG</span>
     <button id="copyCA" disabled>copy</button></div>
 </header>
 <section class="heroburn rv">
-  <a class="hbwrap" href="/burn">
+  <a class="hbwrap" href="#burn">
     <div class="hbl">🔥 Total $CHRONIC Burned</div>
     <div class="hbnum" id="heroBurnNum">—</div>
     <div class="hbsub"><span id="heroBurnPct">—</span> gone forever · supply only goes down</div>
@@ -461,17 +459,17 @@ footer .trib a{color:var(--ember);text-decoration:underline}
 <section id="burn">
   <div class="kick">▸ The whole game</div>
   <h2 class="sec">STONE <span class="o">COLD</span> BURN</h2>
-  <p class="sub">1% of every trade is burned to 0xdead — the nad.fun dev fee feeds the fire instead of a wallet. No mint, no add. The ash is on-chain proof.</p>
+  <p class="sub">burn it, don’t hoard it — every $CHRONIC sent to the fire comes straight off the supply, gone forever. the skeleton’s been doing it for years. the ash is on-chain proof.</p>
   <div class="burn rv">
     <div class="burn-grid">
       <div class="stat"><div class="n o" id="bBurned">—</div><div class="k">Incinerated</div></div>
       <div class="stat"><div class="n g" id="bRemain">—</div><div class="k">Still Circulating</div></div>
       <div class="stat"><div class="n" id="bPct">—</div><div class="k">% Gone Forever</div></div>
-      <div class="stat"><div class="n o" id="bHolders">🔥 0xdead</div><div class="k">#1 Holder</div></div>
+      <div class="stat"><div class="n o" id="bHolders">💀 forever</div><div class="k">Off The Supply</div></div>
     </div>
     <div class="meter"><i id="burnMeter"></i></div>
     <div class="meter-cap"><span id="burnCapL">awaiting launch — the meter fills the moment trades hit</span><span id="burnCapR"></span></div>
-    <a class="topflex" href="https://nad.fun/tokens/0x52641feEdCE831247514bf7C2378513741077777" target="_blank" rel="noopener">👑 The #1 holder of $CHRONIC is the burn wallet <b>0xdead</b> — the biggest bag can never be sold.</a>
+    <a class="topflex" href="https://pump.fun/coin/J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump" target="_blank" rel="noopener">💀 every $CHRONIC burned comes straight off the supply — gone forever, never coming back. the smoke never clears, and neither does he.</a>
     <div class="cd">
       <span>Next <b style="color:var(--ember)">4:20</b> smoke-time in</span>
       <span class="clk" id="cdClk">—</span>
@@ -487,7 +485,7 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   <div class="jars">
     <figure class="jar rv"><span class="house">HOUSE</span><img src="/assets/stash-6.jpg" alt="" loading="lazy"><figcaption><b>$CHRONIC #1</b><em>∞ Burn · Deflationary</em></figcaption></figure>
     <figure class="jar rv"><img src="/assets/stash-1.jpg" alt="" loading="lazy"><figcaption><b>PURPLE CURVE</b><em>Indica · 28% · Couch Lock</em></figcaption></figure>
-    <figure class="jar rv"><img src="/assets/stash-2.jpg" alt="" loading="lazy"><figcaption><b>MONAD KUSH</b><em>Hybrid · 24% · Euphoric</em></figcaption></figure>
+    <figure class="jar rv"><img src="/assets/stash-2.jpg" alt="" loading="lazy"><figcaption><b>SOLANA OG</b><em>Hybrid · 24% · Euphoric</em></figcaption></figure>
     <figure class="jar rv"><img src="/assets/stash-3.jpg" alt="" loading="lazy"><figcaption><b>BURN OG</b><em>Indica · 26% · Stoned to Ash</em></figcaption></figure>
     <figure class="jar rv"><img src="/assets/stash-4.jpg" alt="" loading="lazy"><figcaption><b>ASH HAZE</b><em>Sativa · 22% · Cerebral Smoke</em></figcaption></figure>
     <figure class="jar rv"><img src="/assets/stash-5.jpg" alt="" loading="lazy"><figcaption><b>DEA DIESEL</b><em>Sativa · 25% · Snitch-Free</em></figcaption></figure>
@@ -538,9 +536,9 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   <div class="kick">▸ Pull up</div>
   <h2 class="sec">JOIN THE <span class="g">SMOKE</span></h2>
   <div class="steps">
-    <div class="step rv"><div class="n">1</div><div><h4>Bridge to Monad</h4><p>Get MON on Monad mainnet via <a href="https://bridge.monad.xyz" target="_blank" rel="noopener">bridge.monad.xyz</a>. Chain ID 143.</p></div></div>
-    <div class="step rv"><div class="n">2</div><div><h4>Cop $CHRONIC on nad.fun</h4><p>Paste the contract on <a href="https://nad.fun" target="_blank" rel="noopener">nad.fun</a>, swap MON for $CHRONIC. Welcome to the smoke.</p></div></div>
-    <div class="step rv"><div class="n">3</div><div><h4>Hold the Fire</h4><p>Join <a href="https://t.me/burnweedsta" target="_blank" rel="noopener">Telegram</a>, watch the supply burn, pass the lighter. The loyal stay forever.</p></div></div>
+    <div class="step rv"><div class="n">1</div><div><h4>Grab some SOL</h4><p>Get SOL in any Solana wallet — Phantom or Solflare. That’s your gas and your bag in one.</p></div></div>
+    <div class="step rv"><div class="n">2</div><div><h4>Cop $CHRONIC on pump.fun</h4><p>Paste the contract on <a href="https://pump.fun/coin/J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump" target="_blank" rel="noopener">pump.fun</a>, swap SOL for $CHRONIC. welcome to the smoke.</p></div></div>
+    <div class="step rv"><div class="n">3</div><div><h4>Hold the Fire</h4><p>Join <a href="https://t.me/burnchronic" target="_blank" rel="noopener">Telegram</a>, watch the supply burn, pass the lighter. the loyal stay forever.</p></div></div>
   </div>
 </section>
 
@@ -549,8 +547,8 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   <div class="kick">▸ Find the heads</div>
   <h2 class="sec">THE <span class="o">SWARM</span></h2>
   <div class="swarm">
-    <a class="sl" href="https://t.me/burnweedsta" target="_blank" rel="noopener"><span class="ico">✈️</span><span class="lab">TELEGRAM</span><span class="sub">the cipher</span></a>
-    <a class="sl" id="xLink" href="#" target="_blank" rel="noopener"><span class="ico">𝕏</span><span class="lab">TWITTER</span><span class="sub">@burnweedsta</span></a>
+    <a class="sl" href="https://t.me/burnchronic" target="_blank" rel="noopener"><span class="ico">✈️</span><span class="lab">TELEGRAM</span><span class="sub">the cipher</span></a>
+    <a class="sl" id="xLink" href="#" target="_blank" rel="noopener"><span class="ico">𝕏</span><span class="lab">TWITTER</span><span class="sub">@burnchronic</span></a>
     <a class="sl" id="buyLink" href="#" target="_blank" rel="noopener"><span class="ico">🔥</span><span class="lab">BUY</span><span class="sub">$CHRONIC</span></a>
   </div>
 </section>
@@ -570,11 +568,11 @@ footer .trib a{color:var(--ember);text-decoration:underline}
 </section>
 
 <footer>
-  <div class="fb"><span class="c">$CHRONIC</span> · burn it don’t hoard it · on Monad</div>
+  <div class="fb"><span class="c">$CHRONIC</span> · burn it don’t hoard it · on Solana</div>
   <div class="caf">CA: <b id="caFoot">launching soon</b></div>
   The smoke that came after.
   <div class="trib" style="font-size:10px;margin-bottom:6px">Strain photography via <a href="https://openverse.org" target="_blank" rel="noopener">Openverse</a> · Creative Commons</div>
-  <div class="trib">Built by Monad heads. Not financial advice — DYOR. Supply only goes down. 🔥</div>
+  <div class="trib">Built by the heads. Not financial advice — DYOR. Supply only goes down. 🔥</div>
 </footer>
 
 <div class="toast" id="toast">copied &#128293;</div>
@@ -606,11 +604,10 @@ footer .trib a{color:var(--ember);text-decoration:underline}
 
 <script>
 /* ===== CONFIG — flip TOKEN at launch ===== */
-const TOKEN = '0x52641feEdCE831247514bf7C2378513741077777';
+const TOKEN = 'J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump';
 const INITIAL_SUPPLY = 1_000_000_000;
-const DEAD = '0x000000000000000000000000000000000000dEaD';
-const ZERO = '0x0000000000000000000000000000000000000000';
-const RPCS = ['https://rpc.monad.xyz'];
+const DEAD = '1nc1nerator11111111111111111111111111111111';
+const RPCS = ['https://api.mainnet-beta.solana.com'];
 
 /* ===== smoke wisps ===== */
 (function(){const layer=document.getElementById('smokeLayer');const tints=['','g','','e','','','b','','','e','',''];
@@ -628,9 +625,9 @@ skip.addEventListener('click',()=>{clearTimeout(t);close();});
 el.addEventListener('click',e=>{if(e.target===vid||e.target===el){clearTimeout(t);close();}});})();
 
 /* ===== buy wiring ===== */
-(function(){const url=TOKEN?`https://nad.fun/tokens/${TOKEN}`:'https://t.me/burnweedsta';
+(function(){const url=TOKEN?`https://pump.fun/coin/${TOKEN}`:'https://t.me/burnchronic';
 ['navBuyBtn','heroBuyBtn','buyLink'].forEach(id=>{const e=document.getElementById(id);if(e)e.href=url;});
-document.getElementById('xLink').href='https://x.com/burnweedsta';
+document.getElementById('xLink').href='https://x.com/burnchronic';
 if(TOKEN){const a=document.getElementById('caAddr');a.textContent=TOKEN;a.classList.remove('pending');
 document.getElementById('caFoot').textContent=TOKEN;document.getElementById('copyCA').disabled=false;}})();
 
@@ -643,19 +640,18 @@ try{await navigator.clipboard.writeText(TOKEN);toast('contract copied 🔥');}ca
 const fmt=n=>{n=Number(n);if(!isFinite(n)||n<=0)return'—';
 if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return n.toFixed(0);};
 function animateNum(el,to){if(!el)return;var from=parseFloat(el.getAttribute('data-v')||'0');if(!isFinite(to)||to<=0){el.textContent='—';return;}var t0=performance.now();function s(t){var p=Math.min(1,(t-t0)/1000);var e=1-Math.pow(1-p,3);el.textContent=fmt(from+(to-from)*e);if(p<1)requestAnimationFrame(s);else{el.textContent=fmt(to);el.setAttribute('data-v',to);}}requestAnimationFrame(s);}
-async function ethCall(to,data){for(let i=0;i<RPCS.length;i++){try{
+async function solRpc(method,params){for(let i=0;i<RPCS.length;i++){try{
 const r=await fetch(RPCS[i],{method:'POST',headers:{'Content-Type':'application/json'},
-body:JSON.stringify({jsonrpc:'2.0',method:'eth_call',params:[{to,data},'latest'],id:1})});
+body:JSON.stringify({jsonrpc:'2.0',id:1,method,params})});
 const j=await r.json();if(j.error)throw new Error(j.error.message);return j.result;}
 catch(e){if(i===RPCS.length-1)throw e;}}}
 
-/* ===== burn counter ===== */
+/* ===== burn counter (Solana: SPL burn pulls straight off supply) ===== */
 async function readBurn(){if(!TOKEN)return null;
-const pad=a=>'0x70a08231000000000000000000000000'+a.slice(2).toLowerCase();
-try{const[ts,d,z]=await Promise.all([ethCall(TOKEN,'0x18160ddd'),ethCall(TOKEN,pad(DEAD)),ethCall(TOKEN,pad(ZERO))]);
-const init=BigInt(INITIAL_SUPPLY)*10n**18n;
-const burned=(init-BigInt(ts||'0x0'))+BigInt(d||'0x0')+BigInt(z||'0x0');
-return{supply:Number(BigInt(ts||'0x0'))/1e18,burned:Math.max(0,Number(burned)/1e18)};}catch(e){return null;}}
+try{const s=await solRpc('getTokenSupply',[TOKEN]);
+const supply=Number(s&&s.value&&s.value.uiAmount||0);
+const burned=Math.max(0,INITIAL_SUPPLY-supply);
+return{supply,burned};}catch(e){return null;}}
 async function refreshBurn(){const r=await readBurn();if(!r)return;
 const remain=Math.max(0,INITIAL_SUPPLY-r.burned);const pct=Math.min(100,r.burned/INITIAL_SUPPLY*100);
 document.getElementById('bBurned').textContent=fmt(r.burned);
@@ -663,7 +659,7 @@ document.getElementById('bRemain').textContent=fmt(remain);
 document.getElementById('bPct').textContent=pct.toFixed(2)+'%';
 document.getElementById('pxBurned').textContent=fmt(r.burned);
 document.getElementById('burnMeter').style.width=pct+'%';
-document.getElementById('burnCapL').textContent=fmt(r.burned)+' of '+fmt(INITIAL_SUPPLY)+' burned to 0xdead';
+document.getElementById('burnCapL').textContent=fmt(r.burned)+' of '+fmt(INITIAL_SUPPLY)+' burned forever';
 document.getElementById('burnCapR').textContent=pct.toFixed(2)+'% gone forever';
 var fb=document.getElementById('fomoBurned');if(fb)fb.textContent=fmt(r.burned);
 document.querySelectorAll('.hBurned').forEach(function(b){b.textContent=fmt(r.burned);});
@@ -678,14 +674,7 @@ const p=(j.pairs||[]).sort((a,b)=>(b.liquidity?.usd||0)-(a.liquidity?.usd||0))[0
 if(p){set('pxPrice','$'+Number(p.priceUsd).toPrecision(3));
 const ch=p.priceChange?.h24;if(ch!=null){const e=document.getElementById('pxChange');e.textContent=(ch>=0?'+':'')+ch+'%';e.style.color=ch>=0?'var(--green)':'var(--ember)';}
 set('pxMc','$'+fmt(p.marketCap||p.fdv));set('pxVol','$'+fmt(p.volume?.h24));return;}}catch(e){}
-// pre-graduation: nad.fun bonding-curve market (keyless)
-try{const r=await fetch(`https://api.nad.fun/trade/market/${TOKEN}`);const j=await r.json();const m=j.market_info;if(!m)return;
-const px=Number(m.price_usd||0);const sup=Number(m.total_supply||0)/1e18;
-if(px){const d=px<1e-4?px.toExponential(2):px.toPrecision(3);set('pxPrice','$'+d);}
-if(px&&sup)set('pxMc','$'+fmt(px*sup));
-if(m.volume!=null)set('pxVol',fmt(Number(m.volume)/1e18)+' MON');
-if(m.holder_count!=null)set('pxHolders',String(m.holder_count));
-}catch(e){}}
+}
 
 /* ===== 4:20 countdown + window ===== */
 function next420(){const now=new Date();const t=[];
@@ -727,13 +716,13 @@ async function sbJoinSession(id){ const r=await fetch(`${SUPABASE_URL}/rest/v1/r
 const SEED=[
  {id:'seed-1',region:'Brooklyn, NY',lat:40.6782,lng:-73.9442,strain:'$CHRONIC OG',vibe:'launch session, gassed up \ud83d\udd25',hits:12,_seed:true},
  {id:'seed-2',region:'Los Angeles, CA',lat:34.0522,lng:-118.2437,strain:'Gas Pedal',vibe:'sunset burn for the fire',hits:8,_seed:true},
- {id:'seed-3',region:'Toronto, ON',lat:43.6532,lng:-79.3832,strain:'Monad Kush',vibe:'gm from the 6, feeding the fire',hits:5,_seed:true},
+ {id:'seed-3',region:'Toronto, ON',lat:43.6532,lng:-79.3832,strain:'Solana OG',vibe:'gm from the 6, feeding the fire',hits:5,_seed:true},
  {id:'seed-4',region:'London, UK',lat:51.5074,lng:-0.1278,strain:'Purple Curve',vibe:'pip pip, pass the $CHRONIC',hits:7,_seed:true},
  {id:'seed-5',region:'Amsterdam, NL',lat:52.3676,lng:4.9041,strain:'Ash Haze',vibe:'coffeeshop + $CHRONIC',hits:14,_seed:true},
  {id:'seed-6',region:'Berlin, DE',lat:52.52,lng:13.405,strain:'Frostbite',vibe:'techno + indica burn',hits:6,_seed:true},
  {id:'seed-7',region:'Bangkok, TH',lat:13.7563,lng:100.5018,strain:'Burn OG',vibe:'old school, new fire',hits:3,_seed:true},
  {id:'seed-8',region:'Tokyo, JP',lat:35.6762,lng:139.6503,strain:'$CHRONIC OG',vibe:'late night burn session',hits:4,_seed:true},
- {id:'seed-9',region:'Mumbai, IN',lat:19.076,lng:72.8777,strain:'Monad Kush',vibe:'feeding the fire from India',hits:9,_seed:true},
+ {id:'seed-9',region:'Mumbai, IN',lat:19.076,lng:72.8777,strain:'Solana OG',vibe:'feeding the fire from India',hits:9,_seed:true},
  {id:'seed-10',region:'Denver, CO',lat:39.7392,lng:-104.9903,strain:'Gas Pedal',vibe:'mile high, lighting $CHRONIC',hits:10,_seed:true},
  {id:'seed-11',region:'Vancouver, BC',lat:49.2827,lng:-123.1207,strain:'Purple Curve',vibe:'west coast smoke',hits:11,_seed:true},
  {id:'seed-12',region:'Lisbon, PT',lat:38.7223,lng:-9.1393,strain:'Ash Haze',vibe:'ocean front burn',hits:5,_seed:true}
@@ -794,9 +783,9 @@ loadStrains(); bootSessions();
     '<span class="g">\ud83d\udca8 <b class="hSess">0</b> SESSIONS BURNING WORLDWIDE</span>',
     '<span>\u23f3 NEXT 4:20 IN <b class="hCd">--:--:--</b></span>',
     '<span class="g">\ud83c\udf3f 60+ STRAINS ON THE MENU</span>',
-    '<span>\ud83d\udc80 BURN IT DON’T HOARD IT \u00b7 LIVE ON MONAD</span>',
+    '<span>\ud83d\udc80 BURN IT DON’T HOARD IT \u00b7 LIVE ON SOLANA</span>',
     '<span class="o">\ud83d\ude80 EARLY = EVERYTHING \u2014 DON\u2019T BE LAST IN</span>',
-    '<span class="o">\ud83d\udd25 <b class="hBurned">\u2014</b> $CHRONIC BURNED TO 0xdead</span>'
+    '<span class="o">\ud83d\udd25 <b class="hBurned">\u2014</b> $CHRONIC BURNED FOREVER</span>'
   ];
   var t=document.getElementById('hypeTrack');
   if(t){ t.innerHTML=(items.join('')+items.join('')); }
@@ -825,11 +814,11 @@ loadStrains(); bootSessions();
   // sticky buy fab — appears after the hero, links to buy
   var fab=document.getElementById('buyFab');
   var hb=document.getElementById('heroBuyBtn');
-  if(fab){ fab.href = (typeof TOKEN!=='undefined' && TOKEN) ? ('https://nad.fun/tokens/'+TOKEN) : 'https://t.me/burnweedsta'; }
+  if(fab){ fab.href = (typeof TOKEN!=='undefined' && TOKEN) ? ('https://pump.fun/coin/'+TOKEN) : 'https://t.me/burnchronic'; }
   window.addEventListener('scroll',function(){ if(!fab)return; fab.classList.toggle('show', window.scrollY>700); },{passive:true});
 })();
 </script>
-<a class="buyfab" id="buyFab" href="https://nad.fun/tokens/0x52641feEdCE831247514bf7C2378513741077777" target="_blank" rel="noopener">🔥 BUY $CHRONIC<span class="mc">don’t be the last one in</span></a>
+<a class="buyfab" id="buyFab" href="https://pump.fun/coin/J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump" target="_blank" rel="noopener">🔥 BUY $CHRONIC<span class="mc">don’t be the last one in</span></a>
 <script>
 (function(){
   // ---- NEWSLETTER -> beehiiv hosted subscribe (real signups, double opt-in by beehiiv) ----
