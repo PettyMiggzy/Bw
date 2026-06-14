@@ -1,8 +1,8 @@
 'use strict';
 /*
- * /api/launch — $CHRONIC Launchpad (non-custodial, on pump.fun via PumpPortal).
+ * /api/launch — $CHRONIC Launchpad (non-custodial token deploys).
  *   POST action=metadata { imageBase64, fileType, name, symbol, description, twitter?, telegram?, website? }
- *        -> uploads to pump.fun IPFS, returns { uri }
+ *        -> uploads image + metadata, returns { uri }
  *   POST action=create   { publicKey, mint, name, symbol, uri, image, devBuySol? }
  *        -> returns { transaction (base64) } for the user to sign (with the mint keypair + wallet),
  *           and records the launch so the dev earns 50% of terminal fees on their token.
@@ -12,8 +12,8 @@
  */
 const G = require('./_grow.js');
 
-const PUMP_IPFS = 'https://pump.fun/api/ipfs';
-const PUMPPORTAL = 'https://pumpportal.fun/api/trade-local';
+const IPFS_API = 'https://pump.fun/api/ipfs';
+const DEPLOY_API = 'https://pumpportal.fun/api/trade-local';
 
 function cors(res) {
   res.setHeader('access-control-allow-origin', '*');
@@ -37,7 +37,7 @@ module.exports = async (req, res) => {
   const action = b.action;
 
   try {
-    // ── upload image + metadata to pump.fun IPFS ──
+    // ── upload image + metadata ──
     if (action === 'metadata') {
       if (!b.imageBase64 || !b.name || !b.symbol) return send(res, 400, { error: 'need image, name, symbol' });
       const bytes = Buffer.from(String(b.imageBase64).replace(/^data:[^,]+,/, ''), 'base64');
@@ -51,7 +51,7 @@ module.exports = async (req, res) => {
       form.append('telegram', String(b.telegram || ''));
       form.append('website', String(b.website || ''));
       form.append('showName', 'true');
-      const r = await fetch(PUMP_IPFS, { method: 'POST', body: form });
+      const r = await fetch(IPFS_API, { method: 'POST', body: form });
       if (!r.ok) return send(res, 502, { error: 'metadata upload failed (' + r.status + ')' });
       const j = await r.json();
       const uri = j.metadataUri || (j.metadata && j.metadata.uri);
@@ -59,12 +59,12 @@ module.exports = async (req, res) => {
       return send(res, 200, { uri, image: (j.metadata && j.metadata.image) || '' });
     }
 
-    // ── build the create transaction (PumpPortal local) ──
+    // ── build the create transaction ──
     if (action === 'create') {
       const { publicKey, mint, name, symbol, uri } = b;
       if (!G.isPubkey(publicKey) || !G.isPubkey(mint) || !name || !symbol || !uri) return send(res, 400, { error: 'missing create fields' });
       const devBuy = Math.max(0, Math.min(50, Number(b.devBuySol) || 0));
-      const r = await fetch(PUMPPORTAL, {
+      const r = await fetch(DEPLOY_API, {
         method: 'POST', headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           publicKey, action: 'create',
@@ -72,7 +72,7 @@ module.exports = async (req, res) => {
           mint, denominatedInSol: 'true', amount: devBuy, slippage: 10, priorityFee: 0.0005, pool: 'pump',
         }),
       });
-      if (!r.ok) { const t = await r.text(); return send(res, 502, { error: 'pumpportal: ' + r.status + ' ' + t.slice(0, 140) }); }
+      if (!r.ok) return send(res, 502, { error: 'deploy failed — try again (' + r.status + ')' });
       const buf = Buffer.from(await r.arrayBuffer());
       // record the launch (best-effort) so the dev earns 50% of terminal fees
       try {
