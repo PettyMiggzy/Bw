@@ -296,17 +296,17 @@ var BUDS=['/assets/stash-1.jpg','/assets/stash-2.jpg','/assets/stash-3.jpg','/as
 
 /* catalog — defaults; overwritten by /api/grow?action=config */
 var SEEDS={
-  mids:  {nm:'Mids',  img:'/assets/strain-mids.png',  rar:'mids',  cost:250,  grow:30000, xp:10,  ds:'cheap & quick'},
-  loud:  {nm:'Loud',  img:'/assets/strain-loud.png',  rar:'loud',  cost:1200, grow:60000, xp:60,  ds:'solid mid-shelf'},
-  gas:   {nm:'Gas',   img:'/assets/strain-gas.png',   rar:'gas',   cost:5000, grow:120000,xp:320, ds:'top-shelf fire'},
-  exotic:{nm:'Exotic',img:'/assets/strain-exotic.png',rar:'exotic',cost:20000,grow:240000,xp:1600,ds:'rare loud, max XP'}
+  mids:  {nm:'Mids',  img:'/assets/strain-mids.png',  rar:'mids',  cost:50000,  grow:30000, xp:50,  ds:'cheap & quick'},
+  loud:  {nm:'Loud',  img:'/assets/strain-loud.png',  rar:'loud',  cost:250000, grow:60000, xp:300, ds:'solid mid-shelf'},
+  gas:   {nm:'Gas',   img:'/assets/strain-gas.png',   rar:'gas',   cost:1000000,grow:120000,xp:1400,ds:'top-shelf fire'},
+  exotic:{nm:'Exotic',img:'/assets/strain-exotic.png',rar:'exotic',cost:5000000,grow:240000,xp:8000,ds:'rare loud, max XP'}
 };
 var SEED_ORDER=['mids','loud','gas','exotic'];
 var UPS=[
-  {k:'light',ic:'💡',nm:'GROW LIGHT', ds:'grow 15% faster',  base:3000, mul:1.9, max:8},
-  {k:'nutes',ic:'🧪',nm:'NUTRIENTS',  ds:'+40% XP / sale',   base:4000, mul:1.85,max:10},
-  {k:'plot', ic:'🪴',nm:'NEW PLOT',   ds:'open another plot',base:8000, mul:2.1, max:5},
-  {k:'auto', ic:'🤖',nm:'AUTO-TENDER',ds:'auto-sells ripe',  base:60000,mul:1,   max:1}
+  {k:'light',ic:'💡',nm:'GROW LIGHT', ds:'grow 15% faster',  base:150000, mul:1.9, max:8},
+  {k:'nutes',ic:'🧪',nm:'NUTRIENTS',  ds:'+40% XP / sale',   base:200000, mul:1.85,max:10},
+  {k:'plot', ic:'🪴',nm:'NEW PLOT',   ds:'open another plot',base:400000, mul:2.1, max:5},
+  {k:'auto', ic:'🤖',nm:'AUTO-TENDER',ds:'auto-sells ripe',  base:3000000,mul:1,   max:1}
 ];
 function upCost(k,lvl){ var u=UPS.filter(function(x){return x.k===k;})[0]; return Math.round(u.base*Math.pow(u.mul,lvl||0)); }
 
@@ -323,7 +323,7 @@ var RIVALS=[
 
 /* ---------- runtime state ---------- */
 var MODE='demo';
-var DEMO_DEF={ on:false, bal:120000, xp:0, contributed:0, basePool:415000,
+var DEMO_DEF={ on:false, bal:8000000, xp:0, contributed:0, basePool:14000000,
   seeds:{}, lvl:{light:0,nutes:0,plot:0,auto:0}, plots:[], seasonEnd:Date.now()+SEASON_MS };
 var D; // demo state
 var LIVE={ token:null, wallet:null, lvl:{}, seeds:{}, plots:[], xp:0, poolWhole:0, endsAt:null, board:null, balance:null };
