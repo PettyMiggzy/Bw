@@ -1,5 +1,5 @@
 -- =====================================================================
--- BURNING $WEEDSTA — Smoke Sessions schema
+-- BURNING $CHRONIC — Smoke Sessions schema
 -- Paste this entire file into Supabase SQL Editor → Run
 -- Idempotent: safe to re-run if you tweak something.
 -- =====================================================================
