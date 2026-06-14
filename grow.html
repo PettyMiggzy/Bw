@@ -168,6 +168,8 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
 .row .xp{font-family:var(--fd);font-size:13px;color:var(--green)}
 .row .xp i{font-style:normal;font-size:8px;color:var(--dim);display:block;text-align:right;letter-spacing:.1em}
 .empty-note{color:var(--dim);font-size:12px;text-align:center;padding:24px 10px}
+.sharex{display:block;text-align:center;margin:16px auto 0;max-width:320px;font-family:var(--fd);font-size:12px;letter-spacing:.04em;text-decoration:none;background:linear-gradient(90deg,#1d9bf0,#0d7ec4);color:#fff;border-radius:14px;padding:13px;box-shadow:0 6px 20px rgba(29,155,240,.3)}
+.sharex:active{transform:scale(.98)}
 /* market */
 .mkrow{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:13px;margin-bottom:7px;background:linear-gradient(180deg,rgba(16,26,18,.7),rgba(10,15,11,.7));border:1px solid var(--line)}
 .mkrow .ic{font-size:22px;width:26px;text-align:center}
@@ -276,6 +278,7 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
     <div class="podium" id="podium"></div>
     <div class="lbl">▸ Full Standings</div>
     <div id="rows"></div>
+    <a class="sharex" id="boardShare" target="_blank" rel="noopener">🐦 Flex your rank on X</a>
   </div>
 
   <!-- MARKET VIEW -->
@@ -678,6 +681,11 @@ function renderBoard(){ var V=VM(); var list;
   list.forEach(function(p,i){ var d=document.createElement('div'); d.className='row'+(p.you?' you':'')+(i<3?' top':'');
     d.innerHTML='<div class="rk">'+(i+1)+'</div><div class="who">'+p.who+(p.addr?'<small>'+p.addr+'</small>':'')+'</div>'
       +'<div class="xp">'+fmt(p.xp)+'<i>XP</i></div>'; rows.appendChild(d); });
+  var sb=$('boardShare'); if(sb){ var youI=-1; for(var k=0;k<list.length;k++){ if(list[k].you){youI=k;break;} }
+    var rank=youI>=0?(youI+1):null;
+    var txt=rank?('I’m rank #'+rank+' on $CHRONIC GROW 🌱🔥 — '+fmt(V.xp)+' XP. top 3 split the '+fmt(P)+' $CHRONIC weekly pool. catch up 👇')
+                :('$CHRONIC GROW 🌱 burn to grow — top 3 split the '+fmt(P)+' $CHRONIC weekly pool every week 🔥👇');
+    sb.href='https://twitter.com/intent/tweet?text='+encodeURIComponent(txt)+'&url='+encodeURIComponent('https://www.burnchronic.xyz/grow'); }
 }
 
 /* ============================================================
