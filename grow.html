@@ -50,6 +50,8 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
   color:var(--green);text-shadow:0 0 36px rgba(82,255,143,.5),5px 5px 0 var(--ember2)}
 .tagline{text-align:center;color:var(--dim);font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:20px}
 .tagline b{color:var(--gold)}
+.modepill{display:block;text-align:center;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:-14px 0 18px}
+.modepill b{color:var(--ember)} .modepill.live b{color:var(--green)}
 
 /* season pool card */
 .season{position:relative;overflow:hidden;border-radius:22px;padding:20px 18px;margin-bottom:8px;
@@ -121,6 +123,7 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
 .up .lv{font-size:10px;color:var(--green);letter-spacing:.04em}
 .up .cost{margin-top:5px;font-family:var(--fd);font-size:13px;color:var(--ember);display:flex;align-items:center;gap:5px}
 .up.maxed{opacity:.5}.up.maxed .cost{color:var(--dim)}
+.own{position:absolute;top:8px;left:8px;z-index:2;font-family:var(--fd);font-size:8px;letter-spacing:.04em;padding:3px 7px;border-radius:20px;background:var(--green-deep);color:var(--green)}
 .rar{position:absolute;top:8px;right:8px;z-index:2;font-family:var(--fd);font-size:7px;letter-spacing:.08em;padding:3px 7px;border-radius:20px}
 .rar.mids{background:#5b6b4a;color:#dff5cf} .rar.loud{background:var(--green-deep);color:var(--green)}
 .rar.gas{background:#7a3a12;color:var(--ember)} .rar.exotic{background:var(--smoke);color:#f0d9ff}
@@ -147,6 +150,7 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
 .row .who small{display:block;color:var(--dim);font-weight:400;font-size:9px;letter-spacing:.04em}
 .row .xp{font-family:var(--fd);font-size:13px;color:var(--green)}
 .row .xp i{font-style:normal;font-size:8px;color:var(--dim);display:block;text-align:right;letter-spacing:.1em}
+.empty-note{color:var(--dim);font-size:12px;text-align:center;padding:24px 10px}
 
 /* how it works */
 .how{background:linear-gradient(180deg,rgba(16,26,18,.7),rgba(10,15,11,.7));border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
@@ -157,7 +161,7 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
 .step .t b{color:var(--text)} .step .t .g{color:var(--green)} .step .t .o{color:var(--ember)} .step .t .y{color:var(--gold)}
 .disc{font-size:10px;color:var(--dim);line-height:1.6;border-top:1px solid var(--line);padding-top:12px;margin-top:4px}
 
-/* toast + raid */
+/* toast */
 .toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%) translateY(20px);z-index:400;opacity:0;
   background:var(--green);color:#04140a;font-family:var(--fd);font-size:12px;padding:10px 18px;border-radius:30px;transition:opacity .25s,transform .25s;pointer-events:none;text-align:center;max-width:90vw}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -173,8 +177,9 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
 #veil img{width:90px;border-radius:14px;margin-bottom:14px}
 #veil h3{font-family:var(--fd);color:var(--green);font-size:18px;margin-bottom:8px}
 #veil p{color:var(--dim);font-size:12px;line-height:1.5;margin-bottom:18px}
-#veil button{font-family:var(--fd);width:100%;background:linear-gradient(90deg,var(--ember2),var(--ember));color:#1a0800;border:0;border-radius:14px;padding:14px;cursor:pointer;font-size:13px}
-#veil .x{margin-top:12px;background:transparent;color:var(--dim);font-family:var(--fm);font-size:11px}
+#veil button{font-family:var(--fd);width:100%;background:linear-gradient(90deg,var(--ember2),var(--ember));color:#1a0800;border:0;border-radius:14px;padding:14px;cursor:pointer;font-size:13px;margin-bottom:10px}
+#veil button.ghost{background:transparent;border:1px solid var(--line);color:var(--green)}
+#veil .x{margin-top:2px;background:transparent;border:0;color:var(--dim);font-family:var(--fm);font-size:11px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -191,6 +196,7 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
 <div class="wrap">
   <h1 class="title">$CHRONIC GROW</h1>
   <div class="tagline">burn to grow · <b>grow to win</b> · top 3 split the pot every 7 days</div>
+  <div class="modepill" id="modePill">◆ <b>demo mode</b> — connect a wallet to play for real</div>
 
   <!-- SEASON POOL -->
   <div class="season">
@@ -224,7 +230,7 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
     <div class="garden" id="garden"></div>
     <div class="shop">
       <h2>▸ The Seed Plug</h2>
-      <p class="hh">Buy seeds with $CHRONIC. Every buy: <b style="color:var(--ember)">60% burned</b> · <b style="color:var(--gold)">40% to the pool</b>. Better strains = more XP.</p>
+      <p class="hh">Buy seeds with $CHRONIC. Every buy: <b style="color:var(--ember)">60% burned</b> · <b style="color:var(--gold)">40% to the pool</b>. Then tap an empty plot to plant. Better strains = more XP.</p>
       <div class="ups" id="seeds"></div>
       <h2 style="margin-top:24px">▸ The Supply Run</h2>
       <p class="hh">Upgrades grow faster &amp; juice your XP. Same split — it all feeds the burn + pool.</p>
@@ -243,20 +249,20 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
   <div class="view" id="v-how">
     <div class="how">
       <h3>The loop</h3>
-      <div class="step"><div class="n">1</div><div class="t"><b>Burn to plant.</b> Spend <span class="g">$CHRONIC</span> on seeds &amp; gear. <span class="o">60% is burned forever</span>, <span class="y">40% drops into this week's pool.</span></div></div>
-      <div class="step"><div class="n">2</div><div class="t"><b>Grow &amp; sell.</b> Plants ripen, you sell the buds. Every sale earns <span class="g">XP</span> — fancier strains pay more.</div></div>
+      <div class="step"><div class="n">1</div><div class="t"><b>Burn to buy.</b> Spend <span class="g">$CHRONIC</span> on seeds &amp; gear. <span class="o">60% is burned forever</span>, <span class="y">40% drops into this week's pool.</span></div></div>
+      <div class="step"><div class="n">2</div><div class="t"><b>Grow &amp; sell.</b> Plant a seed, let it ripen, sell the buds. Every sale earns <span class="g">XP</span> — fancier strains pay more.</div></div>
       <div class="step"><div class="n">3</div><div class="t"><b>Climb.</b> XP ranks you on the <span class="y">weekly leaderboard.</span> Burn more, grow more, climb higher.</div></div>
       <div class="step"><div class="n">4</div><div class="t"><b>Top 3 win.</b> When the 7-day season ends, the <span class="y">top 3 growers split the whole pool</span> proportional to their XP. Then it resets and the race starts again.</div></div>
       <div class="disc">
         No dev cut — 100% of every spend goes to the burn or the players' pool. Prize is paid in $CHRONIC.
-        <br><br>This is a front-end preview: balances, pool and leaderboard are simulated locally and reset on refresh of the season. Wallet + on-chain settlement come next.
+        <br><br><b>Live mode</b> uses your Solana wallet: each buy is one transaction that burns 60% and sends 40% to the pool, verified on-chain. <b>Demo mode</b> simulates it locally so you can feel the loop first.
       </div>
     </div>
   </div>
 
   <div class="foot">
     <a href="/">‹ back to site</a>
-    <button id="reset">↻ reset preview</button>
+    <button id="reset">↻ reset demo</button>
   </div>
 </div>
 
@@ -264,9 +270,10 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
 <div id="veil">
   <div class="card">
     <img src="/assets/coin-logo.png" alt="$CHRONIC"/>
-    <h3>Connect Wallet</h3>
-    <p>Front-end preview — this drops you into a demo wallet so you can feel the loop. Real Solana wallet connect ships with the backend.</p>
-    <button id="doConnect">Enter the grow (demo)</button>
+    <h3>Enter the grow</h3>
+    <p>Connect a Solana wallet to play for real — burns hit the chain and your XP counts toward the weekly pool. Or try the demo first.</p>
+    <button id="doConnect">🔥 Connect Phantom</button>
+    <button class="ghost" id="doDemo">Play the demo</button>
     <button class="x" id="closeVeil">maybe later</button>
   </div>
 </div>
@@ -275,235 +282,339 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
 
 <script>
 /* ============================================================
-   $CHRONIC GROW — front-end preview
-   Economy (simulated): spend $CHRONIC -> 60% burn / 40% pool.
-   Sell buds -> XP. Weekly season, top 3 split pool by XP share.
-   Backend (wallet + on-chain settlement) wired later.
+   $CHRONIC GROW — demo + live.
+   DEMO: simulated locally (browse the loop without a wallet).
+   LIVE: Phantom connect + signed login; buys are one Solana tx that
+         burns 60% & pools 40% (verified server-side); XP + leaderboard
+         live on the backend. Solana RPC is proxied via /api/solrpc so
+         the Alchemy key stays server-side.
 ============================================================ */
 
-var fmt=function(n){ n=Math.floor(n); if(n>=1e9)return(n/1e9).toFixed(2)+'B'; if(n>=1e6)return(n/1e6).toFixed(2)+'M'; if(n>=1e3)return(n/1e3).toFixed(1)+'K'; return ''+n; };
-var $=function(id){return document.getElementById(id);};
-
-/* ---------- config ---------- */
+var API='/api/grow';
+var MAXPLOTS=9, STARTPLOTS=4, SEASON_MS=7*24*60*60*1000;
 var BUDS=['/assets/stash-1.jpg','/assets/stash-2.jpg','/assets/stash-3.jpg','/assets/stash-4.jpg','/assets/stash-5.jpg','/assets/stash-6.jpg'];
-var MAXPLOTS=9, STARTPLOTS=4;
-var SEASON_MS=7*24*60*60*1000;
 
-// seed tiers (rarity) — cost in $CHRONIC, grow time, XP on sell
-var SEEDS=[
-  {k:'mids',  nm:'Mids',   img:'/assets/strain-mids.png',  rar:'mids',  cost:250,   grow:30000, xp:10,  ds:'cheap & quick'},
-  {k:'loud',  nm:'Loud',   img:'/assets/strain-loud.png',  rar:'loud',  cost:1200,  grow:60000, xp:60,  ds:'solid mid-shelf'},
-  {k:'gas',   nm:'Gas',    img:'/assets/strain-gas.png',   rar:'gas',   cost:5000,  grow:120000,xp:320, ds:'top-shelf fire'},
-  {k:'exotic',nm:'Exotic', img:'/assets/strain-exotic.png',rar:'exotic',cost:20000, grow:240000,xp:1600,ds:'rare loud, max XP'}
-];
-var UPS=[
-  {k:'light',ic:'💡',nm:'GROW LIGHT', ds:'grow 15% faster',  base:3000, mul:1.9,max:8},
-  {k:'nutes',ic:'🧪',nm:'NUTRIENTS',  ds:'+40% XP / sale',   base:4000, mul:1.85,max:10},
-  {k:'plot', ic:'🪴',nm:'NEW PLOT',   ds:'open another plot',base:8000, mul:2.1,max:MAXPLOTS-STARTPLOTS},
-  {k:'auto', ic:'🤖',nm:'AUTO-TENDER',ds:'auto-sells ripe',  base:60000,mul:1,  max:1}
-];
-
-/* ---------- mock rivals on the board ---------- */
-var RIVALS=[
-  {who:'ashking.sol',   addr:'7xKQ…be9F', xp:184200},
-  {who:'pufflord',      addr:'9aMv…2Tu1', xp:142800},
-  {who:'greengoblin',   addr:'Hn3p…kQ8d', xp:96500},
-  {who:'420blazeit',    addr:'2Fzr…9wXc', xp:71300},
-  {who:'skeletoncrew',  addr:'Dw8h…Lm4a', xp:54900},
-  {who:'incinerator',   addr:'5Tqp…vZ2e', xp:38600},
-  {who:'budbandit',     addr:'Kx1n…7Rps', xp:24100},
-  {who:'cheeflord',     addr:'Bv6c…q3Hd', xp:15400},
-  {who:'dankdealer',    addr:'Pf9w…tA5k', xp:8800}
-];
-
-/* ---------- state ---------- */
-var S, DEF={
-  bal:120000, xp:0, burned:0, contributed:0, connected:false,
-  plots:[], lvl:{light:0,nutes:0,plot:0,auto:0},
-  seasonEnd: Date.now()+SEASON_MS, basePool:415000
+/* catalog — defaults; overwritten by /api/grow?action=config */
+var SEEDS={
+  mids:  {nm:'Mids',  img:'/assets/strain-mids.png',  rar:'mids',  cost:250,  grow:30000, xp:10,  ds:'cheap & quick'},
+  loud:  {nm:'Loud',  img:'/assets/strain-loud.png',  rar:'loud',  cost:1200, grow:60000, xp:60,  ds:'solid mid-shelf'},
+  gas:   {nm:'Gas',   img:'/assets/strain-gas.png',   rar:'gas',   cost:5000, grow:120000,xp:320, ds:'top-shelf fire'},
+  exotic:{nm:'Exotic',img:'/assets/strain-exotic.png',rar:'exotic',cost:20000,grow:240000,xp:1600,ds:'rare loud, max XP'}
 };
-function load(){ try{S=JSON.parse(localStorage.getItem('cg2'))||null;}catch(e){S=null;} if(!S) S=JSON.parse(JSON.stringify(DEF));
-  for(var k in DEF) if(typeof S[k]==='undefined') S[k]=JSON.parse(JSON.stringify(DEF[k]));
-  while(S.plots.length<MAXPLOTS) S.plots.push({state:'empty',at:0,bud:0,seed:null});
-  if(Date.now()>=S.seasonEnd) rollSeason(); }
-function save(){ localStorage.setItem('cg2',JSON.stringify(S)); }
+var SEED_ORDER=['mids','loud','gas','exotic'];
+var UPS=[
+  {k:'light',ic:'💡',nm:'GROW LIGHT', ds:'grow 15% faster',  base:3000, mul:1.9, max:8},
+  {k:'nutes',ic:'🧪',nm:'NUTRIENTS',  ds:'+40% XP / sale',   base:4000, mul:1.85,max:10},
+  {k:'plot', ic:'🪴',nm:'NEW PLOT',   ds:'open another plot',base:8000, mul:2.1, max:5},
+  {k:'auto', ic:'🤖',nm:'AUTO-TENDER',ds:'auto-sells ripe',  base:60000,mul:1,   max:1}
+];
+function upCost(k,lvl){ var u=UPS.filter(function(x){return x.k===k;})[0]; return Math.round(u.base*Math.pow(u.mul,lvl||0)); }
 
-/* pool = base + your 40% contribution + (simulated rival flow scales base) */
-function pool(){ return Math.round(S.basePool + S.contributed*0.4 + S.contributed); }
-// note: pool grows by 40% of YOUR spend; basePool represents everyone else already in.
+var CFG={ mint:'J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump', decimals:6, pool:'', rpcProxy:'/api/solrpc', ready:false };
 
-function plotCount(){ return STARTPLOTS+S.lvl.plot; }
-function growTimeOf(seed){ return Math.round(seed.grow*Math.pow(0.85,S.lvl.light)); }
-function xpOf(seed){ return Math.round(seed.xp*Math.pow(1.4,S.lvl.nutes)); }
+/* mock rivals for demo board */
+var RIVALS=[
+  {who:'ashking.sol',addr:'7xKQ…be9F',xp:184200},{who:'pufflord',addr:'9aMv…2Tu1',xp:142800},
+  {who:'greengoblin',addr:'Hn3p…kQ8d',xp:96500},{who:'420blazeit',addr:'2Fzr…9wXc',xp:71300},
+  {who:'skeletoncrew',addr:'Dw8h…Lm4a',xp:54900},{who:'incinerator',addr:'5Tqp…vZ2e',xp:38600},
+  {who:'budbandit',addr:'Kx1n…7Rps',xp:24100},{who:'cheeflord',addr:'Bv6c…q3Hd',xp:15400},
+  {who:'dankdealer',addr:'Pf9w…tA5k',xp:8800}
+];
 
-/* ---------- spend helper: 60% burn / 40% pool ---------- */
-function spend(amt,label){
-  if(S.bal<amt){ toast('need '+fmt(amt)+' $CHRONIC',true); return false; }
-  S.bal-=amt; S.burned+=Math.round(amt*0.6); S.contributed+=Math.round(amt*0.4);
-  save(); renderHud(); renderPoolUI();
-  return true;
+/* ---------- runtime state ---------- */
+var MODE='demo';
+var DEMO_DEF={ on:false, bal:120000, xp:0, contributed:0, basePool:415000,
+  seeds:{}, lvl:{light:0,nutes:0,plot:0,auto:0}, plots:[], seasonEnd:Date.now()+SEASON_MS };
+var D; // demo state
+var LIVE={ token:null, wallet:null, lvl:{}, seeds:{}, plots:[], xp:0, poolWhole:0, endsAt:null, board:null, balance:null };
+
+function loadDemo(){ try{D=JSON.parse(localStorage.getItem('cg3'))||null;}catch(e){D=null;} if(!D)D=JSON.parse(JSON.stringify(DEMO_DEF));
+  for(var k in DEMO_DEF) if(typeof D[k]==='undefined') D[k]=JSON.parse(JSON.stringify(DEMO_DEF[k]));
+  if(Date.now()>=D.seasonEnd){ D.basePool=Math.round(300000+Math.random()*250000); D.contributed=0; D.xp=0; D.plots=[]; D.seasonEnd=Date.now()+SEASON_MS; } }
+function saveDemo(){ localStorage.setItem('cg3',JSON.stringify(D)); }
+
+/* ---------- helpers ---------- */
+var $=function(id){return document.getElementById(id);};
+function fmt(n){ n=Math.floor(n||0); if(n>=1e9)return(n/1e9).toFixed(2)+'B'; if(n>=1e6)return(n/1e6).toFixed(2)+'M'; if(n>=1e3)return(n/1e3).toFixed(1)+'K'; return ''+n; }
+function shortW(w){ return w?(w.slice(0,4)+'…'+w.slice(-4)):''; }
+var _th; function toast(m,bad){ var t=$('toast'); t.textContent=m; t.classList.toggle('bad',!!bad); t.classList.add('show'); clearTimeout(_th); _th=setTimeout(function(){t.classList.remove('show');},1900); }
+
+/* ---------- view model (unifies demo + live) ---------- */
+function VM(){
+  if(MODE==='live'){
+    return { live:true, connected:true, wallet:LIVE.wallet, balance:LIVE.balance, xp:LIVE.xp,
+      poolWhole:LIVE.poolWhole, endsAt:LIVE.endsAt?new Date(LIVE.endsAt).getTime():Date.now()+SEASON_MS,
+      lvl:LIVE.lvl||{}, seeds:LIVE.seeds||{}, plots:LIVE.plots||[], board:LIVE.board };
+  }
+  return { live:false, connected:D.on, wallet:null, balance:D.on?D.bal:null, xp:D.xp,
+    poolWhole:Math.round(D.basePool+D.contributed), endsAt:D.seasonEnd,
+    lvl:D.lvl, seeds:D.seeds, plots:D.plots, board:null };
+}
+function plotCount(V){ return STARTPLOTS+((V.lvl&&V.lvl.plot)||0); }
+function growMsOf(strain,lvl){ var s=SEEDS[strain]||SEEDS.mids; return Math.round(s.grow*Math.pow(0.85,(lvl&&lvl.light)||0)); }
+function xpOf(strain,lvl){ var s=SEEDS[strain]||SEEDS.mids; return Math.round(s.xp*Math.pow(1.4,(lvl&&lvl.nutes)||0)); }
+function bestOwnedSeed(V){ for(var i=SEED_ORDER.length-1;i>=0;i--){ var k=SEED_ORDER[i]; if((V.seeds[k]||0)>0) return k; } return null; }
+
+/* ============================================================
+   API + chain
+============================================================ */
+function authH(){ return LIVE.token?{authorization:'Bearer '+LIVE.token}:{}; }
+async function apiGet(action,params){ var q=new URLSearchParams(Object.assign({action:action},params||{}));
+  var r=await fetch(API+'?'+q.toString(),{headers:authH()}); return r.json(); }
+async function apiPost(action,bodyObj){ var r=await fetch(API,{method:'POST',
+  headers:Object.assign({'content-type':'application/json'},authH()),
+  body:JSON.stringify(Object.assign({action:action},bodyObj||{}))}); return r.json(); }
+
+var _w3,_spl;
+async function chain(){ if(!_w3){ _w3=await import('https://esm.sh/@solana/web3.js@1.95.3');
+  _spl=await import('https://esm.sh/@solana/spl-token@0.4.8'); } return {w3:_w3,spl:_spl}; }
+function conn(w3){ return new w3.Connection(location.origin+(CFG.rpcProxy||'/api/solrpc'),'confirmed'); }
+
+async function fetchBalance(){
+  try{ var c=await chain(); var owner=new c.w3.PublicKey(LIVE.wallet); var mint=new c.w3.PublicKey(CFG.mint);
+    var ata=c.spl.getAssociatedTokenAddressSync(mint,owner);
+    var b=await conn(c.w3).getTokenAccountBalance(ata); return Math.floor(Number((b.value&&b.value.uiAmount)||0));
+  }catch(e){ return 0; } }
+
+async function confirmSig(c,sig){
+  for(var i=0;i<30;i++){ try{ var st=await conn(c.w3).getSignatureStatuses([sig]);
+    var s=st&&st.value&&st.value[0];
+    if(s){ if(s.err) throw new Error('tx failed on-chain'); if(s.confirmationStatus==='confirmed'||s.confirmationStatus==='finalized') return true; }
+  }catch(e){ if(/failed on-chain/.test(e.message)) throw e; }
+  await new Promise(function(r){setTimeout(r,1500);}); }
+  return false;
 }
 
-/* ---------- garden ---------- */
+/* build + send the burn(60%)+pool(40%) tx, then have the server verify it */
+async function buyOnChain(costWhole,kind,item){
+  if(!CFG.ready||!CFG.pool){ toast('on-chain buys not live yet',true); return false; }
+  var prov=window.phantom&&window.phantom.solana?window.phantom.solana:window.solana;
+  if(!prov){ toast('wallet not found',true); return false; }
+  toast('building burn… approve in wallet 🔥');
+  try{
+    var c=await chain();
+    var owner=new c.w3.PublicKey(LIVE.wallet), mint=new c.w3.PublicKey(CFG.mint), pool=new c.w3.PublicKey(CFG.pool);
+    var fromAta=c.spl.getAssociatedTokenAddressSync(mint,owner);
+    var total=BigInt(Math.round(costWhole))*(10n**BigInt(CFG.decimals));
+    var burn=total*60n/100n, poolAmt=total-burn;
+    var ixB=c.spl.createBurnCheckedInstruction(fromAta,mint,owner,burn,CFG.decimals);
+    var ixT=c.spl.createTransferCheckedInstruction(fromAta,mint,pool,owner,poolAmt,CFG.decimals);
+    var tx=new c.w3.Transaction().add(ixB,ixT); tx.feePayer=owner;
+    var bh=await conn(c.w3).getLatestBlockhash(); tx.recentBlockhash=bh.blockhash;
+    var signed=await prov.signTransaction(tx);
+    var sig=await conn(c.w3).sendRawTransaction(signed.serialize());
+    toast('burning on-chain… ⛓');
+    await confirmSig(c,sig);
+    var res=await apiPost('buy',{sig:sig,kind:kind,item:item});
+    if(res.error){ toast('rejected: '+(res.reason||res.error),true); return false; }
+    if(res.player){ applyPlayer(res.player); }
+    LIVE.balance=await fetchBalance();
+    await refreshSeason(); renderAll();
+    return true;
+  }catch(e){ toast((e&&e.message&&/User rejected/i.test(e.message))?'cancelled':'buy failed: '+(e&&e.message||e),true); return false; }
+}
+
+/* ---------- live data sync ---------- */
+function applyPlayer(p){ LIVE.lvl=p.lvl||{}; LIVE.seeds=p.seeds||{};
+  LIVE.plots=(p.plots||[]).map(function(x){return {strain:x.strain,at:x.at};}); }
+async function refreshState(){
+  var st=await apiGet('state');
+  if(st.error){ if(/auth/i.test(st.error)){ logoutLive(); toast('session expired — reconnect',true);} return; }
+  applyPlayer(st.player); LIVE.xp=st.xp; LIVE.poolWhole=st.season.poolWhole; LIVE.endsAt=st.season.endsAt;
+}
+async function refreshSeason(){
+  var lb=await apiGet('leaderboard',{limit:25});
+  if(!lb.error){ LIVE.poolWhole=lb.poolWhole; LIVE.endsAt=lb.endsAt;
+    LIVE.board=(lb.board||[]).map(function(r){ return {who:shortW(r.wallet),addr:'',xp:r.xp,you:r.wallet===LIVE.wallet}; });
+    if(LIVE.wallet && !LIVE.board.some(function(b){return b.you;}) && LIVE.xp>0)
+      LIVE.board.push({who:shortW(LIVE.wallet),addr:'you',xp:LIVE.xp,you:true});
+  }
+}
+async function refreshLive(){ await refreshState(); LIVE.balance=await fetchBalance(); await refreshSeason(); renderAll(); }
+
+/* ---------- connect / login ---------- */
+async function connectLive(){
+  var prov=window.phantom&&window.phantom.solana?window.phantom.solana:window.solana;
+  if(!prov||!prov.isPhantom){ toast('Phantom not found — install it or play demo',true); return; }
+  if(!CFG.ready){ toast('on-chain not live yet — try demo',true); return; }
+  try{
+    var resp=await prov.connect(); var wallet=resp.publicKey.toString();
+    var n=await apiGet('nonce',{wallet:wallet});
+    if(n.error){ toast('login failed: '+n.error,true); return; }
+    var sg=await prov.signMessage(new TextEncoder().encode(n.message),'utf8');
+    var bytes=sg.signature||sg; var b64=btoa(String.fromCharCode.apply(null,bytes));
+    var lg=await apiPost('login',{wallet:wallet,signature:b64});
+    if(lg.error||!lg.token){ toast('login failed: '+(lg.error||'no token'),true); return; }
+    LIVE.token=lg.token; LIVE.wallet=wallet; MODE='live';
+    // session kept in memory only — never persisted, so the wallet never auto-connects on reload
+    $('veil').classList.remove('on');
+    toast('connected — go burn 🔥');
+    await refreshLive();
+  }catch(e){ toast((e&&/reject/i.test(e.message))?'cancelled':'connect failed',true); }
+}
+function logoutLive(){ MODE='demo'; LIVE.token=null; LIVE.wallet=null; LIVE.board=null;
+  try{ var p=window.solana; if(p&&p.disconnect)p.disconnect(); }catch(e){} renderAll(); }
+
+/* ============================================================
+   actions (route by MODE)
+============================================================ */
+function buySeed(strain){
+  var V=VM();
+  if(MODE==='live'){ buyOnChain(SEEDS[strain].cost,'seed',strain); return; }
+  if(!D.on){ openVeil(); return; }
+  var cost=SEEDS[strain].cost; if(D.bal<cost){ toast('need '+fmt(cost)+' $CHRONIC',true); return; }
+  D.bal-=cost; D.contributed+=Math.round(cost*0.4); D.seeds[strain]=(D.seeds[strain]||0)+1; saveDemo(); renderAll();
+  toast('bought '+SEEDS[strain].nm+' 🌱 — plant it');
+}
+function buyUp(u){
+  var V=VM(); var lvl=(V.lvl&&V.lvl[u.k])||0; if(lvl>=u.max){ toast('maxed out'); return; }
+  var cost=upCost(u.k,lvl);
+  if(MODE==='live'){ buyOnChain(cost,'upgrade',u.k); return; }
+  if(!D.on){ openVeil(); return; }
+  if(D.bal<cost){ toast('need '+fmt(cost)+' $CHRONIC',true); return; }
+  D.bal-=cost; D.contributed+=Math.round(cost*0.4); D.lvl[u.k]=lvl+1; saveDemo(); renderAll(); toast(u.nm+' up! 🔧');
+}
+async function plant(){
+  var V=VM(); var strain=bestOwnedSeed(V);
+  if(!strain){ toast('no seeds — buy some in the Seed Plug',true); switchTab('grow'); return; }
+  if(MODE==='live'){ var r=await apiPost('plant',{strain:strain}); if(r.error){toast(r.error,true);return;} applyPlayer(r.player); renderAll(); toast('planted '+SEEDS[strain].nm+' 🌱'); return; }
+  D.seeds[strain]=(D.seeds[strain]||0)-1; D.plots.push({strain:strain,at:Date.now()}); saveDemo(); renderAll(); toast('planted '+SEEDS[strain].nm+' 🌱');
+}
+async function sell(i){
+  var el=document.querySelector('.plot[data-i="'+i+'"]'); if(el){ var r=el.getBoundingClientRect(); burst(r.left+r.width/2,r.top+r.height/2); }
+  if(MODE==='live'){ var res=await apiPost('sell',{idx:i}); if(res.error){toast(res.error==='not ripe'?'still growing…':res.error,true);return;}
+    applyPlayer(res.player); LIVE.xp+=res.xpAdded; await refreshSeason(); renderAll(); toast('sold · +'+fmt(res.xpAdded)+' XP ⚡'); return; }
+  var p=D.plots[i]; if(!p) return; var gain=xpOf(p.strain,D.lvl); D.plots.splice(i,1); D.xp+=gain; saveDemo(); renderAll(); toast('sold · +'+fmt(gain)+' XP ⚡');
+}
+
+/* ============================================================
+   garden
+============================================================ */
 function buildGarden(){ var g=$('garden'); g.innerHTML='';
   for(var i=0;i<MAXPLOTS;i++){ var d=document.createElement('div'); d.className='plot'; d.dataset.i=i;
     d.innerHTML='<div class="soil"></div><div class="tag"></div><div class="xpd"></div><div class="plant"></div><div class="prog"><i></i></div>';
-    d.addEventListener('click',(function(idx){return function(){tapPlot(idx);};})(i)); g.appendChild(d);} }
+    d.addEventListener('click',(function(idx){return function(){tapPlot(idx);};})(i)); g.appendChild(d); } }
 
-function tapPlot(i){ if(i>=plotCount()) return; if(!S.connected){ openVeil(); return; }
-  var p=S.plots[i];
-  if(p.state==='empty'){ openSeedPick(i); }
-  else if(p.state==='ripe'){ sell(i); } }
-
-// quick seed picker: cycle to cheapest affordable, or open shop hint
-function openSeedPick(i){
-  // plant the best strain you can afford, default to mids
-  var choice=null;
-  for(var j=SEEDS.length-1;j>=0;j--){ if(S.bal>=SEEDS[j].cost){ choice=SEEDS[j]; break; } }
-  if(!choice){ toast('no $CHRONIC — top up to plant',true); switchTab('grow'); return; }
-  plant(i,choice);
+function tapPlot(i){ var V=VM(); if(!V.connected){ openVeil(); return; }
+  if(i>=plotCount(V)) return;
+  if(i<V.plots.length){ var p=V.plots[i]; var gt=growMsOf(p.strain,V.lvl); if(Date.now()-p.at>=gt) sell(i); else toast('still growing…'); }
+  else plant();
 }
-function plantSeed(seedKey){ // called from shop buttons
-  var seed=SEEDS.filter(function(s){return s.k===seedKey;})[0];
-  // find first empty plot
-  for(var i=0;i<plotCount();i++){ if(S.plots[i].state==='empty'){ if(!S.connected){openVeil();return;} plant(i,seed); switchTab('grow'); return; } }
-  toast('no empty plots — sell or unlock more',true);
-}
-function plant(i,seed){
-  if(!spend(seed.cost,'seed')) return;
-  var p=S.plots[i]; p.state='seed'; p.at=Date.now(); p.bud=Math.floor(Math.random()*BUDS.length); p.seed=seed.k;
-  save(); renderPlot(i); refreshShops();
-  toast('planted '+seed.nm+' 🌱  (-'+fmt(seed.cost)+')');
-}
-function sell(i){ var p=S.plots[i]; var seed=SEEDS.filter(function(s){return s.k===p.seed;})[0]||SEEDS[0];
-  var el=document.querySelector('.plot[data-i="'+i+'"]'); var r=el.getBoundingClientRect(); burst(r.left+r.width/2,r.top+r.height/2);
-  var gain=xpOf(seed); S.xp+=gain; p.state='empty'; p.at=0; p.seed=null;
-  save(); renderPlot(i); renderHud(); renderBoard(); toast('sold '+seed.nm+' · +'+fmt(gain)+' XP ⚡'); }
-
-function tick(){ var now=Date.now();
-  for(var i=0;i<plotCount();i++){ var p=S.plots[i]; if(p.state==='seed'||p.state==='veg'){
-    var seed=SEEDS.filter(function(s){return s.k===p.seed;})[0]||SEEDS[0];
-    var gt=growTimeOf(seed); var pr=Math.min(1,(now-p.at)/gt);
-    var ns=pr>=1?'ripe':(pr>=0.5?'veg':'seed');
-    if(ns!==p.state){ p.state=ns; if(ns==='ripe'&&S.lvl.auto){ sell(i); continue; } save(); }
-    renderPlot(i,pr); } }
-  renderCountdown(); }
-
-function renderPlot(i,pr){ var el=document.querySelector('.plot[data-i="'+i+'"]'); if(!el)return; var p=S.plots[i];
+function renderPlot(i){ var V=VM(); var el=document.querySelector('.plot[data-i="'+i+'"]'); if(!el)return;
   el.classList.remove('empty','ripe','locked'); var tag=el.querySelector('.tag'),xpd=el.querySelector('.xpd'),plant=el.querySelector('.plant'),prog=el.querySelector('.prog i');
   el.querySelectorAll('.budimg').forEach(function(b){b.remove();}); xpd.textContent='';
-  if(i>=plotCount()){ el.classList.add('locked'); el.innerHTML='<div class="lk">PLOT LOCKED</div>'; return; }
-  var seed=p.seed?SEEDS.filter(function(s){return s.k===p.seed;})[0]:null;
-  if(p.state==='empty'){ el.classList.add('empty'); tag.textContent='+ plant'; plant.textContent='🫘'; plant.style.fontSize='22px'; plant.style.filter='grayscale(.6) opacity(.6)'; prog.style.width='0'; }
-  else if(p.state==='ripe'){ el.classList.add('ripe'); tag.textContent='● SELL'; if(seed)xpd.textContent='+'+fmt(xpOf(seed))+' XP'; plant.textContent='';
-    var img=document.createElement('img'); img.className='budimg'; img.src=BUDS[p.bud||0]; el.insertBefore(img,el.querySelector('.prog')); prog.style.width='100%'; }
-  else { tag.textContent=(seed?seed.nm+' · ':'')+(p.state==='veg'?'growing…':'sprouting…'); plant.style.filter='none';
-    plant.textContent=p.state==='veg'?'🌿':'🌱'; plant.style.fontSize=p.state==='veg'?'50px':'34px';
-    if(pr==null&&seed){var gt=growTimeOf(seed);pr=Math.min(1,(Date.now()-p.at)/gt);} prog.style.width=((pr||0)*100)+'%'; } }
+  if(i>=plotCount(V)){ el.classList.add('locked'); el.innerHTML='<div class="lk">PLOT LOCKED</div>'; return; }
+  if(i>=V.plots.length){ el.classList.add('empty'); tag.textContent='+ plant'; plant.textContent='🫘'; plant.style.fontSize='22px'; plant.style.filter='grayscale(.6) opacity(.6)'; prog.style.width='0'; return; }
+  var p=V.plots[i]; var s=SEEDS[p.strain]||SEEDS.mids; var gt=growMsOf(p.strain,V.lvl); var pr=Math.min(1,(Date.now()-p.at)/gt);
+  if(pr>=1){ el.classList.add('ripe'); tag.textContent='● SELL'; xpd.textContent='+'+fmt(xpOf(p.strain,V.lvl))+' XP'; plant.textContent='';
+    var bud=i%BUDS.length; var img=document.createElement('img'); img.className='budimg'; img.src=BUDS[bud]; el.insertBefore(img,el.querySelector('.prog')); prog.style.width='100%'; }
+  else { tag.textContent=s.nm+' · '+(pr>=0.5?'growing…':'sprouting…'); plant.style.filter='none';
+    plant.textContent=pr>=0.5?'🌿':'🌱'; plant.style.fontSize=pr>=0.5?'50px':'34px'; prog.style.width=(pr*100)+'%'; }
+}
 
-/* ---------- shops ---------- */
+/* ============================================================
+   shops
+============================================================ */
 function buildSeedShop(){ var w=$('seeds'); w.innerHTML='';
-  SEEDS.forEach(function(s){ var d=document.createElement('div'); d.className='up'; d.dataset.k=s.k;
-    d.addEventListener('click',function(){ plantSeed(s.k); }); w.appendChild(d); }); renderSeedShop(); }
-function renderSeedShop(){ SEEDS.forEach(function(s){ var d=document.querySelector('.up[data-k="'+s.k+'"]'); if(!d)return;
-  var can=S.bal>=s.cost; d.classList.toggle('afford',can); d.classList.toggle('cant',!can);
-  d.innerHTML='<span class="rar '+s.rar+'">'+s.rar.toUpperCase()+'</span>'
-    +'<img class="seedimg" src="'+s.img+'" alt="'+s.nm+'"/>'
-    +'<div class="nm">'+s.nm+'</div><div class="ds">'+s.ds+'</div>'
-    +'<div class="meta"><span>⚡ '+fmt(xpOf(s))+' XP</span><span>⏱ '+Math.round(growTimeOf(s)/1000)+'s</span></div>'
-    +'<div class="cost">🔥 '+fmt(s.cost)+'</div>'; }); }
+  SEED_ORDER.forEach(function(k){ var s=SEEDS[k]; var d=document.createElement('div'); d.className='up'; d.dataset.k=k;
+    d.addEventListener('click',function(){buySeed(k);}); w.appendChild(d); }); }
+function renderSeedShop(){ var V=VM();
+  SEED_ORDER.forEach(function(k){ var s=SEEDS[k]; var d=document.querySelector('.up[data-k="'+k+'"]'); if(!d)return;
+    var owned=(V.seeds[k]||0); var can=(V.balance==null)||(V.balance>=s.cost); d.classList.toggle('afford',can&&V.connected); d.classList.toggle('cant',!can);
+    d.innerHTML=(owned>0?'<span class="own">×'+owned+'</span>':'')+'<span class="rar '+s.rar+'">'+s.rar.toUpperCase()+'</span>'
+      +'<img class="seedimg" src="'+s.img+'" alt="'+s.nm+'"/>'
+      +'<div class="nm">'+s.nm+'</div><div class="ds">'+s.ds+'</div>'
+      +'<div class="meta"><span>⚡ '+fmt(xpOf(k,V.lvl))+' XP</span><span>⏱ '+Math.round(growMsOf(k,V.lvl)/1000)+'s</span></div>'
+      +'<div class="cost">🔥 '+fmt(s.cost)+'</div>'; }); }
 
 function buildShop(){ var w=$('ups'); w.innerHTML='';
   UPS.forEach(function(u){ var d=document.createElement('div'); d.className='up'; d.dataset.u=u.k;
-    d.addEventListener('click',function(){buyUp(u);}); w.appendChild(d); }); renderShop(); }
-function costUp(u){ return Math.round(u.base*Math.pow(u.mul,S.lvl[u.k])); }
-function renderShop(){ UPS.forEach(function(u){ var d=document.querySelector('.up[data-u="'+u.k+'"]'); if(!d)return;
-  var maxed=S.lvl[u.k]>=u.max; var c=costUp(u); var lvtxt=u.max>1?('LVL '+S.lvl[u.k]):(S.lvl[u.k]?'OWNED':'');
-  var can=!maxed&&S.bal>=c; d.classList.toggle('afford',can); d.classList.toggle('cant',!can&&!maxed); d.classList.toggle('maxed',maxed);
-  d.innerHTML='<div class="ic">'+u.ic+'</div><div class="nm">'+u.nm+'</div><div class="ds">'+u.ds+'</div><div class="lv">'+lvtxt+'</div>'
-    +'<div class="cost">'+(maxed?'MAXED':('🔥 '+fmt(c)))+'</div>'; }); }
-function buyUp(u){ if(!S.connected){openVeil();return;} if(S.lvl[u.k]>=u.max){toast('maxed out');return;} var c=costUp(u);
-  if(!spend(c,'upgrade')) return; S.lvl[u.k]++; save(); refreshShops(); if(u.k==='plot')renderPlot(plotCount()-1); toast(u.nm+' up! 🔧'); }
+    d.addEventListener('click',function(){buyUp(u);}); w.appendChild(d); }); }
+function renderShop(){ var V=VM();
+  UPS.forEach(function(u){ var d=document.querySelector('.up[data-u="'+u.k+'"]'); if(!d)return;
+    var lvl=(V.lvl&&V.lvl[u.k])||0; var maxed=lvl>=u.max; var c=upCost(u.k,lvl);
+    var can=!maxed&&((V.balance==null)||(V.balance>=c)); d.classList.toggle('afford',can&&V.connected); d.classList.toggle('cant',!can&&!maxed); d.classList.toggle('maxed',maxed);
+    var lvtxt=u.max>1?('LVL '+lvl):(lvl?'OWNED':'');
+    d.innerHTML='<div class="ic">'+u.ic+'</div><div class="nm">'+u.nm+'</div><div class="ds">'+u.ds+'</div><div class="lv">'+lvtxt+'</div>'
+      +'<div class="cost">'+(maxed?'MAXED':('🔥 '+fmt(c)))+'</div>'; }); }
 
-function refreshShops(){ renderSeedShop(); renderShop(); }
-
-/* ---------- leaderboard ---------- */
-function standings(){
-  var list=RIVALS.map(function(r){return {who:r.who,addr:r.addr,xp:r.xp,you:false};});
-  list.push({who:'YOU',addr: S.connected?'demo…wallet':'not connected',xp:S.xp,you:true});
-  list.sort(function(a,b){return b.xp-a.xp;});
-  return list;
-}
-function renderBoard(){
-  var list=standings(), P=pool();
-  var top3=list.slice(0,3); var sum=top3.reduce(function(a,b){return a+b.xp;},0)||1;
-  var medals=['🥇','🥈','🥉'], order=[1,0,2]; // center the winner
+/* ============================================================
+   leaderboard
+============================================================ */
+function demoBoard(){ var V=VM(); var list=RIVALS.map(function(r){return {who:r.who,addr:r.addr,xp:r.xp,you:false};});
+  list.push({who:'YOU',addr:'demo',xp:V.xp,you:true}); list.sort(function(a,b){return b.xp-a.xp;}); return list; }
+function renderBoard(){ var V=VM(); var list=(V.live&&V.board)?V.board.slice().sort(function(a,b){return b.xp-a.xp;}):demoBoard();
+  var P=V.poolWhole;
   var pod=$('podium'); pod.innerHTML='';
-  order.forEach(function(idx){ var p=top3[idx]; if(!p)return;
-    var share=Math.round(P*(p.xp/sum));
+  if(!list.length){ pod.innerHTML=''; $('rows').innerHTML='<div class="empty-note">No growers yet this season — be the first to burn. 🔥</div>'; return; }
+  var top3=list.slice(0,3); var sum=top3.reduce(function(a,b){return a+b.xp;},0)||1;
+  var medals=['🥇','🥈','🥉'], order=[1,0,2];
+  order.forEach(function(idx){ var p=top3[idx]; if(!p)return; var share=Math.round(P*(p.xp/sum));
     var d=document.createElement('div'); d.className='pod g'+(idx+1)+(p.you?' you':'');
-    d.innerHTML='<div class="rk">'+medals[idx]+'</div><div class="who">'+p.who+'</div>'
-      +'<div class="xp">'+fmt(p.xp)+' XP</div>'
-      +'<div class="win">'+fmt(share)+'<i>$CHRONIC</i></div>';
-    pod.appendChild(d); });
-
+    d.innerHTML='<div class="rk">'+medals[idx]+'</div><div class="who">'+p.who+'</div><div class="xp">'+fmt(p.xp)+' XP</div>'
+      +'<div class="win">'+fmt(share)+'<i>$CHRONIC</i></div>'; pod.appendChild(d); });
   var rows=$('rows'); rows.innerHTML='';
   list.forEach(function(p,i){ var d=document.createElement('div'); d.className='row'+(p.you?' you':'')+(i<3?' top':'');
-    d.innerHTML='<div class="rk">'+(i+1)+'</div>'
-      +'<div class="who">'+p.who+'<small>'+p.addr+'</small></div>'
-      +'<div class="xp">'+fmt(p.xp)+'<i>XP</i></div>';
-    rows.appendChild(d); }); }
-
-/* ---------- season ---------- */
-function rollSeason(){
-  // fold your contribution into base, bump rivals a bit, reset XP & timer
-  S.basePool=Math.round(pool()*0.15)+Math.round(300000+Math.random()*250000);
-  S.contributed=0; S.xp=0; S.seasonEnd=Date.now()+SEASON_MS;
-  RIVALS.forEach(function(r){ r.xp=Math.round(r.xp*(0.4+Math.random()*0.5)); });
-  save();
+    d.innerHTML='<div class="rk">'+(i+1)+'</div><div class="who">'+p.who+(p.addr?'<small>'+p.addr+'</small>':'')+'</div>'
+      +'<div class="xp">'+fmt(p.xp)+'<i>XP</i></div>'; rows.appendChild(d); });
 }
-function renderCountdown(){ var ms=Math.max(0,S.seasonEnd-Date.now());
-  if(ms<=0){ rollSeason(); renderBoard(); renderPoolUI(); ms=S.seasonEnd-Date.now(); }
-  var s=Math.floor(ms/1000), d=Math.floor(s/86400); s-=d*86400; var h=Math.floor(s/3600); s-=h*3600; var m=Math.floor(s/60); s-=m*60;
-  $('cdD').textContent=d; $('cdH').textContent=String(h).padStart(2,'0'); $('cdM').textContent=String(m).padStart(2,'0'); $('cdS').textContent=String(s).padStart(2,'0'); }
 
-/* ---------- HUD / pool ---------- */
-function renderHud(){ $('balN').textContent=S.connected?fmt(S.bal):'—'; $('xpHud').textContent=fmt(S.xp);
-  var b=$('walletBtn'); b.textContent=S.connected?'demo…wallet':'Connect'; b.classList.toggle('on',S.connected); }
-function renderPoolUI(){ animateNum($('poolN'),pool()); renderBoard(); }
-
+/* ============================================================
+   HUD / pool / countdown
+============================================================ */
+function renderHud(){ var V=VM(); $('balN').textContent=(V.balance==null)?'—':fmt(V.balance); $('xpHud').textContent=fmt(V.xp);
+  var b=$('walletBtn'); if(MODE==='live'){ b.textContent=shortW(V.wallet); b.classList.add('on'); }
+  else { b.textContent=D.on?'demo':'Connect'; b.classList.toggle('on',D.on); }
+  var mp=$('modePill'); if(MODE==='live'){ mp.className='modepill live'; mp.innerHTML='◆ <b>live</b> · '+shortW(V.wallet)+' · burns are real'; }
+  else { mp.className='modepill'; mp.innerHTML='◆ <b>demo mode</b> — connect a wallet to play for real'; } }
 var _poolShown=0;
-function animateNum(el,to){ var from=_poolShown||0; var t0=performance.now(), dur=600;
+function renderPool(){ var V=VM(); animateNum($('poolN'),V.poolWhole); }
+function animateNum(el,to){ var from=_poolShown||0; var t0=performance.now(),dur=600;
   function step(t){ var k=Math.min(1,(t-t0)/dur); var v=Math.round(from+(to-from)*(1-Math.pow(1-k,3))); el.textContent=fmt(v); if(k<1)requestAnimationFrame(step); else _poolShown=to; }
   requestAnimationFrame(step); }
+function renderCountdown(){ var V=VM(); var ms=Math.max(0,V.endsAt-Date.now());
+  var s=Math.floor(ms/1000),d=Math.floor(s/86400); s-=d*86400; var h=Math.floor(s/3600); s-=h*3600; var m=Math.floor(s/60); s-=m*60;
+  $('cdD').textContent=d; $('cdH').textContent=String(h).padStart(2,'0'); $('cdM').textContent=String(m).padStart(2,'0'); $('cdS').textContent=String(s).padStart(2,'0'); }
 
-/* ---------- particles + toast ---------- */
+function renderAll(){ for(var i=0;i<MAXPLOTS;i++) renderPlot(i); renderSeedShop(); renderShop(); renderBoard(); renderHud(); renderPool(); renderCountdown(); }
+
+/* ---------- particles ---------- */
 function burst(x,y){ for(var i=0;i<16;i++){ var e=document.createElement('div'); e.className='ember'; document.body.appendChild(e);
-  e.style.left=x+'px'; e.style.top=y+'px'; var ang=Math.random()*Math.PI*2, dist=40+Math.random()*100, dur=600+Math.random()*500;
+  e.style.left=x+'px'; e.style.top=y+'px'; var ang=Math.random()*Math.PI*2,dist=40+Math.random()*100,dur=600+Math.random()*500;
   e.animate([{transform:'translate(-50%,-50%) scale(1)',opacity:1},{transform:'translate(calc(-50% + '+Math.cos(ang)*dist+'px), calc(-50% + '+(Math.sin(ang)*dist-60)+'px)) scale(0)',opacity:0}],{duration:dur,easing:'cubic-bezier(.2,.7,.3,1)'});
-  setTimeout((function(el){return function(){el.remove();};})(e),dur);} }
-var _th;
-function toast(m,bad){ var t=$('toast'); t.textContent=m; t.classList.toggle('bad',!!bad); t.classList.add('show'); clearTimeout(_th); _th=setTimeout(function(){t.classList.remove('show');},1700); }
+  setTimeout((function(el){return function(){el.remove();};})(e),dur); } }
 
 /* ---------- tabs ---------- */
 function switchTab(v){ document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('on',t.dataset.v===v);});
   document.querySelectorAll('.view').forEach(function(x){x.classList.toggle('on',x.id==='v-'+v);}); if(v==='board')renderBoard(); }
 document.querySelectorAll('.tab').forEach(function(t){ t.addEventListener('click',function(){switchTab(t.dataset.v);}); });
 
-/* ---------- wallet (demo) ---------- */
+/* ---------- veil / wallet ---------- */
 function openVeil(){ $('veil').classList.add('on'); }
-$('walletBtn').addEventListener('click',function(){ if(S.connected){ if(confirm('Disconnect demo wallet?')){S.connected=false;save();renderHud();} } else openVeil(); });
-$('doConnect').addEventListener('click',function(){ S.connected=true; save(); $('veil').classList.remove('on'); renderHud(); toast('demo wallet connected — go burn 🔥'); });
+$('walletBtn').addEventListener('click',function(){ if(MODE==='live'){ if(confirm('Disconnect wallet?')) logoutLive(); } else openVeil(); });
+$('doConnect').addEventListener('click',connectLive);
+$('doDemo').addEventListener('click',function(){ D.on=true; saveDemo(); $('veil').classList.remove('on'); renderAll(); toast('demo on — buy a seed 🌱'); });
 $('closeVeil').addEventListener('click',function(){ $('veil').classList.remove('on'); });
+$('reset').addEventListener('click',function(){ if(confirm('Reset the demo? (does not affect live wallet play)')){ localStorage.removeItem('cg3'); loadDemo(); renderAll(); toast('demo reset'); } });
 
-/* ---------- reset ---------- */
-$('reset').addEventListener('click',function(){ if(confirm('Reset the preview? Balance, XP, plots & season wiped.')){ localStorage.removeItem('cg2'); boot(); toast('preview reset'); } });
+/* ---------- tick ---------- */
+function tick(){ var V=VM(); for(var i=0;i<Math.min(V.plots.length,plotCount(V));i++) renderPlot(i); renderCountdown(); }
 
-/* ---------- boot ---------- */
-function boot(){ load(); buildGarden(); buildSeedShop(); buildShop();
-  for(var i=0;i<MAXPLOTS;i++) renderPlot(i);
-  renderHud(); _poolShown=pool(); $('poolN').textContent=fmt(pool()); renderBoard(); renderCountdown();
-  clearInterval(window._tk); window._tk=setInterval(tick,500); }
+/* ============================================================
+   boot
+============================================================ */
+async function boot(){
+  loadDemo(); buildGarden(); buildSeedShop(); buildShop();
+  // pull live config (mint, pool, catalog). best-effort — demo works without it.
+  try{ var c=await apiGet('config'); if(c&&!c.error){ CFG.mint=c.mint||CFG.mint; CFG.decimals=c.decimals||CFG.decimals;
+      CFG.pool=c.poolTokenAccount||''; CFG.rpcProxy=c.rpcProxy||CFG.rpcProxy; CFG.ready=!!c.ready;
+      if(c.seeds) for(var k in c.seeds){ if(SEEDS[k]){ SEEDS[k].cost=c.seeds[k].cost; SEEDS[k].grow=c.seeds[k].grow; SEEDS[k].xp=c.seeds[k].xp; } }
+      if(c.upgrades) UPS.forEach(function(u){ if(c.upgrades[u.k]){ u.base=c.upgrades[u.k].base; u.mul=c.upgrades[u.k].mul; u.max=c.upgrades[u.k].max; } }); } }catch(e){}
+  // NEVER auto-connect: always boot in demo. Live mode starts only when the
+  // user explicitly taps "Connect Phantom". No session is restored from storage.
+  MODE='demo'; _poolShown=VM().poolWhole; renderAll();
+  clearInterval(window._tk); window._tk=setInterval(tick,500);
+}
 boot();
 </script>
 </body>

@@ -82,6 +82,16 @@ module.exports = async (req, res) => {
   const action = (req.query.action || body.action || '').toString();
 
   try {
+    // ── public: client config (mint, pool, catalog) ────────────────────
+    if (action === 'config') {
+      return json(res, 200, {
+        mint: G.MINT, decimals: G.DECIMALS, poolTokenAccount: G.POOL_TOKEN_ACCOUNT,
+        rpcProxy: '/api/solrpc', burnBps: G.BURN_BPS, poolBps: G.POOL_BPS,
+        seeds: G.SEEDS, upgrades: G.UPGRADES,
+        ready: Boolean(G.POOL_TOKEN_ACCOUNT),
+      });
+    }
+
     // ── public: season + leaderboard ───────────────────────────────────
     if (action === 'season' || action === 'leaderboard') {
       const s = await G.sbRpc('grow_current_season', {});
