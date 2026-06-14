@@ -388,7 +388,7 @@ async function confirmSig(c,sig){
 /* build + send the burn(60%)+pool(40%) tx, then have the server verify it */
 async function buyOnChain(costWhole,kind,item){
   if(!CFG.ready||!CFG.poolOwner){ toast('on-chain buys not live yet',true); return false; }
-  var prov=window.phantom&&window.phantom.solana?window.phantom.solana:window.solana;
+  var prov=getProvider();
   if(!prov){ toast('wallet not found',true); return false; }
   toast('building burn… approve in wallet 🔥');
   try{
@@ -436,9 +436,21 @@ async function refreshSeason(){
 async function refreshLive(){ await refreshState(); LIVE.balance=await fetchBalance(); await refreshSeason(); renderAll(); }
 
 /* ---------- connect / login ---------- */
+function getProvider(){ var p=(window.phantom&&window.phantom.solana)||window.solana; return (p&&p.isPhantom)?p:null; }
+function isMobile(){ var ua=navigator.userAgent||''; return /android|iphone|ipad|ipod/i.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1); }
 async function connectLive(){
-  var prov=window.phantom&&window.phantom.solana?window.phantom.solana:window.solana;
-  if(!prov||!prov.isPhantom){ toast('Phantom not found — install it or play demo',true); return; }
+  var prov=getProvider();
+  if(!prov){
+    if(isMobile()){
+      // no wallet injected in a normal mobile browser — reopen this page inside
+      // Phantom's in-app browser, where the provider exists and connect works.
+      toast('opening in Phantom…');
+      var url=encodeURIComponent(location.href), ref=encodeURIComponent(location.origin);
+      location.href='https://phantom.app/ul/browse/'+url+'?ref='+ref;
+      return;
+    }
+    toast('Phantom not found — install it or play demo',true); return;
+  }
   if(!CFG.ready){ toast('on-chain not live yet — try demo',true); return; }
   try{
     var resp=await prov.connect(); var wallet=resp.publicKey.toString();
