@@ -50,6 +50,9 @@ h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:
 .ctrack i{display:block;height:100%;background:linear-gradient(90deg,var(--green-dim),var(--gold));border-radius:6px;transition:width .7s;box-shadow:0 0 12px rgba(245,207,87,.4)}
 .grad{font-size:11px;color:var(--green);font-family:var(--fd);letter-spacing:.04em}
 .feedh{font-family:var(--fd);font-size:12px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;margin:16px 0 10px;display:flex;align-items:center;gap:8px}
+.ftabs{display:flex;gap:7px;margin-bottom:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.ftab{font-family:var(--fd);font-size:11px;padding:9px 14px;border-radius:20px;cursor:pointer;white-space:nowrap;background:rgba(7,10,7,.5);border:1px solid var(--line);color:var(--dim);flex:0 0 auto}
+.ftab.on{background:linear-gradient(90deg,var(--green-dim),var(--green));color:#04140a;border-color:transparent}
 .coingrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:6px}
 @media(min-width:560px){.coingrid{grid-template-columns:repeat(3,1fr)}}
 .coin{display:flex;align-items:center;gap:9px;padding:10px;border-radius:13px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(16,26,18,.85),rgba(10,15,11,.9));cursor:pointer;transition:transform .12s,border-color .2s}
@@ -98,7 +101,7 @@ h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:
 </head>
 <body>
 <div class="bar">
-  <a class="brand" href="/"><img src="/assets/coin-logo.png" alt="$CHRONIC"/>TERMINAL</a>
+  <a class="brand" href="/"><img src="/assets/logo-chronic.png" alt="$CHRONIC"/>TERMINAL</a>
   <button class="wallet" id="walletBtn">Connect</button>
 </div>
 <div class="wrap">
@@ -142,26 +145,35 @@ var FEATURED=['J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump'];
 function coinCard(d,isNew){ return '<div class="coin" data-ca="'+d.ca+'">'+(d.img?'<img src="'+esc(d.img)+'"/>':'<div class="ph">🪙</div>')
   +'<div class="ci"><div class="cn">'+esc(d.symbol||'?')+'</div><div class="cp">$'+(d.price?Number(d.price).toPrecision(3):'—')+'</div>'
   +'<div class="cc '+((d.ch||0)>=0?'up':'down')+'">'+((d.ch||0)>=0?'+':'')+(d.ch||0).toFixed(0)+'% 24h</div></div>'+(isNew?'<span class="new">NEW</span>':'')+'</div>'; }
+var FEEDCOINS=null, FEEDPAD={}, FEEDFILTER='trending';
 async function showFeed(){
   $('out').innerHTML='<div class="spin">loading the trenches… 🔥</div>';
   var cas=[], pad={};
   try{ var pf=await (await fetch('/api/launch',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'feed'})})).json();
     (pf.launches||[]).forEach(function(l){ if(cas.indexOf(l.mint)<0){cas.push(l.mint);pad[l.mint]=1;} }); }catch(e){}
-  try{ var bs=await (await fetch('https://api.dexscreener.com/token-boosts/top/v1')).json();
-    (bs||[]).filter(function(b){return b.chainId==='solana';}).slice(0,22).forEach(function(b){ if(cas.indexOf(b.tokenAddress)<0)cas.push(b.tokenAddress); }); }catch(e){}
+  for(var ep of ['top','latest']){ try{ var bs=await (await fetch('https://api.dexscreener.com/token-boosts/'+ep+'/v1')).json();
+    (bs||[]).filter(function(b){return b.chainId==='solana';}).forEach(function(b){ if(cas.indexOf(b.tokenAddress)<0)cas.push(b.tokenAddress); }); }catch(e){} }
   FEATURED.forEach(function(c){ if(cas.indexOf(c)<0)cas.push(c); });
   cas=cas.slice(0,30);
   var data={};
   try{ var dx=await (await fetch('https://api.dexscreener.com/latest/dex/tokens/'+cas.join(','))).json();
     (dx.pairs||[]).forEach(function(p){ if(p.chainId!=='solana')return; var a=p.baseToken.address; var lq=(p.liquidity&&p.liquidity.usd)||0;
-      if(!data[a]||lq>data[a]._lq) data[a]={ca:a,name:p.baseToken.name,symbol:p.baseToken.symbol,price:Number(p.priceUsd),ch:p.priceChange?Number(p.priceChange.h24||0):0,mc:p.marketCap||p.fdv||0,img:p.info?p.info.imageUrl:'',_lq:lq}; }); }catch(e){}
-  var pads=[],others=[];
-  cas.forEach(function(c){ var d=data[c]; if(!d)return; if(pad[c])pads.push(d); else others.push(d); });
-  others.sort(function(a,b){return (b.mc||0)-(a.mc||0);});
-  var html='';
-  if(pads.length) html+='<div class="feedh">🚀 Fresh on the Pad</div><div class="coingrid">'+pads.map(function(d){return coinCard(d,true);}).join('')+'</div>';
-  html+='<div class="feedh">🔥 Trending on Solana</div>'+(others.length?'<div class="coingrid">'+others.map(function(d){return coinCard(d,false);}).join('')+'</div>':'<div class="muted">paste a CA above to start trading</div>');
-  $('out').innerHTML=html;
+      if(!data[a]||lq>data[a]._lq) data[a]={ca:a,name:p.baseToken.name,symbol:p.baseToken.symbol,price:Number(p.priceUsd),ch:p.priceChange?Number(p.priceChange.h24||0):0,mc:p.marketCap||p.fdv||0,vol:p.volume?Number(p.volume.h24||0):0,img:p.info?p.info.imageUrl:'',_lq:lq}; }); }catch(e){}
+  FEEDPAD=pad; FEEDCOINS=cas.map(function(c){return data[c];}).filter(Boolean);
+  renderFeed(FEEDFILTER);
+}
+function renderFeed(f){ FEEDFILTER=f; if(!FEEDCOINS){ showFeed(); return; }
+  var list=FEEDCOINS.slice();
+  if(f==='new') list=list.filter(function(d){return FEEDPAD[d.ca];});
+  else if(f==='gainers') list.sort(function(a,b){return (b.ch||0)-(a.ch||0);});
+  else if(f==='volume') list.sort(function(a,b){return (b.vol||0)-(a.vol||0);});
+  else list.sort(function(a,b){return (FEEDPAD[b.ca]?1:0)-(FEEDPAD[a.ca]?1:0) || (b.vol||0)-(a.vol||0);});
+  var labels={trending:'🔥 Trending',gainers:'📈 Gainers',volume:'💧 Volume',new:'🚀 New Pad'};
+  var tabs='<div class="ftabs">'+['trending','gainers','volume','new'].map(function(t){return '<div class="ftab'+(t===f?' on':'')+'" data-f="'+t+'">'+labels[t]+'</div>';}).join('')+'</div>';
+  var grid=list.length?'<div class="coingrid">'+list.map(function(d){return coinCard(d,FEEDPAD[d.ca]);}).join('')+'</div>'
+    :'<div class="muted">'+(f==='new'?'no pad launches yet — <a style="color:var(--green);text-decoration:none" href="/launch">be the first 🚀</a>':'nothing here — paste a CA above')+'</div>';
+  $('out').innerHTML=tabs+grid;
+  document.querySelectorAll('.ftab').forEach(function(el){ el.addEventListener('click',function(){ renderFeed(this.dataset.f); }); });
   document.querySelectorAll('.coin').forEach(function(el){ el.addEventListener('click',function(){ $('ca').value=this.dataset.ca; window.scrollTo(0,0); load(); }); });
 }
 
