@@ -1,5 +1,8 @@
 -- =====================================================================
--- BURNING $WEEDSTA — Smoke Sessions schema
+-- $CHRONIC — Smoke Sessions map schema (homepage session map)
+-- (table/function prefix `bw_` is legacy from the pre-rebrand name and is
+--  kept because index.html is wired to those exact names — do not rename.)
+-- NOTE: the GROW game uses a separate schema: supabase/grow-schema.sql
 -- Paste this entire file into Supabase SQL Editor → Run
 -- Idempotent: safe to re-run if you tweak something.
 -- =====================================================================
