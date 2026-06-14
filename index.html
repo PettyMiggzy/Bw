@@ -458,6 +458,20 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   </a>
 </section>
 
+<!-- $CHRONIC GROW — weekly pool teaser -->
+<section class="heroburn rv">
+  <a class="hbwrap" href="/grow">
+    <div class="hbl">🌱 $CHRONIC GROW — This Week's Pool</div>
+    <div class="hbnum" id="growPoolNum">—</div>
+    <div class="hbsub">burn to grow · top 3 split the pool · resets every 7 days</div>
+    <div class="hbcta">play $CHRONIC GROW →</div>
+  </a>
+</section>
+<script>
+(function(){function f(v){return v>=1e9?(v/1e9).toFixed(2)+'B':v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?(v/1e3).toFixed(1)+'K':String(Math.floor(v));}
+fetch('/api/grow?action=leaderboard').then(function(r){return r.json();}).then(function(j){if(j&&j.poolWhole!=null){var n=document.getElementById('growPoolNum');if(n)n.textContent=f(j.poolWhole)+' $CHRONIC';}}).catch(function(){});})();
+</script>
+
 <!-- FOMO BAND -->
 <section class="fomo">
   <div class="fomo-grid">

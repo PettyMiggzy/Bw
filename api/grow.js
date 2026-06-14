@@ -107,6 +107,15 @@ module.exports = async (req, res) => {
         const rows = await G.sbSelect(
           `grow_scores?season_id=eq.${season.id}&select=wallet,xp&order=xp.desc&limit=${limit}`);
         out.board = rows.map((r, i) => ({ rank: i + 1, wallet: r.wallet, xp: Number(r.xp) }));
+        // last settled season's winners, to show the loop closing
+        const won = await G.sbSelect(
+          'grow_seasons?settled=eq.true&order=id.desc&limit=1&select=id,winners,settled_at');
+        if (won.length && Array.isArray(won[0].winners) && won[0].winners.length) {
+          out.lastWinners = won[0].winners.map((w) => ({
+            wallet: w.wallet, xp: Number(w.xp),
+            whole: Math.floor(Number(w.amount_base) / Math.pow(10, G.DECIMALS)),
+          }));
+        }
       }
       return json(res, 200, out);
     }

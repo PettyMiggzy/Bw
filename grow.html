@@ -52,6 +52,10 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
 .tagline b{color:var(--gold)}
 .modepill{display:block;text-align:center;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:-14px 0 18px}
 .modepill b{color:var(--ember)} .modepill.live b{color:var(--green)}
+.poolverify{display:inline-flex;align-items:center;gap:5px;margin-top:14px;font-size:10px;letter-spacing:.06em;color:var(--green);text-decoration:none;border:1px solid var(--line);border-radius:20px;padding:7px 13px}
+.poolverify:active{transform:scale(.97)}
+.lastwin{font-size:11px;color:var(--dim);text-align:center;margin:0 0 16px;line-height:1.6}
+.lastwin b{color:var(--gold)} .lastwin .h{display:block;font-family:var(--fd);font-size:9px;letter-spacing:.16em;color:var(--purple);text-transform:uppercase;margin-bottom:4px}
 
 /* season pool card */
 .season{position:relative;overflow:hidden;border-radius:22px;padding:20px 18px;margin-bottom:8px;
@@ -216,6 +220,7 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
       <div class="s burn"><div class="p">🔥 60%</div><div class="d">burned forever</div></div>
       <div class="s pool"><div class="p">🏆 40%</div><div class="d">into the pool</div></div>
     </div>
+    <a id="poolVerify" class="poolverify" target="_blank" rel="noopener" href="#" style="display:none">🔗 verify the pool on-chain ↗</a>
   </div>
 
   <!-- TABS -->
@@ -240,6 +245,7 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
 
   <!-- LEADERBOARD VIEW -->
   <div class="view" id="v-board">
+    <div class="lastwin" id="lastWin"></div>
     <div class="podium" id="podium"></div>
     <div class="lbl">▸ Full Standings</div>
     <div id="rows"></div>
@@ -326,7 +332,7 @@ var MODE='demo';
 var DEMO_DEF={ on:false, bal:8000000, xp:0, contributed:0, basePool:14000000,
   seeds:{}, lvl:{light:0,nutes:0,plot:0,auto:0}, plots:[], seasonEnd:Date.now()+SEASON_MS };
 var D; // demo state
-var LIVE={ token:null, wallet:null, lvl:{}, seeds:{}, plots:[], xp:0, poolWhole:0, endsAt:null, board:null, balance:null };
+var LIVE={ token:null, wallet:null, lvl:{}, seeds:{}, plots:[], xp:0, poolWhole:0, endsAt:null, board:null, balance:null, lastWinners:null };
 
 function loadDemo(){ try{D=JSON.parse(localStorage.getItem('cg3'))||null;}catch(e){D=null;} if(!D)D=JSON.parse(JSON.stringify(DEMO_DEF));
   for(var k in DEMO_DEF) if(typeof D[k]==='undefined') D[k]=JSON.parse(JSON.stringify(DEMO_DEF[k]));
@@ -427,7 +433,7 @@ async function refreshState(){
 }
 async function refreshSeason(){
   var lb=await apiGet('leaderboard',{limit:25});
-  if(!lb.error){ LIVE.poolWhole=lb.poolWhole; LIVE.endsAt=lb.endsAt;
+  if(!lb.error){ LIVE.poolWhole=lb.poolWhole; LIVE.endsAt=lb.endsAt; LIVE.lastWinners=lb.lastWinners||null;
     LIVE.board=(lb.board||[]).map(function(r){ return {who:shortW(r.wallet),addr:'',xp:r.xp,you:r.wallet===LIVE.wallet}; });
     if(LIVE.wallet && !LIVE.board.some(function(b){return b.you;}) && LIVE.xp>0)
       LIVE.board.push({who:shortW(LIVE.wallet),addr:'you',xp:LIVE.xp,you:true});
@@ -561,8 +567,15 @@ function renderShop(){ var V=VM();
 ============================================================ */
 function demoBoard(){ var V=VM(); var list=RIVALS.map(function(r){return {who:r.who,addr:r.addr,xp:r.xp,you:false};});
   list.push({who:'YOU',addr:'demo',xp:V.xp,you:true}); list.sort(function(a,b){return b.xp-a.xp;}); return list; }
+function renderLastWin(){ var el=$('lastWin'); if(!el)return; var w=(MODE==='live')?LIVE.lastWinners:null;
+  if(!w||!w.length){ el.innerHTML=''; el.style.display='none'; return; }
+  var medals=['🥇','🥈','🥉'];
+  el.style.display='block';
+  el.innerHTML='<span class="h">◆ Last Season’s Winners</span>'+w.map(function(x,i){
+    return medals[i]+' '+shortW(x.wallet)+' — <b>'+fmt(x.whole)+' $CHRONIC</b>'; }).join('&nbsp;&nbsp;·&nbsp;&nbsp;');
+}
 function renderBoard(){ var V=VM(); var list=(V.live&&V.board)?V.board.slice().sort(function(a,b){return b.xp-a.xp;}):demoBoard();
-  var P=V.poolWhole;
+  var P=V.poolWhole; renderLastWin();
   var pod=$('podium'); pod.innerHTML='';
   if(!list.length){ pod.innerHTML=''; $('rows').innerHTML='<div class="empty-note">No growers yet this season — be the first to burn. 🔥</div>'; return; }
   var top3=list.slice(0,3); var sum=top3.reduce(function(a,b){return a+b.xp;},0)||1;
@@ -615,8 +628,16 @@ $('doDemo').addEventListener('click',function(){ D.on=true; saveDemo(); $('veil'
 $('closeVeil').addEventListener('click',function(){ $('veil').classList.remove('on'); });
 $('reset').addEventListener('click',function(){ if(confirm('Reset the demo? (does not affect live wallet play)')){ localStorage.removeItem('cg3'); loadDemo(); renderAll(); toast('demo reset'); } });
 
-/* ---------- tick ---------- */
-function tick(){ var V=VM(); for(var i=0;i<Math.min(V.plots.length,plotCount(V));i++) renderPlot(i); renderCountdown(); }
+/* ---------- auto-tender + tick ---------- */
+var _autoBusy=false, _tickN=0;
+async function autoTend(){ if(_autoBusy)return; var V=VM(); if(!(V.lvl&&V.lvl.auto))return;
+  for(var i=0;i<Math.min(V.plots.length,plotCount(V));i++){ var p=V.plots[i];
+    if(Date.now()-p.at>=growMsOf(p.strain,V.lvl)){ _autoBusy=true; try{ await sell(i); }catch(e){} _autoBusy=false; return; } } }
+function tick(){ var V=VM(); _tickN++;
+  autoTend();
+  if(MODE==='live' && _tickN%60===0) refreshSeason(); // ~every 30s keep pool/board/rollover fresh
+  for(var i=0;i<Math.min(V.plots.length,plotCount(V));i++) renderPlot(i);
+  renderCountdown(); }
 
 /* ============================================================
    boot
@@ -627,7 +648,8 @@ async function boot(){
   try{ var c=await apiGet('config'); if(c&&!c.error){ CFG.mint=c.mint||CFG.mint; CFG.decimals=c.decimals||CFG.decimals;
       CFG.poolOwner=c.poolWallet||''; CFG.rpcProxy=c.rpcProxy||CFG.rpcProxy; CFG.ready=!!c.ready;
       if(c.seeds) for(var k in c.seeds){ if(SEEDS[k]){ SEEDS[k].cost=c.seeds[k].cost; SEEDS[k].grow=c.seeds[k].grow; SEEDS[k].xp=c.seeds[k].xp; } }
-      if(c.upgrades) UPS.forEach(function(u){ if(c.upgrades[u.k]){ u.base=c.upgrades[u.k].base; u.mul=c.upgrades[u.k].mul; u.max=c.upgrades[u.k].max; } }); } }catch(e){}
+      if(c.upgrades) UPS.forEach(function(u){ if(c.upgrades[u.k]){ u.base=c.upgrades[u.k].base; u.mul=c.upgrades[u.k].mul; u.max=c.upgrades[u.k].max; } });
+      if(CFG.poolOwner){ var pv=$('poolVerify'); if(pv){ pv.href='https://solscan.io/account/'+CFG.poolOwner; pv.style.display='inline-flex'; } } } }catch(e){}
   // NEVER auto-connect: always boot in demo. Live mode starts only when the
   // user explicitly taps "Connect Phantom". No session is restored from storage.
   MODE='demo'; _poolShown=VM().poolWhole; renderAll();
