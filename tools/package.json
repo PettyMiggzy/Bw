@@ -5,6 +5,7 @@
   "description": "Operational scripts for $CHRONIC GROW (weekly settlement + X auto-poster).",
   "type": "commonjs",
   "scripts": {
+    "start": "node newmints-listener.js",
     "settle": "node settle-season.js",
     "settle:dry": "node settle-season.js --dry",
     "post": "node poster.js",
