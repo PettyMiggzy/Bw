@@ -2,6 +2,7 @@
   "rules": [
     { "pathPattern": "/burn", "apiPath": "/api/actions/burn" },
     { "pathPattern": "/buy", "apiPath": "/api/actions/buy" },
+    { "pathPattern": "/sell", "apiPath": "/api/actions/sell" },
     { "pathPattern": "/plant", "apiPath": "/api/actions/plant" },
     { "pathPattern": "/pool", "apiPath": "/api/actions/pool" },
     { "pathPattern": "/api/actions/**", "apiPath": "/api/actions/**" }
