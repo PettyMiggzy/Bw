@@ -91,6 +91,17 @@ nav{display:flex;align-items:center;justify-content:space-between;gap:12px;paddi
 .nav-buy:active{transform:scale(.96)}
 .nav-stake{font-family:var(--font-display);font-size:12px;letter-spacing:.04em;padding:10px 16px;border-radius:30px;background:transparent;border:1px solid var(--green);color:var(--green);white-space:nowrap;margin-right:8px;text-decoration:none}
 .nav-stake:active{transform:scale(.96)}
+.navlinks{display:flex;align-items:center}
+.navtoggle{display:none;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:1px solid var(--green);background:transparent;color:var(--green);font-size:20px;cursor:pointer;flex:0 0 auto}
+.navtoggle:active{transform:scale(.94)}
+@media(max-width:759px){
+  nav{flex-wrap:wrap;padding:12px 14px;gap:10px}
+  .navtoggle{display:inline-flex}
+  .navlinks{display:none;flex-direction:column;align-items:stretch;width:100%;order:3;gap:8px}
+  .navlinks.open{display:flex;animation:navdrop .25s ease}
+  .navlinks .nav-stake,.navlinks .nav-buy{margin-right:0;text-align:center;font-size:14px;padding:13px 16px}
+}
+@keyframes navdrop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 
 /* ---------- PRICE STRIP ---------- */
 .pxstrip{display:flex;gap:0;overflow-x:auto;border-bottom:1px solid var(--line);background:rgba(12,18,12,.7);
@@ -394,7 +405,8 @@ footer .trib a{color:var(--ember);text-decoration:underline}
 <!-- NAV -->
 <nav>
   <a class="brand" href="/"><img src="/assets/logo-chronic.png" alt="" /> <span class="c">$CHRONIC</span></a>
-  <div style="display:flex;align-items:center">
+  <button class="navtoggle" id="navToggle" aria-label="menu" aria-expanded="false" onclick="var n=document.getElementById('navLinks'),o=n.classList.toggle('open');this.setAttribute('aria-expanded',o);this.textContent=o?'✕':'☰'">☰</button>
+  <div class="navlinks" id="navLinks" onclick="if(event.target.tagName==='A'){var n=this,t=document.getElementById('navToggle');n.classList.remove('open');t.setAttribute('aria-expanded','false');t.textContent='☰'}">
   <a class="nav-stake" href="/grow">🌱 GROW</a>
   <a class="nav-stake" href="/nfts">🎴 NFTs</a>
   <a class="nav-stake" href="/claim">🌿 CLAIM</a>
