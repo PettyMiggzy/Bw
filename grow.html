@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
 <title>$CHRONIC GROW — burn to grow, grow to win</title>
 <meta name="description" content="Burn $CHRONIC to grow. 60% burned forever, 40% into the weekly pool. Top 3 growers split the pot by XP. Resets every 7 days." />
-<link rel="canonical" href="https://burnchronic.xyz/grow" />
+<link rel="canonical" href="https://www.burnchronic.xyz/grow" />
 <meta property="og:title" content="$CHRONIC GROW — burn to grow, grow to win" />
 <meta property="og:description" content="Burn $CHRONIC, stack XP, top the leaderboard. 60% burned · 40% to the weekly pool. Top 3 split it." />
 <meta property="og:image" content="https://www.burnchronic.xyz/assets/og-chronic.jpg" />
@@ -445,8 +445,11 @@ async function connectLive(){
       // no wallet injected in a normal mobile browser — reopen this page inside
       // Phantom's in-app browser, where the provider exists and connect works.
       toast('opening in Phantom…');
-      var url=encodeURIComponent(location.href), ref=encodeURIComponent(location.origin);
-      location.href='https://phantom.app/ul/browse/'+url+'?ref='+ref;
+      // open the canonical (www) host so Phantom's in-app browser doesn't hit the
+      // apex->www redirect mid-handshake (that's what fails the connect)
+      var tgt=location.href.replace('://burnchronic.xyz/','://www.burnchronic.xyz/');
+      var rf=location.origin.replace('://burnchronic.xyz','://www.burnchronic.xyz');
+      location.href='https://phantom.app/ul/browse/'+encodeURIComponent(tgt)+'?ref='+encodeURIComponent(rf);
       return;
     }
     toast('Phantom not found — install it or play demo',true); return;
