@@ -14,7 +14,8 @@ const G = require('./_grow.js');
 const JUP = 'https://lite-api.jup.ag/swap/v1';
 const SOL = 'So11111111111111111111111111111111111111112';
 const SLIPPAGE_BPS = 500;
-const FEE_BPS = parseInt(process.env.SWAP_FEE_BPS || '100', 10);           // 1%
+const FEE_BPS = parseInt(process.env.SWAP_FEE_BPS || '100', 10);           // 1% (outside tokens)
+const PAD_FEE_BPS = parseInt(process.env.SWAP_PAD_FEE_BPS || '50', 10);    // 0.5% (pad-launched tokens — half)
 const FEE_WALLET = process.env.SWAP_FEE_WALLET || 'E7Cr2nad1SvBWF8vcGhNW575UVVPdTcgHEqSTMQzoUr5';
 const REFERRAL = process.env.SWAP_REFERRAL_ACCOUNT || '4HgJt8K66Nwu6wb8QCj8scojhmtDETCrAHJWZngHXjSE';
 const REFERRAL_PROGRAM = 'REFER4ZgmyYx9c6He5XfaTMiGfdLwRnkV4RPp9t9iF3';
@@ -51,7 +52,15 @@ function feeAccountFor(mint) {
 async function buildBuyWithFee(account, outputMint, lamports) {
   const web3 = require('@solana/web3.js');
   const { PublicKey, SystemProgram, TransactionMessage, VersionedTransaction, TransactionInstruction, AddressLookupTableAccount } = web3;
-  const fee = (BigInt(lamports) * BigInt(FEE_BPS)) / 10000n;
+  // pad-launched token? -> half fee (0.5%) + the dev earns half of it
+  let dev = null, feeBps = FEE_BPS;
+  try {
+    if (G.sbEnabled()) {
+      const rows = await G.sbSelect(`grow_launches?mint=eq.${encodeURIComponent(outputMint)}&select=dev_wallet`);
+      if (rows && rows.length) { feeBps = PAD_FEE_BPS; if (G.isPubkey(rows[0].dev_wallet) && rows[0].dev_wallet !== FEE_WALLET) dev = rows[0].dev_wallet; }
+    }
+  } catch (_) { /* default fee, no split */ }
+  const fee = (BigInt(lamports) * BigInt(feeBps)) / 10000n;
   const swapLamports = (BigInt(lamports) - fee).toString();
   const qp = new URLSearchParams({ inputMint: SOL, outputMint, amount: swapLamports, slippageBps: String(SLIPPAGE_BPS) });
   const quote = await jget(`/quote?${qp.toString()}`);
@@ -65,14 +74,6 @@ async function buildBuyWithFee(account, outputMint, lamports) {
     keys: (ix.accounts || []).map((a) => ({ pubkey: new PublicKey(a.pubkey), isSigner: a.isSigner, isWritable: a.isWritable })),
     data: Buffer.from(ix.data, 'base64'),
   });
-  // pad-launched token? the dev earns 50% of the fee
-  let dev = null;
-  try {
-    if (G.sbEnabled()) {
-      const rows = await G.sbSelect(`grow_launches?mint=eq.${encodeURIComponent(outputMint)}&select=dev_wallet`);
-      if (rows && rows.length && G.isPubkey(rows[0].dev_wallet) && rows[0].dev_wallet !== FEE_WALLET) dev = rows[0].dev_wallet;
-    }
-  } catch (_) { /* no split */ }
   const feeIxs = [];
   if (dev) {
     const half = fee / 2n;
@@ -103,14 +104,21 @@ async function buildBuyWithFee(account, outputMint, lamports) {
   const bh = await G.solRpc('getLatestBlockhash', [{ commitment: 'confirmed' }]);
   const msg = new TransactionMessage({ payerKey: owner, recentBlockhash: bh.value.blockhash, instructions: ixs }).compileToV0Message(alts);
   const tx = new VersionedTransaction(msg);
-  return { transaction: Buffer.from(tx.serialize()).toString('base64'), outAmount: quote.outAmount, inAmount: lamports, fee: FEE_BPS };
+  return { transaction: Buffer.from(tx.serialize()).toString('base64'), outAmount: quote.outAmount, inAmount: lamports, fee: feeBps };
 }
 
 // plain or referral-fee Jupiter swap (used for sells + fallback)
 async function buildSwap(account, inputMint, outputMint, amount, withFee) {
   const qp = new URLSearchParams({ inputMint, outputMint, amount, slippageBps: String(SLIPPAGE_BPS) });
   let feeAccount = null;
-  if (withFee) { feeAccount = feeAccountFor(outputMint); if (feeAccount) qp.set('platformFeeBps', String(FEE_BPS)); }
+  if (withFee) {
+    feeAccount = feeAccountFor(outputMint);
+    if (feeAccount) {
+      let feeBps = FEE_BPS;
+      try { if (G.sbEnabled()) { const rows = await G.sbSelect(`grow_launches?mint=eq.${encodeURIComponent(inputMint)}&select=mint`); if (rows && rows.length) feeBps = PAD_FEE_BPS; } } catch (_) { /* default */ }
+      qp.set('platformFeeBps', String(feeBps));
+    }
+  }
   const quote = await jget(`/quote?${qp.toString()}`);
   if (!quote || quote.error || !quote.outAmount) return { quote: null };
   const body = { quoteResponse: quote, userPublicKey: account, wrapAndUnwrapSol: true, dynamicComputeUnitLimit: true };
