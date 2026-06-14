@@ -1,0 +1,48 @@
+name: $CHRONIC X auto-poster
+
+# Tweets big burns / weekly winners / pool milestones from your @account.
+# First run sets a baseline (posts nothing). Use the manual "dry" run to preview.
+#
+# Required repo secrets:
+#   SUPABASE_URL, SUPABASE_SERVICE_KEY
+#   X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET
+# Optional: CHRONIC_DECIMALS, POST_BURN_THRESHOLD, POOL_STEP
+
+on:
+  schedule:
+    - cron: '0 * * * *'   # hourly
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: 'Dry run (print tweets, post nothing)'
+        type: boolean
+        default: true
+
+concurrency:
+  group: x-poster
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install
+        working-directory: tools
+        run: npm install --no-audit --no-fund
+      - name: Run poster
+        working-directory: tools
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+          CHRONIC_DECIMALS: ${{ secrets.CHRONIC_DECIMALS }}
+          POST_BURN_THRESHOLD: ${{ secrets.POST_BURN_THRESHOLD }}
+          POOL_STEP: ${{ secrets.POOL_STEP }}
+        run: node poster.js ${{ (github.event_name == 'workflow_dispatch' && inputs.dry) && '--dry' || '' }}

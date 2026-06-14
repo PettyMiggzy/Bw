@@ -2,15 +2,18 @@
   "name": "chronic-grow-tools",
   "version": "1.0.0",
   "private": true,
-  "description": "Operational scripts for $CHRONIC GROW (weekly season settlement).",
+  "description": "Operational scripts for $CHRONIC GROW (weekly settlement + X auto-poster).",
   "type": "commonjs",
   "scripts": {
     "settle": "node settle-season.js",
-    "settle:dry": "node settle-season.js --dry"
+    "settle:dry": "node settle-season.js --dry",
+    "post": "node poster.js",
+    "post:dry": "node poster.js --dry"
   },
   "dependencies": {
     "@solana/web3.js": "^1.95.3",
     "@solana/spl-token": "^0.4.8",
-    "bs58": "^6.0.0"
+    "bs58": "^6.0.0",
+    "twitter-api-v2": "^1.18.2"
   }
 }
