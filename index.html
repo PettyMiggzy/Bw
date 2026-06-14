@@ -453,6 +453,33 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   <div class="ca-pill">CA: <span class="a pending" id="caAddr">launching soon — drops in TG</span>
     <button id="copyCA" disabled>copy</button></div>
 </header>
+
+<!-- THE ARSENAL — the whole $CHRONIC ecosystem, front and center -->
+<style>
+.arsenal{max-width:860px;margin:14px auto 0;padding:0 16px}
+.arsenal .akick{font-family:var(--font-display,'Bungee',sans-serif);font-size:11px;letter-spacing:.18em;color:#ff6a2b;text-transform:uppercase;text-align:center;margin-bottom:4px}
+.arsenal h2{font-family:var(--font-display,'Bungee',sans-serif);font-size:clamp(22px,6vw,34px);text-align:center;color:#52ff8f;margin-bottom:16px;text-shadow:0 0 24px rgba(82,255,143,.35)}
+.appgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+@media(min-width:680px){.appgrid{grid-template-columns:repeat(3,1fr)}}
+.app{display:flex;flex-direction:column;gap:3px;text-decoration:none;padding:16px 14px;border-radius:16px;border:1px solid rgba(82,255,143,.16);background:linear-gradient(180deg,rgba(16,26,18,.88),rgba(10,15,11,.92));transition:transform .15s,border-color .2s,box-shadow .2s;font-size:26px;line-height:1}
+.app:hover,.app:active{transform:translateY(-4px);border-color:#52ff8f;box-shadow:0 16px 40px rgba(82,255,143,.18)}
+.app b{font-family:var(--font-display,'Bungee',sans-serif);font-size:14px;color:#f5cf57;margin-top:6px}
+.app span{font-size:11px;color:#84a78d;line-height:1.4}
+.app.hot{border-color:rgba(255,106,43,.35)}.app.hot b{color:#ff6a2b}
+</style>
+<section class="arsenal rv">
+  <div class="akick">▸ The Arsenal</div>
+  <h2>EVERYTHING $CHRONIC</h2>
+  <div class="appgrid">
+    <a class="app hot" href="/terminal">🖥️<b>Trench Terminal</b><span>bundle-scan · chart · buy &amp; sell any coin</span></a>
+    <a class="app hot" href="/launch">🚀<b>Launchpad</b><span>launch a coin — earn 50% of its fees forever</span></a>
+    <a class="app" href="/grow">🌱<b>GROW</b><span>burn to grow · top 3 split the weekly pool</span></a>
+    <a class="app" href="/buy">🪙<b>Buy $CHRONIC</b><span>swap SOL → $CHRONIC in one tap</span></a>
+    <a class="app" href="/burn">🔥<b>Burn</b><span>feed the fire · supply only goes down</span></a>
+    <a class="app" href="/raid">🐦<b>Raid Kit</b><span>one-tap tweets to flood the timeline</span></a>
+  </div>
+</section>
+
 <section class="heroburn rv">
   <a class="hbwrap" href="#burn">
     <div class="hbl">🔥 Total $CHRONIC Burned</div>
