@@ -25,6 +25,8 @@
  *   FEED=pumpportal|alchemy              (default: pumpportal)
  *   ALCHEMY_WSS                          (required when FEED=alchemy)
  *   META_FETCH=1                         (fetch token uri json for the image)
+ *   RETENTION_HOURS=6                    (auto-delete mints older than this so
+ *                                         the free-tier DB never fills up)
  */
 const WebSocket = require('ws');
 
@@ -33,6 +35,7 @@ const SB_KEY = process.env.SUPABASE_SERVICE_KEY;
 const FEED = (process.env.FEED || 'pumpportal').toLowerCase();
 const ALCHEMY_WSS = process.env.ALCHEMY_WSS || '';
 const META_FETCH = process.env.META_FETCH === '1';
+const RETENTION_HOURS = Math.max(1, parseFloat(process.env.RETENTION_HOURS || '6'));
 const PUMP_PROGRAM = '6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P';
 
 function die(m) { console.error('✗ ' + m); process.exit(1); }
@@ -55,6 +58,21 @@ async function upsert(row) {
     if (!r.ok) console.error('upsert', r.status, (await r.text()).slice(0, 160));
     else console.log('＋', row.symbol || '?', row.mint);
   } catch (e) { console.error('upsert err', e.message); }
+}
+
+// janitor: delete mints older than the retention window so the table stays
+// tiny (a few thousand rows) and never eats the free-tier 500 MB. Runs at
+// startup and every 10 min. Service key bypasses RLS, so the delete is allowed.
+async function prune() {
+  try {
+    const cutoff = new Date(Date.now() - RETENTION_HOURS * 3600 * 1000).toISOString();
+    const r = await fetch(`${SB_URL}/rest/v1/grow_newmints?created_at=lt.${encodeURIComponent(cutoff)}`, {
+      method: 'DELETE',
+      headers: Object.assign({}, H, { prefer: 'return=minimal' }),
+    });
+    if (r.ok) console.log(`🧹 pruned mints older than ${RETENTION_HOURS}h`);
+    else console.error('prune', r.status, (await r.text()).slice(0, 120));
+  } catch (e) { console.error('prune err', e.message); }
 }
 
 // best-effort: pull the image out of the token's metadata uri (ipfs json)
@@ -138,5 +156,7 @@ async function mintFromSig(sig) {
   } catch (_) { return null; }
 }
 
-console.log(`$CHRONIC new-mint listener — feed=${FEED}, meta=${META_FETCH ? 'on' : 'off'}`);
+console.log(`$CHRONIC new-mint listener — feed=${FEED}, meta=${META_FETCH ? 'on' : 'off'}, retention=${RETENTION_HOURS}h`);
+prune();
+setInterval(prune, 10 * 60 * 1000); // every 10 min
 if (FEED === 'alchemy') runAlchemy(); else runPumpPortal();
