@@ -65,10 +65,25 @@ async function buildBuyWithFee(account, outputMint, lamports) {
     keys: (ix.accounts || []).map((a) => ({ pubkey: new PublicKey(a.pubkey), isSigner: a.isSigner, isWritable: a.isWritable })),
     data: Buffer.from(ix.data, 'base64'),
   });
-  const feeIx = SystemProgram.transfer({ fromPubkey: owner, toPubkey: new PublicKey(FEE_WALLET), lamports: Number(fee) });
+  // pad-launched token? the dev earns 50% of the fee
+  let dev = null;
+  try {
+    if (G.sbEnabled()) {
+      const rows = await G.sbSelect(`grow_launches?mint=eq.${encodeURIComponent(outputMint)}&select=dev_wallet`);
+      if (rows && rows.length && G.isPubkey(rows[0].dev_wallet) && rows[0].dev_wallet !== FEE_WALLET) dev = rows[0].dev_wallet;
+    }
+  } catch (_) { /* no split */ }
+  const feeIxs = [];
+  if (dev) {
+    const half = fee / 2n;
+    feeIxs.push(SystemProgram.transfer({ fromPubkey: owner, toPubkey: new PublicKey(dev), lamports: Number(half) }));
+    feeIxs.push(SystemProgram.transfer({ fromPubkey: owner, toPubkey: new PublicKey(FEE_WALLET), lamports: Number(fee - half) }));
+  } else {
+    feeIxs.push(SystemProgram.transfer({ fromPubkey: owner, toPubkey: new PublicKey(FEE_WALLET), lamports: Number(fee) }));
+  }
   const ixs = [
     ...(si.computeBudgetInstructions || []).map(de),
-    feeIx,
+    ...feeIxs,
     ...(si.setupInstructions || []).map(de),
     de(si.swapInstruction),
     ...(si.cleanupInstruction ? [de(si.cleanupInstruction)] : []),
