@@ -97,6 +97,26 @@ h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);z-index:40;opacity:0;background:var(--green);color:#04140a;font-family:var(--fd);font-size:12px;padding:11px 18px;border-radius:30px;transition:.25s;pointer-events:none;text-align:center;max-width:92vw}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.bad{background:var(--ember2);color:#fff}
+/* filter bar + panel */
+.fbar{display:flex;gap:7px;margin-bottom:10px;align-items:center}
+.fbtn{font-family:var(--fd);font-size:10px;padding:8px 12px;border-radius:18px;cursor:pointer;background:rgba(7,10,7,.5);border:1px solid var(--line);color:var(--dim);white-space:nowrap}
+.fbtn.on{color:var(--gold);border-color:var(--gold)}
+.fbtn b{color:var(--ember);font-family:var(--fm)}
+.fsort{margin-left:auto;font-family:var(--fm);font-size:11px;background:rgba(7,10,7,.5);border:1px solid var(--line);border-radius:18px;color:var(--green);padding:8px 10px;outline:none}
+.fpanel{display:none;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+.fpanel.open{display:grid}
+.fld{display:flex;align-items:center;gap:6px;background:rgba(7,10,7,.5);border:1px solid var(--line);border-radius:11px;padding:2px 10px}
+.fld label{font-size:9px;color:var(--dim);letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.fld input{flex:1;min-width:0;background:transparent;border:0;color:var(--green);font-family:var(--fm);font-size:12px;padding:9px 0;outline:none;text-align:right}
+.fpanel .fclear{grid-column:1/-1;font-family:var(--fd);font-size:10px;color:var(--dim);background:transparent;border:0;cursor:pointer;text-align:center;padding:2px}
+.fresult{font-size:10px;color:var(--dim);margin:-2px 2px 8px;letter-spacing:.04em}
+.badge{font-size:7px;font-family:var(--fd);letter-spacing:.04em;border-radius:7px;padding:2px 5px;vertical-align:middle}
+.badge.pad{color:#04140a;background:var(--gold)}
+.coin .cright{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:0 0 auto}
+.coin .cright .gb{font-size:14px;line-height:1}
+.coin .cright .ct{font-size:7px;color:var(--dim);font-family:var(--fd);letter-spacing:.04em}
+.coin .cmini{height:4px;border-radius:3px;background:rgba(7,10,7,.7);overflow:hidden;margin-top:4px}
+.coin .cmini i{display:block;height:100%;background:linear-gradient(90deg,var(--green-dim),var(--gold))}
 </style>
 </head>
 <body>
@@ -142,39 +162,98 @@ async function loadBalance(){ try{ var r=await rpc('getTokenAccountsByOwner',[wa
 
 /* ── the feed (pad launches + trending) ── */
 var FEATURED=['J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump'];
-function coinCard(d,isNew){ return '<div class="coin" data-ca="'+d.ca+'">'+(d.img?'<img src="'+esc(d.img)+'"/>':'<div class="ph">🪙</div>')
-  +'<div class="ci"><div class="cn">'+esc(d.symbol||'?')+'</div><div class="cp">$'+(d.price?Number(d.price).toPrecision(3):'—')+'</div>'
-  +'<div class="cc '+((d.ch||0)>=0?'up':'down')+'">'+((d.ch||0)>=0?'+':'')+(d.ch||0).toFixed(0)+'% 24h</div></div>'+(isNew?'<span class="new">NEW</span>':'')+'</div>'; }
-var FEEDCOINS=null, FEEDPAD={}, FEEDFILTER='trending';
+var GRAD_MC=69000; // pump.fun graduation target (~$69k mcap)
+function isCurve(d){ return d.dex==='pumpfun'||d.dex==='pump'; }
+function isGrad(d){ return d.dex && !isCurve(d); }
+function gradPct(d){ return Math.max(0,Math.min(100,Math.round(((d.mc||0)/GRAD_MC)*100))); }
+function ageStr(ms){ if(!ms)return '—'; var s=(Date.now()-ms)/1000; if(s<60)return Math.max(0,Math.floor(s))+'s'; if(s<3600)return Math.floor(s/60)+'m'; if(s<86400)return Math.floor(s/3600)+'h'; return Math.floor(s/86400)+'d'; }
+function coinCard(d){
+  var pad=FEEDPAD[d.ca], grad=isGrad(d), curve=isCurve(d);
+  var right='<div class="cright"><span class="gb">'+(grad?'🎓':curve?'🔥':'•')+'</span><span class="ct">'+(grad?'LIVE':curve?gradPct(d)+'%':ageStr(d.created))+'</span></div>';
+  var mini=curve?'<div class="cmini"><i style="width:'+gradPct(d)+'%"></i></div>':'';
+  return '<div class="coin" data-ca="'+d.ca+'">'+(d.img?'<img src="'+esc(d.img)+'"/>':'<div class="ph">🪙</div>')
+    +'<div class="ci"><div class="cn">'+esc(d.symbol||'?')+(pad?' <span class="badge pad">PAD</span>':'')+'</div>'
+    +'<div class="cp">$'+fmt(d.mc)+' · '+ageStr(d.created)+'</div>'
+    +'<div class="cc '+((d.ch||0)>=0?'up':'down')+'">'+((d.ch||0)>=0?'+':'')+(d.ch||0).toFixed(0)+'% · $'+fmt(d.vol)+' vol</div>'+mini+'</div>'+right+'</div>';
+}
+var FEEDCOINS=null, FEEDPAD={}, FEEDFILTER='trending', FSORT='', FOPEN=false;
+var FILTERS={minMc:0,minVol:0,minLiq:0,maxAge:0};
 async function showFeed(){
   $('out').innerHTML='<div class="spin">loading the trenches… 🔥</div>';
-  var cas=[], pad={};
+  var cas=[], pad={}, nmMeta={};
   try{ var pf=await (await fetch('/api/launch',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'feed'})})).json();
     (pf.launches||[]).forEach(function(l){ if(cas.indexOf(l.mint)<0){cas.push(l.mint);pad[l.mint]=1;} }); }catch(e){}
+  try{ var nm=await (await fetch('/api/newmints?limit=60')).json();
+    (nm.mints||[]).forEach(function(m){ if(cas.indexOf(m.mint)<0)cas.push(m.mint); nmMeta[m.mint]=m; }); }catch(e){}
   for(var ep of ['token-boosts/top','token-boosts/latest','token-profiles/latest']){ try{ var bs=await (await fetch('https://api.dexscreener.com/'+ep+'/v1')).json();
     (bs||[]).filter(function(b){return b.chainId==='solana';}).forEach(function(b){ if(cas.indexOf(b.tokenAddress)<0)cas.push(b.tokenAddress); }); }catch(e){} }
   FEATURED.forEach(function(c){ if(cas.indexOf(c)<0)cas.push(c); });
-  cas=cas.slice(0,30);
+  cas=cas.slice(0,90);
   var data={};
-  try{ var dx=await (await fetch('https://api.dexscreener.com/latest/dex/tokens/'+cas.join(','))).json();
-    (dx.pairs||[]).forEach(function(p){ if(p.chainId!=='solana')return; var a=p.baseToken.address; var lq=(p.liquidity&&p.liquidity.usd)||0;
-      if(!data[a]||lq>data[a]._lq) data[a]={ca:a,name:p.baseToken.name,symbol:p.baseToken.symbol,price:Number(p.priceUsd),ch:p.priceChange?Number(p.priceChange.h24||0):0,mc:p.marketCap||p.fdv||0,vol:p.volume?Number(p.volume.h24||0):0,created:p.pairCreatedAt||0,dex:p.dexId||'',img:p.info?p.info.imageUrl:'',_lq:lq}; }); }catch(e){}
+  for(var i=0;i<cas.length;i+=30){ var chunk=cas.slice(i,i+30);
+    try{ var dx=await (await fetch('https://api.dexscreener.com/latest/dex/tokens/'+chunk.join(','))).json();
+      (dx.pairs||[]).forEach(function(p){ if(p.chainId!=='solana')return; var a=p.baseToken.address; var lq=(p.liquidity&&p.liquidity.usd)||0;
+        if(!data[a]||lq>data[a]._lq) data[a]={ca:a,name:p.baseToken.name,symbol:p.baseToken.symbol,price:Number(p.priceUsd),ch:p.priceChange?Number(p.priceChange.h24||0):0,mc:p.marketCap||p.fdv||0,vol:p.volume?Number(p.volume.h24||0):0,created:p.pairCreatedAt||0,dex:p.dexId||'',img:p.info?p.info.imageUrl:'',_lq:lq}; }); }catch(e){}
+  }
+  // seed brand-new mints Dexscreener hasn't indexed yet straight from the firehose
+  Object.keys(nmMeta).forEach(function(m){ if(!data[m]){ var x=nmMeta[m];
+    data[m]={ca:m,name:x.name||'',symbol:x.symbol||'?',price:0,ch:0,mc:0,vol:0,created:x.createdAt||Date.now(),dex:'pumpfun',img:x.image||'',_lq:0}; } });
   FEEDPAD=pad; FEEDCOINS=cas.map(function(c){return data[c];}).filter(Boolean);
   renderFeed(FEEDFILTER);
 }
-function renderFeed(f){ FEEDFILTER=f; if(!FEEDCOINS){ showFeed(); return; }
+function passFilters(d){
+  if(FILTERS.minMc && (d.mc||0)<FILTERS.minMc) return false;
+  if(FILTERS.minVol && (d.vol||0)<FILTERS.minVol) return false;
+  if(FILTERS.minLiq && (d._lq||0)<FILTERS.minLiq) return false;
+  if(FILTERS.maxAge && d.created && (Date.now()-d.created)/3.6e6>FILTERS.maxAge) return false;
+  return true;
+}
+function defSort(f){ return f==='new'?'age':f==='gainers'?'change':f==='graduating'?'grad':'vol'; }
+function sortList(list,key){
+  if(key==='age') return list.sort(function(a,b){return (FEEDPAD[b.ca]?1e15:0)-(FEEDPAD[a.ca]?1e15:0)||(b.created||0)-(a.created||0);});
+  if(key==='change') return list.sort(function(a,b){return (b.ch||0)-(a.ch||0);});
+  if(key==='mc'||key==='grad') return list.sort(function(a,b){return (b.mc||0)-(a.mc||0);});
+  return list.sort(function(a,b){return (b.vol||0)-(a.vol||0);}); // vol
+}
+function computeList(f){
   var list=FEEDCOINS.slice();
-  if(f==='new') list.sort(function(a,b){return (FEEDPAD[b.ca]?1e15:0)-(FEEDPAD[a.ca]?1e15:0) || (b.created||0)-(a.created||0);});
-  else if(f==='gainers') list.sort(function(a,b){return (b.ch||0)-(a.ch||0);});
-  else if(f==='volume') list.sort(function(a,b){return (b.vol||0)-(a.vol||0);});
-  else list.sort(function(a,b){return (FEEDPAD[b.ca]?1:0)-(FEEDPAD[a.ca]?1:0) || (b.vol||0)-(a.vol||0);});
-  var labels={trending:'🔥 Trending',gainers:'📈 Gainers',volume:'💧 Volume',new:'🚀 New'};
-  var tabs='<div class="ftabs">'+['trending','gainers','volume','new'].map(function(t){return '<div class="ftab'+(t===f?' on':'')+'" data-f="'+t+'">'+labels[t]+'</div>';}).join('')+'</div>';
-  var grid=list.length?'<div class="coingrid">'+list.map(function(d){return coinCard(d,FEEDPAD[d.ca]);}).join('')+'</div>'
-    :'<div class="muted">'+(f==='new'?'no pad launches yet — <a style="color:var(--green);text-decoration:none" href="/launch">be the first 🚀</a>':'nothing here — paste a CA above')+'</div>';
-  $('out').innerHTML=tabs+grid;
-  document.querySelectorAll('.ftab').forEach(function(el){ el.addEventListener('click',function(){ renderFeed(this.dataset.f); }); });
-  document.querySelectorAll('.coin').forEach(function(el){ el.addEventListener('click',function(){ $('ca').value=this.dataset.ca; window.scrollTo(0,0); load(); }); });
+  if(f==='graduating') list=list.filter(isCurve);
+  else if(f==='graduated') list=list.filter(isGrad);
+  list=list.filter(passFilters);
+  var skey=FSORT||defSort(f);
+  if(f==='trending'){ var pads=list.filter(function(d){return FEEDPAD[d.ca];}); var rest=sortList(list.filter(function(d){return !FEEDPAD[d.ca];}),skey); return pads.concat(rest); }
+  return sortList(list,skey);
+}
+function gridHtml(f){
+  var list=computeList(f);
+  var nActive=(FILTERS.minMc?1:0)+(FILTERS.minVol?1:0)+(FILTERS.minLiq?1:0)+(FILTERS.maxAge?1:0);
+  if(!list.length) return '<div class="muted">'+(f==='graduating'?'nothing on the curve right now':f==='graduated'?'no graduated coins in feed':nActive?'no coins match your filters':'nothing here — paste a CA above')+'</div>';
+  return '<div class="fresult">'+list.length+' coin'+(list.length===1?'':'s')+'</div><div class="coingrid">'+list.map(coinCard).join('')+'</div>';
+}
+function paintGrid(){ var g=$('feedGrid'); if(g){ g.innerHTML=gridHtml(FEEDFILTER); wireCoins(); } }
+function wireCoins(){ document.querySelectorAll('.coin').forEach(function(el){ el.addEventListener('click',function(){ $('ca').value=this.dataset.ca; window.scrollTo(0,0); load(); }); }); }
+function renderFeed(f){ FEEDFILTER=f; if(!FEEDCOINS){ showFeed(); return; }
+  var skey=FSORT||defSort(f);
+  var nActive=(FILTERS.minMc?1:0)+(FILTERS.minVol?1:0)+(FILTERS.minLiq?1:0)+(FILTERS.maxAge?1:0);
+  var cats=[['trending','🔥 Trending'],['new','🚀 New'],['gainers','📈 Gainers'],['volume','💧 Volume'],['graduating','⏳ Graduating'],['graduated','🎓 Graduated']];
+  var tabs='<div class="ftabs">'+cats.map(function(c){return '<div class="ftab'+(c[0]===f?' on':'')+'" data-f="'+c[0]+'">'+c[1]+'</div>';}).join('')+'</div>';
+  var sorts=[['vol','Volume'],['mc','Market cap'],['age','Newest'],['change','24h %'],['grad','Closest to grad']];
+  var bar='<div class="fbar"><div class="fbtn'+(nActive?' on':'')+'" id="fToggle">⚙ Filters'+(nActive?' <b>'+nActive+'</b>':'')+'</div>'
+    +'<select class="fsort" id="fSort">'+sorts.map(function(s){return '<option value="'+s[0]+'"'+(skey===s[0]?' selected':'')+'>↕ '+s[1]+'</option>';}).join('')+'</select></div>';
+  var panel='<div class="fpanel'+(FOPEN?' open':'')+'" id="fpanel">'
+    +'<div class="fld"><label>Min MC $</label><input id="fMc" type="number" inputmode="numeric" placeholder="0" value="'+(FILTERS.minMc||'')+'"/></div>'
+    +'<div class="fld"><label>Min Vol $</label><input id="fVol" type="number" inputmode="numeric" placeholder="0" value="'+(FILTERS.minVol||'')+'"/></div>'
+    +'<div class="fld"><label>Min Liq $</label><input id="fLiq" type="number" inputmode="numeric" placeholder="0" value="'+(FILTERS.minLiq||'')+'"/></div>'
+    +'<div class="fld"><label>Max Age h</label><input id="fAge" type="number" inputmode="numeric" placeholder="∞" value="'+(FILTERS.maxAge||'')+'"/></div>'
+    +(nActive?'<button class="fclear" id="fClear">clear filters ✕</button>':'')+'</div>';
+  $('out').innerHTML=tabs+bar+panel+'<div id="feedGrid">'+gridHtml(f)+'</div>';
+  document.querySelectorAll('.ftab').forEach(function(el){ el.addEventListener('click',function(){ FSORT=''; renderFeed(this.dataset.f); }); });
+  $('fToggle').addEventListener('click',function(){ FOPEN=!FOPEN; $('fpanel').classList.toggle('open',FOPEN); });
+  $('fSort').addEventListener('change',function(){ FSORT=this.value; paintGrid(); });
+  var dbnc; function applyF(){ clearTimeout(dbnc); dbnc=setTimeout(function(){ FILTERS.minMc=Number($('fMc').value)||0; FILTERS.minVol=Number($('fVol').value)||0; FILTERS.minLiq=Number($('fLiq').value)||0; FILTERS.maxAge=Number($('fAge').value)||0; var t=$('fToggle'); var n=(FILTERS.minMc?1:0)+(FILTERS.minVol?1:0)+(FILTERS.minLiq?1:0)+(FILTERS.maxAge?1:0); if(t){t.classList.toggle('on',!!n);t.innerHTML='⚙ Filters'+(n?' <b>'+n+'</b>':'');} paintGrid(); },450); }
+  ['fMc','fVol','fLiq','fAge'].forEach(function(id){ var e=$(id); if(e)e.addEventListener('input',applyF); });
+  var fc=$('fClear'); if(fc)fc.addEventListener('click',function(){ FILTERS={minMc:0,minVol:0,minLiq:0,maxAge:0}; renderFeed(FEEDFILTER); });
+  wireCoins();
 }
 
 /* load token */

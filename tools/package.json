@@ -5,15 +5,18 @@
   "description": "Operational scripts for $CHRONIC GROW (weekly settlement + X auto-poster).",
   "type": "commonjs",
   "scripts": {
+    "start": "node newmints-listener.js",
     "settle": "node settle-season.js",
     "settle:dry": "node settle-season.js --dry",
     "post": "node poster.js",
-    "post:dry": "node poster.js --dry"
+    "post:dry": "node poster.js --dry",
+    "newmints": "node newmints-listener.js"
   },
   "dependencies": {
     "@solana/web3.js": "^1.95.3",
     "@solana/spl-token": "^0.4.8",
     "bs58": "^6.0.0",
-    "twitter-api-v2": "^1.18.2"
+    "twitter-api-v2": "^1.18.2",
+    "ws": "^8.18.0"
   }
 }
