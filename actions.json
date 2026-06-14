@@ -1,6 +1,8 @@
 {
   "rules": [
     { "pathPattern": "/burn", "apiPath": "/api/actions/burn" },
+    { "pathPattern": "/plant", "apiPath": "/api/actions/plant" },
+    { "pathPattern": "/pool", "apiPath": "/api/actions/pool" },
     { "pathPattern": "/api/actions/**", "apiPath": "/api/actions/**" }
   ]
 }
