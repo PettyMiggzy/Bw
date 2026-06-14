@@ -43,6 +43,12 @@ h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:
 .tstats .s{background:rgba(7,10,7,.45);border:1px solid var(--line);border-radius:11px;padding:9px;text-align:center}
 .tstats .s b{display:block;font-family:var(--fd);font-size:14px;color:var(--gold)}
 .tstats .s i{font-style:normal;font-size:8px;letter-spacing:.08em;color:var(--dim);text-transform:uppercase}
+.cbar{margin-top:13px}
+.cbarlbl{font-size:10px;color:var(--dim);letter-spacing:.06em;margin-bottom:5px}
+.cbarlbl b{color:var(--gold)}
+.ctrack{height:9px;border-radius:6px;background:rgba(7,10,7,.6);border:1px solid var(--line);overflow:hidden}
+.ctrack i{display:block;height:100%;background:linear-gradient(90deg,var(--green-dim),var(--gold));border-radius:6px;transition:width .7s;box-shadow:0 0 12px rgba(245,207,87,.4)}
+.grad{font-size:11px;color:var(--green);font-family:var(--fd);letter-spacing:.04em}
 .chartwrap{height:380px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#0a0d0a}
 .chartwrap iframe{width:100%;height:100%;border:0}
 .tabs{display:flex;gap:8px;margin-bottom:12px}
@@ -140,7 +146,8 @@ function render(){
     +(t.img?'<img src="'+esc(t.img)+'" alt=""/>':'<div style="width:46px;height:46px;border-radius:12px;background:var(--green-deep);display:flex;align-items:center;justify-content:center">🪙</div>')
     +'<div><div class="nm">'+esc(t.name)+'</div><div class="sy">$'+esc(t.symbol)+' · '+sh(t.ca)+'</div></div>'
     +'<div class="px"><b>$'+(t.price?t.price.toPrecision(4):'—')+'</b><div class="ch '+(t.ch>=0?'up':'down')+'">'+(t.ch>=0?'+':'')+t.ch.toFixed(1)+'% 24h</div></div></div>'
-    +'<div class="tstats"><div class="s"><b>$'+fmt(t.mc)+'</b><i>mcap</i></div><div class="s"><b>$'+fmt(t.liq)+'</b><i>liquidity</i></div><div class="s"><b>$'+fmt(t.vol)+'</b><i>vol 24h</i></div></div></div>';
+    +'<div class="tstats"><div class="s"><b>$'+fmt(t.mc)+'</b><i>mcap</i></div><div class="s"><b>$'+fmt(t.liq)+'</b><i>liquidity</i></div><div class="s"><b>$'+fmt(t.vol)+'</b><i>vol 24h</i></div></div>'
+    +'<div id="curveBar"></div></div>';
   // chart
   if(t.pair){ html+='<div class="card" style="padding:0;overflow:hidden"><div class="chartwrap"><iframe src="https://dexscreener.com/solana/'+t.pair+'?embed=1&theme=dark&trades=0&info=0"></iframe></div></div>'; }
   // trade
@@ -148,9 +155,15 @@ function render(){
   // bundle
   html+='<div class="card"><div class="h2">🔍 Bundle Check<button class="scanbtn" id="scanBtn">SCAN</button></div><div id="bundleOut"><div class="muted">tap SCAN to check holders, snipers &amp; funding clusters</div></div></div>';
   $('out').innerHTML=html;
-  renderTrade();
+  renderTrade(); loadCurve();
   $('scanBtn').addEventListener('click',scan);
 }
+async function loadCurve(){ var el=$('curveBar'); if(!el)return;
+  try{ var c=await (await fetch('/api/curve?ca='+encodeURIComponent(token.ca))).json();
+    if(!c.onCurve){ el.innerHTML=''; return; }
+    if(c.complete){ el.innerHTML='<div class="cbar"><div class="grad">🎓 graduated — trading on the open market</div></div>'; return; }
+    el.innerHTML='<div class="cbar"><div class="cbarlbl">🔥 bonding curve <b>'+c.progress+'%</b>'+(c.solRaised?' · '+c.solRaised+' SOL raised':'')+'</div><div class="ctrack"><i style="width:'+c.progress+'%"></i></div></div>';
+  }catch(e){ el.innerHTML=''; } }
 
 function renderTrade(){
   var c=$('tradeCard'); if(!c)return;
