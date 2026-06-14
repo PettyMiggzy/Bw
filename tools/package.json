@@ -1,0 +1,16 @@
+{
+  "name": "chronic-grow-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Operational scripts for $CHRONIC GROW (weekly season settlement).",
+  "type": "commonjs",
+  "scripts": {
+    "settle": "node settle-season.js",
+    "settle:dry": "node settle-season.js --dry"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.95.3",
+    "@solana/spl-token": "^0.4.8",
+    "bs58": "^6.0.0"
+  }
+}
