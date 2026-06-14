@@ -1,0 +1,45 @@
+name: Settle $CHRONIC GROW season
+
+# Pays the top-3 their XP-weighted share of the pool, then opens the next
+# season. Runs weekly; can also be triggered by hand (with an optional dry run).
+#
+# Required repo secrets (Settings -> Secrets and variables -> Actions):
+#   SUPABASE_URL, SUPABASE_SERVICE_KEY, SOLANA_RPC, POOL_SECRET_KEY
+# Optional: CHRONIC_MINT, CHRONIC_DECIMALS
+
+on:
+  schedule:
+    # 00:05 UTC every Sunday — settles any season that has ended.
+    - cron: '5 0 * * 0'
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: 'Dry run (compute payouts, send nothing)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: settle-season
+  cancel-in-progress: false
+
+jobs:
+  settle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install settle deps
+        working-directory: tools
+        run: npm install --no-audit --no-fund
+      - name: Run settlement
+        working-directory: tools
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SOLANA_RPC: ${{ secrets.SOLANA_RPC }}
+          POOL_SECRET_KEY: ${{ secrets.POOL_SECRET_KEY }}
+          CHRONIC_MINT: ${{ secrets.CHRONIC_MINT }}
+          CHRONIC_DECIMALS: ${{ secrets.CHRONIC_DECIMALS }}
+        run: node settle-season.js ${{ (github.event_name == 'workflow_dispatch' && inputs.dry) && '--dry' || '' }}
