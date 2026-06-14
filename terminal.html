@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>🖥️ Chronic Trench Terminal</title>
+<meta name="description" content="The $CHRONIC trench terminal — paste any Solana CA, check the bundle, see the chart, buy & sell. One stop for the trenches." />
+<link rel="canonical" href="https://www.burnchronic.xyz/terminal" />
+<meta property="og:title" content="🖥️ Chronic Trench Terminal" />
+<meta property="og:description" content="Bundle-check, chart, buy & sell any Solana token. Fees feed $CHRONIC 🔥" />
+<meta property="og:image" content="https://www.burnchronic.xyz/assets/og-chronic.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=4" />
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+:root{--void:#070a07;--panel:#101a12;--green:#52ff8f;--green-dim:#2bd96a;--green-deep:#0c3d22;--ember:#ff6a2b;--ember2:#ff3d1f;--gold:#f5cf57;--purple:#a85cff;--text:#e9ffe9;--dim:#84a78d;--line:rgba(82,255,143,.16);--fd:'Bungee',sans-serif;--fh:'Bungee Shade',sans-serif;--fm:'Space Mono',monospace;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--void);color:var(--text);font-family:var(--fm);min-height:100vh;
+ background-image:radial-gradient(120% 55% at 50% -10%,rgba(82,255,143,.12),transparent 60%),radial-gradient(80% 50% at 100% 14%,rgba(168,92,255,.1),transparent 55%);}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.45;background-image:linear-gradient(rgba(82,255,143,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(82,255,143,.04) 1px,transparent 1px);background-size:42px 42px;mask-image:radial-gradient(120% 80% at 50% 0,#000,transparent 75%)}
+.bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;backdrop-filter:blur(12px);background:linear-gradient(180deg,rgba(7,10,7,.94),rgba(7,10,7,.45));border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:9px;font-family:var(--fd);color:var(--gold);font-size:15px;text-decoration:none}
+.brand img{width:26px;height:26px;border-radius:7px}
+.wallet{font-family:var(--fd);font-size:11px;background:linear-gradient(90deg,var(--ember2),var(--ember));color:#1a0800;border:0;border-radius:30px;padding:9px 15px;cursor:pointer}
+.wallet.on{background:linear-gradient(90deg,var(--green-deep),var(--panel));color:var(--green);border:1px solid var(--green-dim)}
+.wrap{position:relative;z-index:2;max-width:680px;margin:0 auto;padding:18px 14px 90px}
+h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:var(--green);text-shadow:0 0 26px rgba(82,255,143,.4),3px 3px 0 var(--green-deep);margin-bottom:4px}
+.sub{text-align:center;color:var(--dim);font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px}
+.search{display:flex;gap:8px;margin-bottom:16px}
+.search input{flex:1;background:rgba(16,26,18,.85);border:1px solid var(--line);border-radius:13px;color:var(--green);font-family:var(--fm);font-size:13px;padding:14px;outline:none}
+.search input:focus{border-color:var(--green-dim)}
+.search button{font-family:var(--fd);font-size:13px;border:0;border-radius:13px;padding:14px 18px;cursor:pointer;background:linear-gradient(90deg,var(--green-dim),var(--green));color:#04140a}
+.search button:disabled{opacity:.5}
+.card{background:linear-gradient(180deg,rgba(16,26,18,.9),rgba(10,15,11,.92));border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.thead{display:flex;align-items:center;gap:12px}
+.thead img{width:46px;height:46px;border-radius:12px;background:#0a0f0b;object-fit:cover}
+.thead .nm{font-family:var(--fd);font-size:17px;color:var(--text)}
+.thead .sy{font-size:11px;color:var(--dim)}
+.thead .px{margin-left:auto;text-align:right}
+.thead .px b{font-family:var(--fd);font-size:18px;color:var(--green)}
+.thead .px .ch{font-size:11px}.up{color:var(--green)}.down{color:var(--ember)}
+.tstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.tstats .s{background:rgba(7,10,7,.45);border:1px solid var(--line);border-radius:11px;padding:9px;text-align:center}
+.tstats .s b{display:block;font-family:var(--fd);font-size:14px;color:var(--gold)}
+.tstats .s i{font-style:normal;font-size:8px;letter-spacing:.08em;color:var(--dim);text-transform:uppercase}
+.chartwrap{height:380px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#0a0d0a}
+.chartwrap iframe{width:100%;height:100%;border:0}
+.tabs{display:flex;gap:8px;margin-bottom:12px}
+.tab{flex:1;font-family:var(--fd);font-size:12px;text-align:center;padding:11px;border-radius:11px;cursor:pointer;background:rgba(7,10,7,.5);border:1px solid var(--line);color:var(--dim)}
+.tab.buy.on{background:linear-gradient(90deg,var(--green-dim),var(--green));color:#04140a;border-color:transparent}
+.tab.sell.on{background:linear-gradient(90deg,var(--ember2),var(--ember));color:#1a0800;border-color:transparent}
+.amts{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px}
+.amt{font-family:var(--fd);font-size:11px;padding:11px 4px;border-radius:11px;cursor:pointer;text-align:center;background:rgba(7,10,7,.5);border:1px solid var(--line);color:var(--text)}
+.amt.on{border-color:var(--green-dim);color:var(--green)}
+.custom{display:flex;align-items:center;gap:8px;background:rgba(7,10,7,.5);border:1px solid var(--line);border-radius:12px;padding:3px 12px;margin-bottom:12px}
+.custom input{flex:1;background:transparent;border:0;color:var(--green);font-family:var(--fm);font-size:14px;padding:11px 0;outline:none}
+.custom span{color:var(--dim);font-size:11px;font-weight:700}
+.act{width:100%;font-family:var(--fd);font-size:14px;border:0;border-radius:13px;padding:15px;cursor:pointer}
+.act.buy{background:linear-gradient(90deg,var(--green-dim),var(--green));color:#04140a}
+.act.sell{background:linear-gradient(90deg,var(--ember2),var(--ember));color:#1a0800}
+.act:disabled{opacity:.5}
+.h2{font-family:var(--fd);font-size:12px;letter-spacing:.14em;color:var(--ember);text-transform:uppercase;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.scanbtn{font-family:var(--fd);font-size:11px;border:1px solid var(--green-dim);background:transparent;color:var(--green);border-radius:20px;padding:8px 14px;cursor:pointer;margin-left:auto}
+.muted{color:var(--dim);font-size:12px;text-align:center;padding:14px;line-height:1.6}
+.spin{text-align:center;color:var(--dim);font-size:13px;padding:24px}
+/* bundle inline */
+.scorebox{text-align:center;border:2px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+.scorebox.low{border-color:var(--green-dim)}.scorebox.med{border-color:var(--gold)}.scorebox.high{border-color:var(--ember)}
+.scorebox b{font-family:var(--fh);font-size:46px;line-height:1}.scorebox.low b{color:var(--green)}.scorebox.med b{color:var(--gold)}.scorebox.high b{color:var(--ember)}
+.scorebox i{display:block;font-style:normal;font-family:var(--fd);font-size:10px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin-top:2px}
+.flag{font-size:11px;background:rgba(255,106,43,.07);border:1px solid rgba(255,106,43,.3);border-radius:9px;padding:8px 10px;margin-top:6px;text-align:left}
+.brow{display:flex;gap:8px;font-size:11px;padding:7px 9px;background:rgba(7,10,7,.4);border:1px solid var(--line);border-radius:9px;margin-top:5px}
+.brow a{color:var(--green);text-decoration:none}.brow .p{margin-left:auto;color:var(--gold);font-family:var(--fd)}
+.foot{text-align:center;margin-top:16px;font-size:11px;color:var(--dim)}.foot a{color:var(--green);text-decoration:none}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);z-index:40;opacity:0;background:var(--green);color:#04140a;font-family:var(--fd);font-size:12px;padding:11px 18px;border-radius:30px;transition:.25s;pointer-events:none;text-align:center;max-width:92vw}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.bad{background:var(--ember2);color:#fff}
+</style>
+</head>
+<body>
+<div class="bar">
+  <a class="brand" href="/"><img src="/assets/coin-logo.png" alt="$CHRONIC"/>TERMINAL</a>
+  <button class="wallet" id="walletBtn">Connect</button>
+</div>
+<div class="wrap">
+  <h1>TRENCH TERMINAL</h1>
+  <div class="sub">scan · chart · buy · sell — fees feed the fire 🔥</div>
+  <div class="search">
+    <input id="ca" placeholder="paste any Solana token CA" spellcheck="false" />
+    <button id="go">LOAD</button>
+  </div>
+  <div id="out"></div>
+  <div class="foot">🔥 <a href="/burn">burn</a> · 🌱 <a href="/grow">grow</a> · 🪙 <a href="/buy">buy $CHRONIC</a> · <a href="/">home</a></div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+var SOLMINT='So11111111111111111111111111111111111111112';
+var CHRONIC='J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump';
+var $=function(i){return document.getElementById(i);};
+var wallet=null, token=null, side='buy', amount=0.5, decimals=6, tokBal=0;
+function fmt(n){n=Number(n)||0;if(Math.abs(n)>=1e9)return(n/1e9).toFixed(2)+'B';if(Math.abs(n)>=1e6)return(n/1e6).toFixed(2)+'M';if(Math.abs(n)>=1e3)return(n/1e3).toFixed(1)+'K';if(Math.abs(n)<1&&n!==0)return n.toPrecision(3);return n.toFixed(2);}
+function sh(a){return a?a.slice(0,4)+'…'+a.slice(-4):'?';}
+function esc(s){return String(s).replace(/[<>&"]/g,function(c){return{'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];});}
+var _th;function toast(m,bad){var t=$('toast');t.textContent=m;t.classList.toggle('bad',!!bad);t.classList.add('show');clearTimeout(_th);_th=setTimeout(function(){t.classList.remove('show');},2400);}
+
+/* wallet */
+function provider(){var p=(window.phantom&&window.phantom.solana)||window.solana;return(p&&p.isPhantom)?p:null;}
+function isMobile(){var u=navigator.userAgent||'';return /android|iphone|ipad|ipod/i.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1);}
+var _w3;async function web3(){if(!_w3)_w3=await import('https://esm.sh/@solana/web3.js@1.95.3');return _w3;}
+function conn(w3){return new w3.Connection(location.origin+'/api/solrpc','confirmed');}
+async function connect(){var p=provider();
+  if(!p){ if(isMobile()){ toast('opening in Phantom…'); var t=encodeURIComponent(location.href.replace('://burnchronic.xyz/','://www.burnchronic.xyz/')); location.href='https://phantom.app/ul/browse/'+t+'?ref='+encodeURIComponent('https://www.burnchronic.xyz'); return false; } toast('Phantom not found',true); return false; }
+  var r=await p.connect(); wallet=r.publicKey.toString(); var b=$('walletBtn'); b.textContent=sh(wallet); b.classList.add('on'); if(token)loadBalance(); return true; }
+$('walletBtn').addEventListener('click',function(){ if(wallet){ if(confirm('Disconnect?')){wallet=null;this.textContent='Connect';this.classList.remove('on');} } else connect(); });
+
+/* solrpc */
+async function rpc(method,params){ var r=await fetch('/api/solrpc',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:method,params:params})}); var j=await r.json(); return j.result; }
+async function loadBalance(){ try{ var r=await rpc('getTokenAccountsByOwner',[wallet,{mint:token.ca},{encoding:'jsonParsed'}]);
+  tokBal=0; (r.value||[]).forEach(function(a){ tokBal+=Number(a.account.data.parsed.info.tokenAmount.uiAmount||0); }); renderTrade(); }catch(e){} }
+
+/* load token */
+async function load(){ var ca=$('ca').value.trim(); if(ca.length<32){ toast('paste a valid CA',true); return; }
+  $('go').disabled=true; $('out').innerHTML='<div class="spin">loading token…</div>';
+  try{
+    var dx=await (await fetch('https://api.dexscreener.com/latest/dex/tokens/'+ca)).json();
+    var pairs=(dx.pairs||[]).filter(function(p){return p.chainId==='solana';}).sort(function(a,b){return (b.liquidity&&b.liquidity.usd||0)-(a.liquidity&&a.liquidity.usd||0);});
+    var p=pairs[0];
+    try{ var s=await rpc('getTokenSupply',[ca]); decimals=s.value.decimals; }catch(e){ decimals=6; }
+    token={ ca:ca, name:p?p.baseToken.name:'Unknown', symbol:p?p.baseToken.symbol:'?', price:p?Number(p.priceUsd):0,
+      ch:p&&p.priceChange?Number(p.priceChange.h24||0):0, mc:p?(p.marketCap||p.fdv||0):0, liq:p&&p.liquidity?p.liquidity.usd:0,
+      vol:p&&p.volume?p.volume.h24:0, pair:p?p.pairAddress:null, img:p&&p.info?p.info.imageUrl:'' };
+    render(); if(wallet)loadBalance();
+  }catch(e){ $('out').innerHTML='<div class="muted">couldn’t load that token — check the CA</div>'; }
+  $('go').disabled=false;
+}
+
+function render(){
+  var t=token;
+  var html='<div class="card"><div class="thead">'
+    +(t.img?'<img src="'+esc(t.img)+'" alt=""/>':'<div style="width:46px;height:46px;border-radius:12px;background:var(--green-deep);display:flex;align-items:center;justify-content:center">🪙</div>')
+    +'<div><div class="nm">'+esc(t.name)+'</div><div class="sy">$'+esc(t.symbol)+' · '+sh(t.ca)+'</div></div>'
+    +'<div class="px"><b>$'+(t.price?t.price.toPrecision(4):'—')+'</b><div class="ch '+(t.ch>=0?'up':'down')+'">'+(t.ch>=0?'+':'')+t.ch.toFixed(1)+'% 24h</div></div></div>'
+    +'<div class="tstats"><div class="s"><b>$'+fmt(t.mc)+'</b><i>mcap</i></div><div class="s"><b>$'+fmt(t.liq)+'</b><i>liquidity</i></div><div class="s"><b>$'+fmt(t.vol)+'</b><i>vol 24h</i></div></div></div>';
+  // chart
+  if(t.pair){ html+='<div class="card" style="padding:0;overflow:hidden"><div class="chartwrap"><iframe src="https://dexscreener.com/solana/'+t.pair+'?embed=1&theme=dark&trades=0&info=0"></iframe></div></div>'; }
+  // trade
+  html+='<div class="card" id="tradeCard"></div>';
+  // bundle
+  html+='<div class="card"><div class="h2">🔍 Bundle Check<button class="scanbtn" id="scanBtn">SCAN</button></div><div id="bundleOut"><div class="muted">tap SCAN to check holders, snipers &amp; funding clusters</div></div></div>';
+  $('out').innerHTML=html;
+  renderTrade();
+  $('scanBtn').addEventListener('click',scan);
+}
+
+function renderTrade(){
+  var c=$('tradeCard'); if(!c)return;
+  var presets = side==='buy' ? [0.1,0.5,1,2] : [25,50,75,100];
+  var unit = side==='buy' ? 'SOL' : '% of bag';
+  var html='<div class="tabs"><div class="tab buy '+(side==='buy'?'on':'')+'" data-s="buy">BUY</div><div class="tab sell '+(side==='sell'?'on':'')+'" data-s="sell">SELL</div></div>';
+  html+='<div class="amts">'+presets.map(function(a){return '<div class="amt'+(a===amount?' on':'')+'" data-a="'+a+'">'+(side==='buy'?a+' ◎':a+'%')+'</div>';}).join('')+'</div>';
+  if(side==='buy'){ html+='<div class="custom"><input id="amtIn" type="number" step="0.01" placeholder="SOL amount" /><span>SOL</span></div>'; }
+  else { html+='<div class="custom" style="justify-content:center"><span style="color:var(--dim)">bag: '+fmt(tokBal)+' $'+esc(token.symbol)+'</span></div>'; }
+  html+='<button class="act '+side+'" id="actBtn">'+(wallet?(side==='buy'?'🪙 Buy $'+esc(token.symbol):'🔻 Sell $'+esc(token.symbol)):'Connect &amp; '+(side==='buy'?'Buy':'Sell'))+'</button>';
+  c.innerHTML=html;
+  c.querySelectorAll('.tab').forEach(function(t){t.addEventListener('click',function(){side=this.dataset.s;amount=side==='buy'?0.5:50;renderTrade();});});
+  c.querySelectorAll('.amt').forEach(function(b){b.addEventListener('click',function(){amount=Number(this.dataset.a);var ai=$('amtIn');if(ai)ai.value='';renderTrade();});});
+  var ai=$('amtIn'); if(ai)ai.addEventListener('input',function(){amount=Number(this.value)||0;c.querySelectorAll('.amt').forEach(function(b){b.classList.remove('on');});});
+  $('actBtn').addEventListener('click',trade);
+}
+
+async function trade(){
+  if(!wallet){ if(!(await connect())) return; renderTrade(); }
+  var btn=$('actBtn'); var input,output,amt;
+  if(side==='buy'){ if(!(amount>0)){toast('enter SOL amount',true);return;} input=SOLMINT; output=token.ca; amt=Math.round(amount*1e9).toString(); }
+  else { if(!(tokBal>0)){toast('no bag to sell',true);return;} var sellTokens=tokBal*(amount/100); input=token.ca; output=SOLMINT; amt=(BigInt(Math.floor(sellTokens))*(10n**BigInt(decimals))).toString(); }
+  btn.disabled=true; var label=btn.textContent; btn.textContent='routing…';
+  try{
+    var r=await fetch('/api/swap',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({account:wallet,inputMint:input,outputMint:output,amount:amt})});
+    var j=await r.json(); if(j.error||!j.transaction){ toast(j.error||'no route',true); btn.disabled=false; btn.textContent=label; return; }
+    btn.textContent='approve in wallet';
+    var w3=await web3(); var raw=Uint8Array.from(atob(j.transaction),function(c){return c.charCodeAt(0);});
+    var tx=w3.VersionedTransaction.deserialize(raw); var p=provider(); var sig;
+    if(p.signAndSendTransaction){ var s=await p.signAndSendTransaction(tx); sig=s.signature||s; } else { var sg=await p.signTransaction(tx); sig=await conn(w3).sendRawTransaction(sg.serialize()); }
+    btn.textContent='confirming… ⛓';
+    for(var i=0;i<28;i++){ try{ var st=await conn(w3).getSignatureStatuses([sig]); var v=st&&st.value&&st.value[0]; if(v&&(v.confirmationStatus==='confirmed'||v.confirmationStatus==='finalized')){ if(v.err)throw new Error('failed'); break; } }catch(e){ if(/failed/.test(e.message))throw e; } await new Promise(function(r){setTimeout(r,1500);}); }
+    toast((side==='buy'?'🪙 bought ':'🔻 sold ')+'$'+token.symbol+' ✓'); btn.disabled=false; btn.textContent=label;
+    setTimeout(function(){if(wallet)loadBalance();},2500);
+  }catch(e){ toast(/reject/i.test((e&&e.message)||'')?'cancelled':'failed',true); btn.disabled=false; btn.textContent=label; }
+}
+
+/* bundle scan (inline) */
+async function scan(){ var o=$('bundleOut'); o.innerHTML='<div class="spin">🔍 tracing funding &amp; holders… (~10–20s)</div>';
+  try{ var d=await (await fetch('/api/bundle?ca='+encodeURIComponent(token.ca))).json();
+    if(d.error){ o.innerHTML='<div class="muted">'+esc(d.error)+'</div>'; return; }
+    var html='';
+    if(d.score){ var lv=d.score.level; html+='<div class="scorebox '+lv+'"><b>'+d.score.value+'</b><i>'+(lv==='high'?'🚩 high / bundled':lv==='med'?'⚠️ some signals':'✅ looks ok-ish')+'</i></div>';
+      (d.score.flags||[]).forEach(function(f){html+='<div class="flag">🚩 '+esc(f)+'</div>';}); }
+    if(d.holders){ html+='<div style="font-size:11px;color:var(--dim);margin-top:10px">top 10: <b style="color:var(--gold)">'+d.holders.top10Pct+'%</b> · biggest: '+d.holders.largestPct+'%</div>'; }
+    if(d.launch){ html+='<div style="font-size:11px;color:var(--dim);margin-top:4px">sniped at launch: <b style="color:'+(d.launch.sniperPct>=20?'var(--ember)':'var(--gold)')+'">'+d.launch.sniperPct+'%</b> ('+d.launch.sniperCount+' wallets)</div>'; }
+    if(d.funding&&d.funding.clusters&&d.funding.clusters.length){ html+='<div style="font-size:11px;color:var(--ember);margin-top:6px">🚩 '+d.funding.clusters[0].size+' wallets share one funder ('+sh(d.funding.clusters[0].funder)+')</div>'; }
+    else if(d.funding){ html+='<div style="font-size:11px;color:var(--green);margin-top:6px">✅ no shared-funder bundle in top wallets</div>'; }
+    html+='<div style="font-size:10px;color:var(--dim);margin-top:10px;text-align:center"><a style="color:var(--green);text-decoration:none" href="/bundle?ca='+token.ca+'" target="_blank">full report ›</a> · signals only, DYOR 💀</div>';
+    o.innerHTML=html;
+  }catch(e){ o.innerHTML='<div class="muted">scan failed</div>'; }
+}
+
+$('go').addEventListener('click',load);
+$('ca').addEventListener('keydown',function(e){if(e.key==='Enter')load();});
+var q=new URLSearchParams(location.search).get('ca'); if(q){ $('ca').value=q; load(); }
+</script>
+</body>
+</html>
