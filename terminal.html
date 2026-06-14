@@ -49,6 +49,19 @@ h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:
 .ctrack{height:9px;border-radius:6px;background:rgba(7,10,7,.6);border:1px solid var(--line);overflow:hidden}
 .ctrack i{display:block;height:100%;background:linear-gradient(90deg,var(--green-dim),var(--gold));border-radius:6px;transition:width .7s;box-shadow:0 0 12px rgba(245,207,87,.4)}
 .grad{font-size:11px;color:var(--green);font-family:var(--fd);letter-spacing:.04em}
+.feedh{font-family:var(--fd);font-size:12px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;margin:16px 0 10px;display:flex;align-items:center;gap:8px}
+.coingrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:6px}
+@media(min-width:560px){.coingrid{grid-template-columns:repeat(3,1fr)}}
+.coin{display:flex;align-items:center;gap:9px;padding:10px;border-radius:13px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(16,26,18,.85),rgba(10,15,11,.9));cursor:pointer;transition:transform .12s,border-color .2s}
+.coin:active{transform:scale(.97)}.coin:hover{border-color:var(--green-dim)}
+.coin img,.coin .ph{width:38px;height:38px;border-radius:10px;object-fit:cover;background:#0a0f0b;flex:0 0 38px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.coin .ci{min-width:0;flex:1}
+.coin .cn{font-family:var(--fd);font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.coin .cp{font-size:11px;color:var(--dim)}
+.coin .cc{font-size:10px;font-weight:700;margin-top:1px}
+.coin .new{font-size:7px;font-family:var(--fd);letter-spacing:.06em;color:#04140a;background:var(--green);border-radius:8px;padding:2px 5px;margin-left:auto;align-self:flex-start}
+.backf{display:inline-block;font-size:12px;color:var(--dim);cursor:pointer;margin-bottom:10px}
+.backf:hover{color:var(--green)}
 .chartwrap{height:380px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#0a0d0a}
 .chartwrap iframe{width:100%;height:100%;border:0}
 .tabs{display:flex;gap:8px;margin-bottom:12px}
@@ -124,6 +137,34 @@ async function rpc(method,params){ var r=await fetch('/api/solrpc',{method:'POST
 async function loadBalance(){ try{ var r=await rpc('getTokenAccountsByOwner',[wallet,{mint:token.ca},{encoding:'jsonParsed'}]);
   tokBal=0; (r.value||[]).forEach(function(a){ tokBal+=Number(a.account.data.parsed.info.tokenAmount.uiAmount||0); }); renderTrade(); }catch(e){} }
 
+/* ── the feed (pad launches + trending) ── */
+var FEATURED=['J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump'];
+function coinCard(d,isNew){ return '<div class="coin" data-ca="'+d.ca+'">'+(d.img?'<img src="'+esc(d.img)+'"/>':'<div class="ph">🪙</div>')
+  +'<div class="ci"><div class="cn">'+esc(d.symbol||'?')+'</div><div class="cp">$'+(d.price?Number(d.price).toPrecision(3):'—')+'</div>'
+  +'<div class="cc '+((d.ch||0)>=0?'up':'down')+'">'+((d.ch||0)>=0?'+':'')+(d.ch||0).toFixed(0)+'% 24h</div></div>'+(isNew?'<span class="new">NEW</span>':'')+'</div>'; }
+async function showFeed(){
+  $('out').innerHTML='<div class="spin">loading the trenches… 🔥</div>';
+  var cas=[], pad={};
+  try{ var pf=await (await fetch('/api/launch',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'feed'})})).json();
+    (pf.launches||[]).forEach(function(l){ if(cas.indexOf(l.mint)<0){cas.push(l.mint);pad[l.mint]=1;} }); }catch(e){}
+  try{ var bs=await (await fetch('https://api.dexscreener.com/token-boosts/top/v1')).json();
+    (bs||[]).filter(function(b){return b.chainId==='solana';}).slice(0,22).forEach(function(b){ if(cas.indexOf(b.tokenAddress)<0)cas.push(b.tokenAddress); }); }catch(e){}
+  FEATURED.forEach(function(c){ if(cas.indexOf(c)<0)cas.push(c); });
+  cas=cas.slice(0,30);
+  var data={};
+  try{ var dx=await (await fetch('https://api.dexscreener.com/latest/dex/tokens/'+cas.join(','))).json();
+    (dx.pairs||[]).forEach(function(p){ if(p.chainId!=='solana')return; var a=p.baseToken.address; var lq=(p.liquidity&&p.liquidity.usd)||0;
+      if(!data[a]||lq>data[a]._lq) data[a]={ca:a,name:p.baseToken.name,symbol:p.baseToken.symbol,price:Number(p.priceUsd),ch:p.priceChange?Number(p.priceChange.h24||0):0,mc:p.marketCap||p.fdv||0,img:p.info?p.info.imageUrl:'',_lq:lq}; }); }catch(e){}
+  var pads=[],others=[];
+  cas.forEach(function(c){ var d=data[c]; if(!d)return; if(pad[c])pads.push(d); else others.push(d); });
+  others.sort(function(a,b){return (b.mc||0)-(a.mc||0);});
+  var html='';
+  if(pads.length) html+='<div class="feedh">🚀 Fresh on the Pad</div><div class="coingrid">'+pads.map(function(d){return coinCard(d,true);}).join('')+'</div>';
+  html+='<div class="feedh">🔥 Trending on Solana</div>'+(others.length?'<div class="coingrid">'+others.map(function(d){return coinCard(d,false);}).join('')+'</div>':'<div class="muted">paste a CA above to start trading</div>');
+  $('out').innerHTML=html;
+  document.querySelectorAll('.coin').forEach(function(el){ el.addEventListener('click',function(){ $('ca').value=this.dataset.ca; window.scrollTo(0,0); load(); }); });
+}
+
 /* load token */
 async function load(){ var ca=$('ca').value.trim(); if(ca.length<32){ toast('paste a valid CA',true); return; }
   $('go').disabled=true; $('out').innerHTML='<div class="spin">loading token…</div>';
@@ -142,7 +183,7 @@ async function load(){ var ca=$('ca').value.trim(); if(ca.length<32){ toast('pas
 
 function render(){
   var t=token;
-  var html='<div class="card"><div class="thead">'
+  var html='<div class="backf" id="backFeed">‹ all coins</div><div class="card"><div class="thead">'
     +(t.img?'<img src="'+esc(t.img)+'" alt=""/>':'<div style="width:46px;height:46px;border-radius:12px;background:var(--green-deep);display:flex;align-items:center;justify-content:center">🪙</div>')
     +'<div><div class="nm">'+esc(t.name)+'</div><div class="sy">$'+esc(t.symbol)+' · '+sh(t.ca)+'</div></div>'
     +'<div class="px"><b>$'+(t.price?t.price.toPrecision(4):'—')+'</b><div class="ch '+(t.ch>=0?'up':'down')+'">'+(t.ch>=0?'+':'')+t.ch.toFixed(1)+'% 24h</div></div></div>'
@@ -157,6 +198,7 @@ function render(){
   $('out').innerHTML=html;
   renderTrade(); loadCurve();
   $('scanBtn').addEventListener('click',scan);
+  var bf=$('backFeed'); if(bf)bf.addEventListener('click',function(){ history.replaceState(null,'','/terminal'); $('ca').value=''; showFeed(); });
 }
 async function loadCurve(){ var el=$('curveBar'); if(!el)return;
   try{ var c=await (await fetch('/api/curve?ca='+encodeURIComponent(token.ca))).json();
@@ -219,7 +261,7 @@ async function scan(){ var o=$('bundleOut'); o.innerHTML='<div class="spin">🔍
 
 $('go').addEventListener('click',load);
 $('ca').addEventListener('keydown',function(e){if(e.key==='Enter')load();});
-var q=new URLSearchParams(location.search).get('ca'); if(q){ $('ca').value=q; load(); }
+var q=new URLSearchParams(location.search).get('ca'); if(q){ $('ca').value=q; load(); } else { showFeed(); }
 </script>
 </body>
 </html>
