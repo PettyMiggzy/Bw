@@ -10,7 +10,19 @@
  */
 const G = require('./_grow.js');
 
-const PUMP = '6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P'; // pump.fun program (label LP)
+const PUMP = '6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P'; // pump.fun bonding-curve program
+const SYS = '11111111111111111111111111111111';            // System Program (normal wallets)
+// known AMM / pool programs — for labelling; the generic "non-system-owned"
+// check below already catches these, this is just belt-and-suspenders.
+const POOL_PROGRAMS = new Set([
+  PUMP,
+  'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA',   // pump.fun AMM (pumpswap)
+  '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8',   // Raydium AMM v4
+  'CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK',   // Raydium CLMM
+  'CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C',   // Raydium CPMM
+  'Eo7WjKq67rjJQSZxS6z3YkapzY3eMj6Xy8X5EQVn5UaB',   // Meteora DLMM
+  'whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc',    // Orca Whirlpool
+]);
 const TOP = 20;          // holders to inspect
 const TRACE = 12;        // wallets to trace funding for
 const EARLY = 16;        // earliest buyers to inspect
@@ -66,6 +78,16 @@ module.exports = async (req, res) => {
 
   const out = { ca, supply: null, holders: null, launch: null, funding: null, score: null, notes: [] };
 
+  // the pump.fun bonding-curve PDA for this mint is always-known (derived, no
+  // RPC), so we can exclude it from concentration + snipers even if the heavy
+  // holder calls fail or get rate-limited.
+  let CURVE = null;
+  try {
+    const { PublicKey } = require('@solana/web3.js');
+    const [c] = PublicKey.findProgramAddressSync([Buffer.from('bonding-curve'), new PublicKey(ca).toBuffer()], new PublicKey(PUMP));
+    CURVE = c.toBase58();
+  } catch (_) { /* web3 unavailable — fall back to on-chain owner detection */ }
+
   // ── supply ──
   let supply = 0n, decimals = 6;
   try {
@@ -75,7 +97,9 @@ module.exports = async (req, res) => {
   } catch (e) { out.notes.push('supply unavailable'); }
 
   // ── holders / concentration ──
-  const ownerOf = {}; // tokenAccount -> owner
+  const ownerOf = {};            // tokenAccount -> owner
+  const lpOwners = new Set();     // authorities that are pools/curves (not insiders)
+  if (CURVE) lpOwners.add(CURVE); // the bonding curve, always
   let topHolders = [];
   try {
     const la = await rpc('getTokenLargestAccounts', [ca]);
@@ -86,19 +110,35 @@ module.exports = async (req, res) => {
         const owner = acc && acc.data && acc.data.parsed && acc.data.parsed.info && acc.data.parsed.info.owner;
         ownerOf[accts[i].address] = owner || null;
       });
+      // resolve which authorities are pools/curves (program-owned PDAs) vs real
+      // wallets (System-Program owned). The bonding curve, Raydium/pumpswap
+      // vaults, etc. are NOT insiders — exclude them from concentration.
+      const uniqOwners = [...new Set(Object.values(ownerOf).filter(Boolean))];
+      if (uniqOwners.length) {
+        try {
+          const oi = await rpc('getMultipleAccounts', [uniqOwners, { encoding: 'base64' }]);
+          (oi.value || []).forEach((acc, i) => {
+            const prog = acc && acc.owner;            // the program that owns this authority
+            if (prog && (prog !== SYS || POOL_PROGRAMS.has(uniqOwners[i]))) lpOwners.add(uniqOwners[i]);
+          });
+        } catch (_) { /* fall back to PUMP-only below */ }
+      }
       topHolders = accts.map((a) => {
         const owner = ownerOf[a.address];
         const amt = big(a.amount);
-        const isLP = owner === PUMP || (acc_isProgram(owner));
+        const isLP = !!owner && (owner === PUMP || lpOwners.has(owner) || POOL_PROGRAMS.has(owner));
         return { owner, tokenAccount: a.address, amount: a.amount, pct: pct(amt, supply), lp: isLP };
       });
-      const top10 = topHolders.slice(0, 10).filter((h) => !h.lp).reduce((s, h) => s + big(h.amount), 0n);
-      const top20 = topHolders.filter((h) => !h.lp).reduce((s, h) => s + big(h.amount), 0n);
+      const realHolders = topHolders.filter((h) => !h.lp);
+      const top10 = realHolders.slice(0, 10).reduce((s, h) => s + big(h.amount), 0n);
+      const top20 = realHolders.reduce((s, h) => s + big(h.amount), 0n);
+      const firstReal = realHolders[0]; // topHolders is sorted desc, so this is the biggest wallet
       out.holders = {
         count: topHolders.length,
+        lpExcluded: topHolders.length - realHolders.length,
         top10Pct: pct(top10, supply),
         top20Pct: pct(top20, supply),
-        largestPct: topHolders.length ? topHolders[0].pct : 0,
+        largestPct: firstReal ? firstReal.pct : 0,
         top: topHolders.map((h) => ({ owner: h.owner, pct: h.pct, lp: h.lp })),
       };
     }
@@ -114,8 +154,9 @@ module.exports = async (req, res) => {
       if (earlyBuyers.length >= EARLY) break;
       const tx = await rpc('getTransaction', [s.signature, { encoding: 'jsonParsed', commitment: 'confirmed', maxSupportedTransactionVersion: 0 }]);
       if (!tx || (tx.meta && tx.meta.err)) continue;
-      const b = buyerFrom(tx, ca);
+      const b = buyerFrom(tx, ca, lpOwners);
       if (!b) continue;
+      if (lpOwners.has(b.owner) || b.owner === PUMP || POOL_PROGRAMS.has(b.owner)) continue; // the curve isn't a sniper
       if (firstSlot == null) firstSlot = tx.slot;
       earlyBuyers.push({ wallet: b.owner, amount: b.amount, slot: tx.slot });
     }
@@ -155,7 +196,7 @@ module.exports = async (req, res) => {
       if (h.top10Pct >= 50) { score += 35; flags.push(`top 10 hold ${h.top10Pct}%`); }
       else if (h.top10Pct >= 30) { score += 20; flags.push(`top 10 hold ${h.top10Pct}%`); }
       else if (h.top10Pct >= 15) { score += 8; }
-      if (h.largestPct >= 25 && !(topHolders[0] && topHolders[0].lp)) { score += 10; flags.push(`one wallet holds ${h.largestPct}%`); }
+      if (h.largestPct >= 25) { score += 10; flags.push(`one wallet holds ${h.largestPct}%`); }
     }
     if (l && l.sniperPct >= 25) { score += 30; flags.push(`${l.sniperPct}% sniped in the launch slot (${l.sniperCount} wallets)`); }
     else if (l && l.sniperPct >= 10) { score += 15; flags.push(`${l.sniperPct}% sniped at launch`); }
@@ -169,18 +210,22 @@ module.exports = async (req, res) => {
   res.status(200).json(out);
 };
 
-// the buyer in a tx = owner whose $mint token balance increased the most
-function buyerFrom(tx, mint) {
+// the buyer in a tx = owner whose $mint token balance increased the most,
+// ignoring the bonding curve / pool authorities (they receive the minted
+// supply on the create tx and aren't snipers).
+function buyerFrom(tx, mint, lpOwners) {
   const pre = (tx.meta.preTokenBalances || []).filter((b) => b.mint === mint);
   const post = (tx.meta.postTokenBalances || []).filter((b) => b.mint === mint);
   const m = {};
   pre.forEach((b) => { m[b.owner] = (m[b.owner] || 0n) - big(b.uiTokenAmount.amount); });
   post.forEach((b) => { m[b.owner] = (m[b.owner] || 0n) + big(b.uiTokenAmount.amount); });
   let best = null, amt = 0n;
-  for (const owner in m) { if (m[owner] > amt) { amt = m[owner]; best = owner; } }
+  for (const owner in m) {
+    if (owner === PUMP || POOL_PROGRAMS.has(owner) || (lpOwners && lpOwners.has(owner))) continue;
+    if (m[owner] > amt) { amt = m[owner]; best = owner; }
+  }
   return best ? { owner: best, amount: amt.toString() } : null;
 }
-function acc_isProgram() { return false; } // placeholder; LP detected via PUMP owner
 async function mapLimit(arr, limit, fn) {
   const out = []; let i = 0;
   async function worker() { while (i < arr.length) { const idx = i++; out[idx] = await fn(arr[idx]); } }
