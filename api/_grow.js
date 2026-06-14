@@ -32,16 +32,16 @@ const SB_KEY = process.env.SUPABASE_SERVICE_KEY || '';
 // burn = 60%, pool = 40%. xp is awarded on sell (seeds only).
 // ---------------------------------------------------------------------------
 const SEEDS = {
-  mids:   { cost: 250,   grow: 30000,  xp: 10   },
-  loud:   { cost: 1200,  grow: 60000,  xp: 60   },
-  gas:    { cost: 5000,  grow: 120000, xp: 320  },
-  exotic: { cost: 20000, grow: 240000, xp: 1600 },
+  mids:   { cost: 50000,   grow: 30000,  xp: 50   },
+  loud:   { cost: 250000,  grow: 60000,  xp: 300  },
+  gas:    { cost: 1000000, grow: 120000, xp: 1400 },
+  exotic: { cost: 5000000, grow: 240000, xp: 8000 },
 };
 const UPGRADES = {
-  light: { base: 3000,  mul: 1.9,  max: 8 },
-  nutes: { base: 4000,  mul: 1.85, max: 10 },
-  plot:  { base: 8000,  mul: 2.1,  max: 5 },
-  auto:  { base: 60000, mul: 1,    max: 1 },
+  light: { base: 150000,  mul: 1.9,  max: 8 },
+  nutes: { base: 200000,  mul: 1.85, max: 10 },
+  plot:  { base: 400000,  mul: 2.1,  max: 5 },
+  auto:  { base: 3000000, mul: 1,    max: 1 },
 };
 const BURN_BPS = 6000; // 60.00%
 const POOL_BPS = 4000; // 40.00%
