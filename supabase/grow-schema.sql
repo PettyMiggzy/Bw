@@ -182,6 +182,29 @@ begin
   return json_build_object('ok', true, 'xp_added', p_xp);
 end; $$;
 
+-- water a growing plot: speeds growth (enforces max waters + cooldown).
+-- XP is unaffected (XP only ever comes from verified burns) — watering just
+-- shaves grow time, so it can't be farmed for points.
+create or replace function grow_water(p_wallet text, p_idx int, p_max int, p_cd numeric)
+returns json
+language plpgsql security definer set search_path = public as $$
+declare pl grow_players%rowtype; plot jsonb; w int; lw numeric; nowms numeric;
+begin
+  select * into pl from grow_players where wallet = p_wallet for update;
+  if not found then return json_build_object('ok', false, 'reason', 'no_player'); end if;
+  plot := pl.plots -> p_idx;
+  if plot is null then return json_build_object('ok', false, 'reason', 'no_plot'); end if;
+  w  := coalesce((plot ->> 'w')::int, 0);
+  lw := coalesce((plot ->> 'lw')::numeric, 0);
+  nowms := extract(epoch from now()) * 1000;
+  if w >= p_max then return json_build_object('ok', false, 'reason', 'max_water'); end if;
+  if nowms - lw < p_cd then return json_build_object('ok', false, 'reason', 'cooldown'); end if;
+  plot := plot || jsonb_build_object('w', w + 1, 'lw', nowms);
+  update grow_players set plots = jsonb_set(plots, array[p_idx::text], plot), updated_at = now()
+   where wallet = p_wallet;
+  return json_build_object('ok', true, 'waters', w + 1);
+end; $$;
+
 -- settle a finished season: record winners, mark settled, open next season.
 -- Called by the settle script AFTER it has sent the on-chain payouts.
 create or replace function grow_settle_season(p_season_id bigint, p_winners jsonb)
