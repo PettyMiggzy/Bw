@@ -32,9 +32,13 @@ weekly                            tools/settle-season.js   ──────▶
 | `api/solrpc.js` | Solana RPC proxy → hides your Alchemy key from the browser. |
 | `tools/settle-season.js` | Weekly: pays top-3 by XP share, closes & reopens the season. |
 
+## Player market ("The Plug")
+
+Players trade **seeds / harvested nugs / rare strain NFTs** with each other. On each sale **5% of the price is burned**, 95% goes to the seller — verified on-chain by the API (same trust model as buys), items move in the game DB. Harvesting a plot drops a tradeable **nug** (by strain + quality); an **exotic×exotic** harvest also mints a rare **strain NFT** (in-game collectible). Schema: `supabase/grow-market.sql`. API actions: `listings` (public), `market_list`, `market_delist`, `market_reserve`, `market_buy`. Telegram Mini App: see `GROW-TELEGRAM.md`.
+
 ## Setup
 
-1. **Supabase** — open the SQL editor, paste & run `supabase/grow-schema.sql`.
+1. **Supabase** — open the SQL editor, paste & run `supabase/grow-schema.sql`, then `supabase/grow-market.sql`.
 2. **Pool wallet** — create the wallet that holds the pool (the burner for now). Use its plain address as `POOL_WALLET` — its $CHRONIC token account is auto-created on the first buy, so you don't need to derive one.
 3. **Vercel env** (Project → Settings → Environment Variables):
    - `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`

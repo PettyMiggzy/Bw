@@ -13,6 +13,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=4" />
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=4" />
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 :root{
   --void:#070a07;--void2:#0c120c;--panel:#101a12;--panel2:#16241a;
@@ -96,8 +97,10 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
   display:flex;align-items:flex-end;justify-content:center;transition:transform .12s,box-shadow .2s,border-color .2s}
 .plot:active{transform:scale(.97)}
 .plot .soil{position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(180deg,#3a2a16,#1a120a);border-top:2px solid rgba(120,90,40,.5)}
-.plot .plant{position:relative;z-index:2;font-size:46px;line-height:1;margin-bottom:14%;transition:transform .4s,filter .4s;transform-origin:bottom center}
+.plot .plant{position:relative;z-index:2;font-size:46px;line-height:1;margin-bottom:12%;transition:filter .4s;transform-origin:bottom center;display:flex;align-items:flex-end;justify-content:center}
+.plot .plant svg{display:block;width:100%;height:100%}
 @keyframes sway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+@keyframes budpulse{0%,100%{filter:drop-shadow(0 0 6px rgba(82,255,143,.55))}50%{filter:drop-shadow(0 0 16px rgba(245,207,87,.9))}}
 .plot .budimg{position:relative;z-index:2;width:70%;margin-bottom:9%;border-radius:12px;box-shadow:0 0 26px rgba(82,255,143,.55);animation:ripeglow 1.6s ease-in-out infinite}
 @keyframes ripeglow{50%{box-shadow:0 0 42px rgba(245,207,87,.85)}}
 .plot .prog{position:absolute;left:8px;right:8px;bottom:6px;z-index:3;height:5px;border-radius:5px;background:rgba(0,0,0,.5);overflow:hidden}
@@ -165,6 +168,19 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
 .row .xp{font-family:var(--fd);font-size:13px;color:var(--green)}
 .row .xp i{font-style:normal;font-size:8px;color:var(--dim);display:block;text-align:right;letter-spacing:.1em}
 .empty-note{color:var(--dim);font-size:12px;text-align:center;padding:24px 10px}
+/* market */
+.mkrow{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:13px;margin-bottom:7px;background:linear-gradient(180deg,rgba(16,26,18,.7),rgba(10,15,11,.7));border:1px solid var(--line)}
+.mkrow .ic{font-size:22px;width:26px;text-align:center}
+.mkrow .mid{flex:1;min-width:0}
+.mkrow .nm{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mkrow .sub{font-size:9px;color:var(--dim);letter-spacing:.04em;margin-top:1px}
+.mkrow .price{font-family:var(--fd);font-size:12px;color:var(--gold);white-space:nowrap}
+.mkbtn{font-family:var(--fd);font-size:10px;letter-spacing:.04em;border:0;border-radius:20px;padding:9px 13px;cursor:pointer;background:linear-gradient(90deg,var(--green-dim),var(--green));color:#04140a}
+.mkbtn:active{transform:scale(.95)}
+.mkbtn.sell{background:transparent;border:1px solid var(--green-dim);color:var(--green)}
+.mkbtn.del{background:transparent;border:1px solid var(--ember);color:var(--ember)}
+.mkq{font-size:8px;font-family:var(--fd);letter-spacing:.06em;padding:2px 6px;border-radius:10px;margin-left:6px}
+.mkq.fire{background:#7a3a12;color:var(--ember)} .mkq.exotic{background:var(--smoke);color:#f0d9ff}
 
 /* how it works */
 .how{background:linear-gradient(180deg,rgba(16,26,18,.7),rgba(10,15,11,.7));border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
@@ -236,7 +252,8 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
   <!-- TABS -->
   <div class="tabs">
     <div class="tab on" data-v="grow">🌱 Grow</div>
-    <div class="tab" data-v="board">🏆 Leaderboard</div>
+    <div class="tab" data-v="market">🛒 Market</div>
+    <div class="tab" data-v="board">🏆 Board</div>
     <div class="tab" data-v="how">❔ How</div>
   </div>
 
@@ -259,6 +276,18 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
     <div class="podium" id="podium"></div>
     <div class="lbl">▸ Full Standings</div>
     <div id="rows"></div>
+  </div>
+
+  <!-- MARKET VIEW -->
+  <div class="view" id="v-market">
+    <div id="marketMsg" class="empty-note" style="display:none"></div>
+    <div id="marketBody">
+      <div class="lbl">▸ Your Stash</div>
+      <p class="hh" style="font-size:11px;color:var(--dim);margin:0 0 12px">List your seeds, nugs &amp; NFTs. On a sale <b style="color:var(--ember)">5% burns</b>, <b style="color:var(--green)">95% to you</b>.</p>
+      <div id="stash"></div>
+      <div class="lbl" style="margin-top:20px">▸ The Plug — Buy</div>
+      <div id="listings"></div>
+    </div>
   </div>
 
   <!-- HOW VIEW -->
@@ -308,7 +337,6 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
 
 var API='/api/grow';
 var MAXPLOTS=12, STARTPLOTS=4, SEASON_MS=7*24*60*60*1000;
-var BUDS=['/assets/stash-1.jpg','/assets/stash-2.jpg','/assets/stash-3.jpg','/assets/stash-4.jpg','/assets/stash-5.jpg','/assets/stash-6.jpg'];
 
 /* catalog — defaults; overwritten by /api/grow?action=config */
 var SEEDS={
@@ -345,15 +373,23 @@ function leafSVG(rar){
     +'<g fill="url(#lg_'+rar+')" stroke="rgba(0,0,0,.22)" stroke-width=".6" stroke-linejoin="round">'+leaves+'</g>'
     +frost+spark+'</svg>';
 }
-
-/* mock rivals for demo board */
-var RIVALS=[
-  {who:'ashking.sol',addr:'7xKQ…be9F',xp:184200},{who:'pufflord',addr:'9aMv…2Tu1',xp:142800},
-  {who:'greengoblin',addr:'Hn3p…kQ8d',xp:96500},{who:'420blazeit',addr:'2Fzr…9wXc',xp:71300},
-  {who:'skeletoncrew',addr:'Dw8h…Lm4a',xp:54900},{who:'incinerator',addr:'5Tqp…vZ2e',xp:38600},
-  {who:'budbandit',addr:'Kx1n…7Rps',xp:24100},{who:'cheeflord',addr:'Bv6c…q3Hd',xp:15400},
-  {who:'dankdealer',addr:'Pf9w…tA5k',xp:8800}
-];
+/* a frosty nug — shown once a plant matures to adult/ripe */
+function budSVG(rar){
+  var C={mids:['#4e6b34','#8fb35f'],loud:['#1f9e54','#6df0a0'],gas:['#267a3e','#86e6a0'],exotic:['#5a2a8a','#c79bff']}[rar]||['#4e6b34','#8fb35f'];
+  var calyx=[[0,-80,8],[-8,-69,10],[8,-67,10],[0,-60,12],[-12,-52,12],[12,-52,12],[0,-46,14],[-10,-36,13],[10,-36,13],[0,-30,15],[-7,-19,12],[7,-19,12],[0,-13,13]];
+  var blobs=calyx.map(function(c){return '<circle cx="'+c[0]+'" cy="'+c[1]+'" r="'+c[2]+'"/>';}).join('');
+  var pist=['M-11 -62 q-5 -3 -3 -9','M13 -54 q5 -3 3 -10','M-5 -42 q-4 -4 -2 -10','M9 -36 q5 -3 2 -10','M0 -26 q-1 -5 1 -10'].map(function(d){return '<path d="'+d+'"/>';}).join('');
+  var fn={mids:3,loud:6,gas:10,exotic:10}[rar]||3, fpos=[[-6,-46],[8,-58],[0,-70],[-12,-40],[12,-44],[-4,-30],[6,-24],[0,-54],[-10,-62],[10,-66]], fr='';
+  for(var i=0;i<fn;i++){ fr+='<circle cx="'+fpos[i][0]+'" cy="'+fpos[i][1]+'" r="1.5"/>'; }
+  var spark=(rar==='exotic')?'<path fill="#fff" d="M20 -76 l1.5 4.2 4.2 1.5 -4.2 1.5 -1.5 4.2 -1.5 -4.2 -4.2 -1.5 4.2 -1.5z"/>':'';
+  var leaf='<path d="M-2 -12 Q -26 -22 -30 -44 Q -14 -34 -2 -20 Z" fill="'+C[0]+'" opacity=".75"/><path d="M2 -12 Q 26 -22 30 -44 Q 14 -34 2 -20 Z" fill="'+C[0]+'" opacity=".75"/>';
+  return '<svg viewBox="-38 -90 76 92" width="100%" height="100%" preserveAspectRatio="xMidYMax meet">'
+    +'<defs><radialGradient id="bd_'+rar+'" cx="0.5" cy="0.3" r="0.85"><stop offset="0" stop-color="'+C[1]+'"/><stop offset="1" stop-color="'+C[0]+'"/></radialGradient></defs>'
+    +leaf
+    +'<g fill="url(#bd_'+rar+')" stroke="rgba(0,0,0,.18)" stroke-width=".5">'+blobs+'</g>'
+    +'<g stroke="#ff7a3d" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".85">'+pist+'</g>'
+    +'<g fill="#fff" opacity=".7">'+fr+'</g>'+spark+'</svg>';
+}
 
 /* ---------- runtime state ---------- */
 var MODE='demo';
@@ -361,7 +397,8 @@ var DEMO_BANK=50000000; // demo is free play — auto top-up so it never blocks
 var DEMO_DEF={ on:false, bal:DEMO_BANK, xp:0, contributed:0, basePool:0,
   seeds:{}, lvl:{light:0,nutes:0,plot:0,auto:0}, plots:[], seasonEnd:Date.now()+SEASON_MS };
 var D; // demo state
-var LIVE={ token:null, wallet:null, lvl:{}, seeds:{}, plots:[], xp:0, poolWhole:0, endsAt:null, board:null, balance:null, lastWinners:null };
+var LIVE={ token:null, wallet:null, lvl:{}, seeds:{}, plots:[], nugs:[], nfts:[], xp:0, poolWhole:0, endsAt:null, board:null, balance:null, lastWinners:null };
+var MARKET_FEE_BPS=500;
 // real season data shown to everyone (incl. demo), so the pool/board are never fake
 var PUB={ poolWhole:0, endsAt:Date.now()+SEASON_MS, board:null, lastWinners:null };
 
@@ -457,7 +494,7 @@ async function buyOnChain(costWhole,kind,item){
 }
 
 /* ---------- live data sync ---------- */
-function applyPlayer(p){ LIVE.lvl=p.lvl||{}; LIVE.seeds=p.seeds||{};
+function applyPlayer(p){ LIVE.lvl=p.lvl||{}; LIVE.seeds=p.seeds||{}; LIVE.nugs=p.nugs||[]; LIVE.nfts=p.nfts||[];
   LIVE.plots=(p.plots||[]).map(function(x){return {strain:x.strain,at:x.at,w:x.waters||0};}); }
 async function refreshState(){
   var st=await apiGet('state');
@@ -575,14 +612,15 @@ function renderPlot(i){ var V=VM(); var el=document.querySelector('.plot[data-i=
   el.classList.remove('empty','ripe','locked'); var tag=el.querySelector('.tag'),xpd=el.querySelector('.xpd'),plant=el.querySelector('.plant'),prog=el.querySelector('.prog i');
   el.querySelectorAll('.budimg').forEach(function(b){b.remove();}); xpd.textContent='';
   if(i>=plotCount(V)){ el.classList.add('locked'); el.innerHTML='<div class="lk">PLOT LOCKED</div>'; return; }
-  if(i>=V.plots.length){ el.classList.add('empty'); tag.textContent='+ plant'; plant.textContent='🫘'; plant.style.fontSize='22px'; plant.style.filter='grayscale(.6) opacity(.6)'; plant.style.animation='none'; prog.style.width='0'; return; }
+  if(i>=V.plots.length){ el.classList.add('empty'); tag.textContent='+ plant'; plant.innerHTML=''; plant.textContent='🫘'; plant.style.fontSize='22px'; plant.style.width=''; plant.style.height=''; plant.style.filter='grayscale(.6) opacity(.6)'; plant.style.animation='none'; prog.style.width='0'; return; }
   var p=V.plots[i]; var s=SEEDS[p.strain]||SEEDS.mids; var pr=progressOf(p,V.lvl); var w=p.w||0;
-  if(pr>=1){ el.classList.add('ripe'); tag.textContent='● SELL'; xpd.textContent='+'+fmt(xpOf(p.strain,V.lvl))+' XP'; plant.textContent=''; plant.style.animation='none';
-    var bud=i%BUDS.length; var img=document.createElement('img'); img.className='budimg'; img.src=BUDS[bud]; el.insertBefore(img,el.querySelector('.prog')); prog.style.width='100%'; }
-  else { var stg=pr<0.3?'sprouting…':(pr<0.85?'growing…':'budding…');
-    tag.textContent=s.nm+' · '+stg; xpd.textContent=(w>=WATER_MAX?'💧 max':'💧 tap');
-    plant.textContent=pr<0.3?'🌱':'🌿'; plant.style.fontSize=Math.round(30+pr*30)+'px';
-    plant.style.filter=pr>=0.85?'drop-shadow(0 0 11px rgba(82,255,143,.75))':'none';
+  var adult=pr>=0.55; var size=Math.round(42+pr*46);
+  plant.textContent=''; plant.style.fontSize=''; plant.style.width=size+'px'; plant.style.height=size+'px';
+  plant.innerHTML = adult ? budSVG(p.strain) : leafSVG(p.strain);
+  if(pr>=1){ el.classList.add('ripe'); tag.textContent='● SELL'; xpd.textContent='+'+fmt(xpOf(p.strain,V.lvl))+' XP';
+    plant.style.filter=''; plant.style.animation='budpulse 1.6s ease-in-out infinite'; prog.style.width='100%'; }
+  else { tag.textContent=s.nm+' · '+(pr<0.3?'sprouting…':(adult?'budding…':'growing…')); xpd.textContent=(w>=WATER_MAX?'💧 max':'💧 tap');
+    plant.style.filter=pr>=0.85?'drop-shadow(0 0 11px rgba(82,255,143,.7))':'none';
     plant.style.animation='sway '+(2.2+(i%3)*0.3)+'s ease-in-out infinite'; prog.style.width=(pr*100)+'%'; }
 }
 
@@ -616,8 +654,6 @@ function renderShop(){ var V=VM();
 /* ============================================================
    leaderboard
 ============================================================ */
-function demoBoard(){ var V=VM(); var list=RIVALS.map(function(r){return {who:r.who,addr:r.addr,xp:r.xp,you:false};});
-  list.push({who:'YOU',addr:'demo',xp:V.xp,you:true}); list.sort(function(a,b){return b.xp-a.xp;}); return list; }
 function renderLastWin(){ var el=$('lastWin'); if(!el)return; var w=(MODE==='live')?LIVE.lastWinners:PUB.lastWinners;
   if(!w||!w.length){ el.innerHTML=''; el.style.display='none'; return; }
   var medals=['🥇','🥈','🥉'];
@@ -643,6 +679,66 @@ function renderBoard(){ var V=VM(); var list;
     d.innerHTML='<div class="rk">'+(i+1)+'</div><div class="who">'+p.who+(p.addr?'<small>'+p.addr+'</small>':'')+'</div>'
       +'<div class="xp">'+fmt(p.xp)+'<i>XP</i></div>'; rows.appendChild(d); });
 }
+
+/* ============================================================
+   market ("The Plug") — live only
+============================================================ */
+function strainName(k){ return (SEEDS[k]&&SEEDS[k].nm)||k; }
+function itemLabel(kind,item){ return strainName(item.strain)+(kind==='seed'?' Seed':kind==='nug'?' Nug':' NFT'); }
+function itemIcon(kind){ return kind==='nft'?'💎':kind==='seed'?'🌱':'🌿'; }
+function qBadge(q){ return (q==='fire'||q==='exotic')?' <span class="mkq '+q+'">'+q.toUpperCase()+'</span>':''; }
+
+function renderMarket(){ var msg=$('marketMsg'), body=$('marketBody');
+  if(MODE!=='live'){ msg.style.display='block'; msg.textContent='Connect your wallet to trade nugs, seeds & NFTs with other growers.'; body.style.display='none'; return; }
+  msg.style.display='none'; body.style.display='block'; renderStash(); fetchListings(); }
+
+function renderStash(){ var w=$('stash'); var rows='';
+  SEED_ORDER.forEach(function(k){ var n=(LIVE.seeds&&LIVE.seeds[k])||0; if(n>0){
+    rows+='<div class="mkrow"><div class="ic">🌱</div><div class="mid"><div class="nm">'+strainName(k)+' Seed ×'+n+'</div><div class="sub">seed</div></div>'
+      +'<button class="mkbtn sell" onclick="promptList(\'seed\',\''+k+'\',\''+strainName(k)+' Seed\')">List</button></div>'; } });
+  (LIVE.nugs||[]).forEach(function(it){ rows+='<div class="mkrow"><div class="ic">🌿</div><div class="mid"><div class="nm">'+strainName(it.strain)+' Nug'+qBadge(it.quality)+'</div><div class="sub">harvested bud</div></div>'
+    +'<button class="mkbtn sell" onclick="promptList(\'nug\',\''+it.id+'\',\''+strainName(it.strain)+' Nug\')">List</button></div>'; });
+  (LIVE.nfts||[]).forEach(function(it){ rows+='<div class="mkrow"><div class="ic">💎</div><div class="mid"><div class="nm">'+strainName(it.strain)+' NFT</div><div class="sub">#'+it.serial+' · rare drop</div></div>'
+    +'<button class="mkbtn sell" onclick="promptList(\'nft\',\''+it.id+'\',\''+strainName(it.strain)+' NFT\')">List</button></div>'; });
+  w.innerHTML=rows||'<div class="empty-note">Nothing to sell yet — harvest some buds first 🌿</div>'; }
+
+async function fetchListings(){ var w=$('listings'); var lb=await apiGet('listings',{limit:50});
+  if(!lb||lb.error){ w.innerHTML='<div class="empty-note">market unavailable</div>'; return; }
+  var arr=lb.listings||[]; if(!arr.length){ w.innerHTML='<div class="empty-note">No listings yet — be the first to sell. 🛒</div>'; return; }
+  w.innerHTML=arr.map(function(l){ var mine=l.seller===LIVE.wallet;
+    return '<div class="mkrow"><div class="ic">'+itemIcon(l.kind)+'</div><div class="mid">'
+      +'<div class="nm">'+itemLabel(l.kind,l.item)+(l.item.quality?qBadge(l.item.quality):'')+'</div>'
+      +'<div class="sub">'+(mine?'your listing':shortW(l.seller))+'</div></div>'
+      +'<div class="price">🔥 '+fmt(l.price)+'</div>'
+      +(mine?'<button class="mkbtn del" onclick="delistListing('+l.id+')">Delist</button>'
+            :'<button class="mkbtn" onclick="buyListing('+l.id+',\''+l.seller+'\','+l.price+')">Buy</button>')
+      +'</div>'; }).join(''); }
+
+async function promptList(kind,iid,label){ var p=prompt('List '+label+' for how much $CHRONIC?'); if(p==null)return;
+  var price=Math.floor(Number(p)); if(!(price>=1)){ toast('enter a number',true); return; }
+  var r=await apiPost('market_list',{kind:kind,iid:iid,price:price}); if(r.error){ toast(r.error,true); return; }
+  applyPlayer(r.player); renderMarket(); renderAll(); toast('listed for '+fmt(price)+' 🛒'); }
+async function delistListing(id){ var r=await apiPost('market_delist',{id:id}); if(r.error){ toast(r.error,true); return; }
+  applyPlayer(r.player); renderMarket(); renderAll(); toast('delisted'); }
+
+async function payMarket(seller,priceWhole){ var c=await chain();
+  var owner=new c.w3.PublicKey(LIVE.wallet), mint=new c.w3.PublicKey(CFG.mint), sellerPk=new c.w3.PublicKey(seller);
+  var fromAta=c.spl.getAssociatedTokenAddressSync(mint,owner), sellerAta=c.spl.getAssociatedTokenAddressSync(mint,sellerPk);
+  var total=BigInt(Math.round(priceWhole))*(10n**BigInt(CFG.decimals)); var fee=total*BigInt(MARKET_FEE_BPS)/10000n, toSeller=total-fee;
+  var ix=[c.spl.createAssociatedTokenAccountIdempotentInstruction(owner,sellerAta,sellerPk,mint)];
+  if(fee>0n) ix.push(c.spl.createBurnCheckedInstruction(fromAta,mint,owner,fee,CFG.decimals));
+  ix.push(c.spl.createTransferCheckedInstruction(fromAta,mint,sellerAta,owner,toSeller,CFG.decimals));
+  var tx=new c.w3.Transaction(); tx.add.apply(tx,ix); tx.feePayer=owner;
+  var bh=await conn(c.w3).getLatestBlockhash(); tx.recentBlockhash=bh.blockhash;
+  var signed=await getProvider().signTransaction(tx); var sig=await conn(c.w3).sendRawTransaction(signed.serialize());
+  await confirmSig(c,sig); return sig; }
+async function buyListing(id,seller,priceWhole){ if(MODE!=='live'){ toast('connect to buy',true); return; } if(!CFG.ready){ toast('on-chain not live yet',true); return; }
+  var r=await apiPost('market_reserve',{id:id}); if(r.error){ toast(r.error==='reserved'?'someone’s buying it…':r.error,true); return; }
+  toast('approve payment 🔥');
+  try{ var sig=await payMarket(seller,priceWhole); var res=await apiPost('market_buy',{id:id,sig:sig});
+    if(res.error){ toast('buy failed: '+(res.reason||res.error),true); return; }
+    applyPlayer(res.player); LIVE.balance=await fetchBalance(); renderMarket(); renderAll(); toast('bought! 🛒');
+  }catch(e){ toast(/reject/i.test((e&&e.message)||'')?'cancelled':'pay failed',true); } }
 
 /* ============================================================
    HUD / pool / countdown
@@ -671,7 +767,7 @@ function burst(x,y,col){ for(var i=0;i<16;i++){ var e=document.createElement('di
 
 /* ---------- tabs ---------- */
 function switchTab(v){ document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('on',t.dataset.v===v);});
-  document.querySelectorAll('.view').forEach(function(x){x.classList.toggle('on',x.id==='v-'+v);}); if(v==='board')renderBoard(); }
+  document.querySelectorAll('.view').forEach(function(x){x.classList.toggle('on',x.id==='v-'+v);}); if(v==='board')renderBoard(); if(v==='market')renderMarket(); }
 document.querySelectorAll('.tab').forEach(function(t){ t.addEventListener('click',function(){switchTab(t.dataset.v);}); });
 
 /* ---------- veil / wallet ---------- */
@@ -697,13 +793,16 @@ function tick(){ var V=VM(); _tickN++;
 /* ============================================================
    boot
 ============================================================ */
+function tgInit(){ try{ var t=window.Telegram&&window.Telegram.WebApp; if(t&&t.platform&&t.platform!=='unknown'){ t.ready(); t.expand(); if(t.setHeaderColor)t.setHeaderColor('#070a07'); document.body.classList.add('in-tg'); } }catch(e){} }
 async function boot(){
+  tgInit();
   loadDemo(); buildGarden(); buildSeedShop(); buildShop();
   // pull live config (mint, pool, catalog). best-effort — demo works without it.
   try{ var c=await apiGet('config'); if(c&&!c.error){ CFG.mint=c.mint||CFG.mint; CFG.decimals=c.decimals||CFG.decimals;
       CFG.poolOwner=c.poolWallet||''; CFG.rpcProxy=c.rpcProxy||CFG.rpcProxy; CFG.ready=!!c.ready;
       if(c.water){ WATER_MAX=c.water.max||WATER_MAX; WATER_PCT=c.water.pct||WATER_PCT; WATER_CD=c.water.cooldown||WATER_CD; }
       if(c.quality&&c.quality.length) QUALITY=c.quality;
+      if(c.marketFeeBps) MARKET_FEE_BPS=c.marketFeeBps;
       if(c.seeds) for(var k in c.seeds){ if(SEEDS[k]){ SEEDS[k].cost=c.seeds[k].cost; SEEDS[k].grow=c.seeds[k].grow; SEEDS[k].xp=c.seeds[k].xp; } }
       if(c.upgrades) UPS.forEach(function(u){ if(c.upgrades[u.k]){ u.base=c.upgrades[u.k].base; u.mul=c.upgrades[u.k].mul; u.max=c.upgrades[u.k].max; } });
       if(CFG.poolOwner){ var pv=$('poolVerify'); if(pv){ pv.href='https://solscan.io/account/'+CFG.poolOwner; pv.style.display='inline-flex'; } } } }catch(e){}

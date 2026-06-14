@@ -45,6 +45,7 @@ const UPGRADES = {
 };
 const BURN_BPS = 6000; // 60.00%
 const POOL_BPS = 4000; // 40.00%
+const MARKET_FEE_BPS = 500; // 5.00% of each P2P sale is burned; 95% to seller
 
 // watering: each water shaves WATER_PCT of grow time, up to MAX_WATERS, with a
 // cooldown between taps. XP is NOT affected (XP only from verified burns).
@@ -181,14 +182,45 @@ function collectTokenIx(tx) {
   return out;
 }
 
-// sum a wallet's $CHRONIC balance across a token-balances array (base units)
-function poolBalance(arr) {
+// sum an owner's $CHRONIC balance across a token-balances array (base units)
+function ownerBalanceOf(arr, owner) {
   return (arr || []).reduce((acc, b) => {
-    if (b.owner === POOL_WALLET && b.mint === MINT) {
+    if (b.owner === owner && b.mint === MINT) {
       try { return acc + BigInt(b.uiTokenAmount.amount); } catch (_) { return acc; }
     }
     return acc;
   }, 0n);
+}
+const poolBalance = (arr) => ownerBalanceOf(arr, POOL_WALLET);
+
+// verify a P2P market payment: buyer burned the 5% fee + paid 95% to the seller
+async function verifyMarketTx(sig, buyer, sellerWallet, priceBase) {
+  if (typeof sig !== 'string' || sig.length < 80 || sig.length > 100) return { ok: false, reason: 'bad_sig' };
+  const total = BigInt(priceBase);
+  const fee = (total * BigInt(MARKET_FEE_BPS)) / 10000n;
+  const toSeller = total - fee;
+
+  const tx = await solRpc('getTransaction', [sig, {
+    encoding: 'jsonParsed', commitment: 'confirmed', maxSupportedTransactionVersion: 0,
+  }]);
+  if (!tx) return { ok: false, reason: 'tx_not_found' };
+  if (tx.meta && tx.meta.err) return { ok: false, reason: 'tx_failed' };
+  const keys = tx.transaction.message.accountKeys || [];
+  const signer = keys.find((k) => k.signer);
+  if (!signer || (signer.pubkey || signer) !== buyer) return { ok: false, reason: 'wrong_signer' };
+
+  let gotBurn = 0n;
+  for (const p of collectTokenIx(tx)) {
+    const t = p.type, info = p.info || {};
+    if (info.mint && info.mint !== MINT) continue;
+    const amt = info.tokenAmount ? BigInt(info.tokenAmount.amount) : (info.amount ? BigInt(info.amount) : 0n);
+    if ((t === 'burn' || t === 'burnChecked') && info.authority === buyer) gotBurn += amt;
+  }
+  if (fee > 0n && gotBurn < fee) return { ok: false, reason: 'fee_short' };
+
+  const gotSeller = ownerBalanceOf(tx.meta.postTokenBalances, sellerWallet) - ownerBalanceOf(tx.meta.preTokenBalances, sellerWallet);
+  if (gotSeller < toSeller) return { ok: false, reason: 'seller_short' };
+  return { ok: true };
 }
 
 /*
@@ -234,10 +266,10 @@ async function verifyBuyTx(sig, wallet, expectedTotalBase) {
 
 module.exports = {
   SOLANA_RPC, MINT, DECIMALS, POOL_WALLET,
-  SEEDS, UPGRADES, BURN_BPS, POOL_BPS,
+  SEEDS, UPGRADES, BURN_BPS, POOL_BPS, MARKET_FEE_BPS,
   MAX_WATERS, WATER_PCT, WATER_COOLDOWN_MS, plotState,
   QUALITY, rollQuality,
   base, splitOf, upgradeCost,
   sbEnabled, sbHeaders, sbRpc, sbSelect, sbUpsert,
-  b58decode, isPubkey, verifySignature, solRpc, verifyBuyTx,
+  b58decode, isPubkey, verifySignature, solRpc, verifyBuyTx, verifyMarketTx,
 };
