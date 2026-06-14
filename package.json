@@ -1,0 +1,10 @@
+{
+  "name": "burnchronic",
+  "version": "1.0.0",
+  "private": true,
+  "description": "$CHRONIC site + Solana Actions (Blinks)",
+  "dependencies": {
+    "@solana/web3.js": "^1.95.3",
+    "@solana/spl-token": "^0.4.8"
+  }
+}
