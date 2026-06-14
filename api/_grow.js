@@ -46,6 +46,22 @@ const UPGRADES = {
 const BURN_BPS = 6000; // 60.00%
 const POOL_BPS = 4000; // 40.00%
 
+// watering: each water shaves WATER_PCT of grow time, up to MAX_WATERS, with a
+// cooldown between taps. XP is NOT affected (XP only from verified burns).
+const MAX_WATERS = 5;
+const WATER_PCT = 0.10;
+const WATER_COOLDOWN_MS = 5000;
+
+// effective state of a plot given the player's upgrade levels + waters
+function plotState(plot, lvl) {
+  const seed = SEEDS[plot.strain] || SEEDS.mids;
+  const light = (lvl && lvl.light) || 0, nutes = (lvl && lvl.nutes) || 0;
+  const gt = Math.round(seed.grow * Math.pow(0.85, light));
+  const waters = plot.w || 0;
+  const elapsed = (Date.now() - plot.at) + gt * WATER_PCT * waters;
+  return { gt, waters, ripe: elapsed >= gt, xp: Math.round(seed.xp * Math.pow(1.4, nutes)) };
+}
+
 const base = (whole) => BigInt(Math.round(whole)) * (10n ** BigInt(DECIMALS));
 const splitOf = (totalBase) => {
   const t = BigInt(totalBase);
@@ -206,6 +222,7 @@ async function verifyBuyTx(sig, wallet, expectedTotalBase) {
 module.exports = {
   SOLANA_RPC, MINT, DECIMALS, POOL_WALLET,
   SEEDS, UPGRADES, BURN_BPS, POOL_BPS,
+  MAX_WATERS, WATER_PCT, WATER_COOLDOWN_MS, plotState,
   base, splitOf, upgradeCost,
   sbEnabled, sbHeaders, sbRpc, sbSelect, sbUpsert,
   b58decode, isPubkey, verifySignature, solRpc, verifyBuyTx,

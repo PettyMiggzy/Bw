@@ -54,17 +54,12 @@ async function readBody(req) {
   try { return raw ? JSON.parse(raw) : {}; } catch (_) { return {}; }
 }
 
-// derived player view (ripeness per plot)
+// derived player view (water-aware ripeness per plot)
 function decorate(player) {
   const lvl = player.lvl || {};
-  const light = lvl.light || 0, nutes = lvl.nutes || 0;
-  const now = Date.now();
   const plots = (player.plots || []).map((p) => {
-    const seed = G.SEEDS[p.strain] || G.SEEDS.mids;
-    const gt = Math.round(seed.grow * Math.pow(0.85, light));
-    const ripe = (now - p.at) >= gt;
-    const xp = Math.round(seed.xp * Math.pow(1.4, nutes));
-    return { strain: p.strain, at: p.at, growMs: gt, ripe, xp };
+    const st = G.plotState(p, lvl);
+    return { strain: p.strain, at: p.at, waters: st.waters, growMs: st.gt, ripe: st.ripe, xp: st.xp };
   });
   return { wallet: player.wallet, lvl, seeds: player.seeds || {}, plots };
 }
@@ -88,6 +83,7 @@ module.exports = async (req, res) => {
         mint: G.MINT, decimals: G.DECIMALS, poolWallet: G.POOL_WALLET,
         rpcProxy: '/api/solrpc', burnBps: G.BURN_BPS, poolBps: G.POOL_BPS,
         seeds: G.SEEDS, upgrades: G.UPGRADES,
+        water: { max: G.MAX_WATERS, pct: G.WATER_PCT, cooldown: G.WATER_COOLDOWN_MS },
         ready: Boolean(G.POOL_WALLET),
       });
     }
@@ -210,21 +206,27 @@ module.exports = async (req, res) => {
       return json(res, 200, { ok: true, player: decorate(await loadPlayer()) });
     }
 
+    if (action === 'water') {
+      const idx = parseInt(body.idx, 10);
+      if (!(idx >= 0)) return json(res, 400, { error: 'bad idx' });
+      const r = await G.sbRpc('grow_water', {
+        p_wallet: wallet, p_idx: idx, p_max: G.MAX_WATERS, p_cd: G.WATER_COOLDOWN_MS });
+      if (!r || r.ok === false) return json(res, 400, { error: (r && r.reason) || 'water failed' });
+      return json(res, 200, { ok: true, waters: r.waters, player: decorate(await loadPlayer()) });
+    }
+
     if (action === 'sell') {
       const idx = parseInt(body.idx, 10);
       if (!(idx >= 0)) return json(res, 400, { error: 'bad idx' });
       const player = await loadPlayer();
       const plot = (player.plots || [])[idx];
       if (!plot) return json(res, 400, { error: 'no plot' });
-      const seed = G.SEEDS[plot.strain]; if (!seed) return json(res, 400, { error: 'bad plot' });
-      const light = (player.lvl && player.lvl.light) || 0;
-      const nutes = (player.lvl && player.lvl.nutes) || 0;
-      const gt = Math.round(seed.grow * Math.pow(0.85, light));
-      if (Date.now() - plot.at < gt) return json(res, 400, { error: 'not ripe' });
-      const xp = Math.round(seed.xp * Math.pow(1.4, nutes));
-      const r = await G.sbRpc('grow_sell', { p_wallet: wallet, p_idx: idx, p_xp: xp });
-      if (!r || r.ok === false) return json(res, 400, { error: r && r.reason || 'sell failed' });
-      return json(res, 200, { ok: true, xpAdded: xp, player: decorate(await loadPlayer()) });
+      if (!G.SEEDS[plot.strain]) return json(res, 400, { error: 'bad plot' });
+      const st = G.plotState(plot, player.lvl);
+      if (!st.ripe) return json(res, 400, { error: 'not ripe' });
+      const r = await G.sbRpc('grow_sell', { p_wallet: wallet, p_idx: idx, p_xp: st.xp });
+      if (!r || r.ok === false) return json(res, 400, { error: (r && r.reason) || 'sell failed' });
+      return json(res, 200, { ok: true, xpAdded: st.xp, player: decorate(await loadPlayer()) });
     }
 
     return json(res, 400, { error: 'unknown action' });

@@ -256,7 +256,7 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
     <div class="how">
       <h3>The loop</h3>
       <div class="step"><div class="n">1</div><div class="t"><b>Burn to buy.</b> Spend <span class="g">$CHRONIC</span> on seeds &amp; gear. <span class="o">60% is burned forever</span>, <span class="y">40% drops into this week's pool.</span></div></div>
-      <div class="step"><div class="n">2</div><div class="t"><b>Grow &amp; sell.</b> Plant a seed, let it ripen, sell the buds. Every sale earns <span class="g">XP</span> — fancier strains pay more.</div></div>
+      <div class="step"><div class="n">2</div><div class="t"><b>Grow, water &amp; sell.</b> Plant a seed, <span class="g">tap it to water</span> (each splash speeds growth), then sell the ripe buds. Every sale earns <span class="g">XP</span> — fancier strains pay more.</div></div>
       <div class="step"><div class="n">3</div><div class="t"><b>Climb.</b> XP ranks you on the <span class="y">weekly leaderboard.</span> Burn more, grow more, climb higher.</div></div>
       <div class="step"><div class="n">4</div><div class="t"><b>Top 3 win.</b> When the 7-day season ends, the <span class="y">top 3 growers split the whole pool</span> proportional to their XP. Then it resets and the race starts again.</div></div>
       <div class="disc">
@@ -317,6 +317,7 @@ var UPS=[
 function upCost(k,lvl){ var u=UPS.filter(function(x){return x.k===k;})[0]; return Math.round(u.base*Math.pow(u.mul,lvl||0)); }
 
 var CFG={ mint:'J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump', decimals:6, poolOwner:'', rpcProxy:'/api/solrpc', ready:false };
+var WATER_MAX=5, WATER_PCT=0.10, WATER_CD=5000;
 
 /* mock rivals for demo board */
 var RIVALS=[
@@ -360,6 +361,7 @@ function plotCount(V){ return STARTPLOTS+((V.lvl&&V.lvl.plot)||0); }
 function growMsOf(strain,lvl){ var s=SEEDS[strain]||SEEDS.mids; return Math.round(s.grow*Math.pow(0.85,(lvl&&lvl.light)||0)); }
 function xpOf(strain,lvl){ var s=SEEDS[strain]||SEEDS.mids; return Math.round(s.xp*Math.pow(1.4,(lvl&&lvl.nutes)||0)); }
 function bestOwnedSeed(V){ for(var i=SEED_ORDER.length-1;i>=0;i--){ var k=SEED_ORDER[i]; if((V.seeds[k]||0)>0) return k; } return null; }
+function progressOf(p,lvl){ var gt=growMsOf(p.strain,lvl); var w=p.w||0; return Math.min(1,((Date.now()-p.at)+gt*WATER_PCT*w)/gt); }
 
 /* ============================================================
    API + chain
@@ -425,7 +427,7 @@ async function buyOnChain(costWhole,kind,item){
 
 /* ---------- live data sync ---------- */
 function applyPlayer(p){ LIVE.lvl=p.lvl||{}; LIVE.seeds=p.seeds||{};
-  LIVE.plots=(p.plots||[]).map(function(x){return {strain:x.strain,at:x.at};}); }
+  LIVE.plots=(p.plots||[]).map(function(x){return {strain:x.strain,at:x.at,w:x.waters||0};}); }
 async function refreshState(){
   var st=await apiGet('state');
   if(st.error){ if(/auth/i.test(st.error)){ logoutLive(); toast('session expired — reconnect',true);} return; }
@@ -498,6 +500,16 @@ function buyUp(u){
   if(D.bal<cost){ toast('need '+fmt(cost)+' $CHRONIC',true); return; }
   D.bal-=cost; D.contributed+=Math.round(cost*0.4); D.lvl[u.k]=lvl+1; saveDemo(); renderAll(); toast(u.nm+' up! 🔧');
 }
+var _lastWater={};
+async function water(i){
+  var V=VM(); var p=V.plots[i]; if(!p) return; var w=p.w||0;
+  if(w>=WATER_MAX){ toast('fully watered 💧'); return; }
+  var now=Date.now(), lw=p.lw||_lastWater[i]||0;
+  if(now-lw<WATER_CD){ toast('let it soak… 💧'); return; }
+  var el=document.querySelector('.plot[data-i="'+i+'"]'); if(el){ var r=el.getBoundingClientRect(); burst(r.left+r.width/2,r.top+r.height*0.42,'radial-gradient(circle,#cde9ff,#3aa0ff)'); }
+  if(MODE==='live'){ var res=await apiPost('water',{idx:i}); if(res.error){ toast(res.error==='cooldown'?'let it soak… 💧':res.error,true); return; } applyPlayer(res.player); renderAll(); toast('watered 💧 grows faster'); return; }
+  p.w=w+1; p.lw=now; _lastWater[i]=now; saveDemo(); renderAll(); toast('watered 💧 grows faster');
+}
 async function plant(){
   var V=VM(); var strain=bestOwnedSeed(V);
   if(!strain){ toast('no seeds — buy some in the Seed Plug',true); switchTab('grow'); return; }
@@ -521,7 +533,7 @@ function buildGarden(){ var g=$('garden'); g.innerHTML='';
 
 function tapPlot(i){ var V=VM(); if(!V.connected){ openVeil(); return; }
   if(i>=plotCount(V)) return;
-  if(i<V.plots.length){ var p=V.plots[i]; var gt=growMsOf(p.strain,V.lvl); if(Date.now()-p.at>=gt) sell(i); else toast('still growing…'); }
+  if(i<V.plots.length){ var p=V.plots[i]; if(progressOf(p,V.lvl)>=1) sell(i); else water(i); }
   else plant();
 }
 function renderPlot(i){ var V=VM(); var el=document.querySelector('.plot[data-i="'+i+'"]'); if(!el)return;
@@ -529,10 +541,10 @@ function renderPlot(i){ var V=VM(); var el=document.querySelector('.plot[data-i=
   el.querySelectorAll('.budimg').forEach(function(b){b.remove();}); xpd.textContent='';
   if(i>=plotCount(V)){ el.classList.add('locked'); el.innerHTML='<div class="lk">PLOT LOCKED</div>'; return; }
   if(i>=V.plots.length){ el.classList.add('empty'); tag.textContent='+ plant'; plant.textContent='🫘'; plant.style.fontSize='22px'; plant.style.filter='grayscale(.6) opacity(.6)'; prog.style.width='0'; return; }
-  var p=V.plots[i]; var s=SEEDS[p.strain]||SEEDS.mids; var gt=growMsOf(p.strain,V.lvl); var pr=Math.min(1,(Date.now()-p.at)/gt);
+  var p=V.plots[i]; var s=SEEDS[p.strain]||SEEDS.mids; var pr=progressOf(p,V.lvl); var w=p.w||0;
   if(pr>=1){ el.classList.add('ripe'); tag.textContent='● SELL'; xpd.textContent='+'+fmt(xpOf(p.strain,V.lvl))+' XP'; plant.textContent='';
     var bud=i%BUDS.length; var img=document.createElement('img'); img.className='budimg'; img.src=BUDS[bud]; el.insertBefore(img,el.querySelector('.prog')); prog.style.width='100%'; }
-  else { tag.textContent=s.nm+' · '+(pr>=0.5?'growing…':'sprouting…'); plant.style.filter='none';
+  else { tag.textContent=s.nm+' · '+(pr>=0.5?'growing…':'sprouting…'); xpd.textContent=(w>=WATER_MAX?'💧 max':'💧 tap'); plant.style.filter='none';
     plant.textContent=pr>=0.5?'🌿':'🌱'; plant.style.fontSize=pr>=0.5?'50px':'34px'; prog.style.width=(pr*100)+'%'; }
 }
 
@@ -610,7 +622,7 @@ function renderCountdown(){ var V=VM(); var ms=Math.max(0,V.endsAt-Date.now());
 function renderAll(){ for(var i=0;i<MAXPLOTS;i++) renderPlot(i); renderSeedShop(); renderShop(); renderBoard(); renderHud(); renderPool(); renderCountdown(); }
 
 /* ---------- particles ---------- */
-function burst(x,y){ for(var i=0;i<16;i++){ var e=document.createElement('div'); e.className='ember'; document.body.appendChild(e);
+function burst(x,y,col){ for(var i=0;i<16;i++){ var e=document.createElement('div'); e.className='ember'; if(col){e.style.background=col;e.style.boxShadow='0 0 8px #5ab0ff';} document.body.appendChild(e);
   e.style.left=x+'px'; e.style.top=y+'px'; var ang=Math.random()*Math.PI*2,dist=40+Math.random()*100,dur=600+Math.random()*500;
   e.animate([{transform:'translate(-50%,-50%) scale(1)',opacity:1},{transform:'translate(calc(-50% + '+Math.cos(ang)*dist+'px), calc(-50% + '+(Math.sin(ang)*dist-60)+'px)) scale(0)',opacity:0}],{duration:dur,easing:'cubic-bezier(.2,.7,.3,1)'});
   setTimeout((function(el){return function(){el.remove();};})(e),dur); } }
@@ -632,7 +644,7 @@ $('reset').addEventListener('click',function(){ if(confirm('Reset the demo? (doe
 var _autoBusy=false, _tickN=0;
 async function autoTend(){ if(_autoBusy)return; var V=VM(); if(!(V.lvl&&V.lvl.auto))return;
   for(var i=0;i<Math.min(V.plots.length,plotCount(V));i++){ var p=V.plots[i];
-    if(Date.now()-p.at>=growMsOf(p.strain,V.lvl)){ _autoBusy=true; try{ await sell(i); }catch(e){} _autoBusy=false; return; } } }
+    if(progressOf(p,V.lvl)>=1){ _autoBusy=true; try{ await sell(i); }catch(e){} _autoBusy=false; return; } } }
 function tick(){ var V=VM(); _tickN++;
   autoTend();
   if(MODE==='live' && _tickN%60===0) refreshSeason(); // ~every 30s keep pool/board/rollover fresh
@@ -647,6 +659,7 @@ async function boot(){
   // pull live config (mint, pool, catalog). best-effort — demo works without it.
   try{ var c=await apiGet('config'); if(c&&!c.error){ CFG.mint=c.mint||CFG.mint; CFG.decimals=c.decimals||CFG.decimals;
       CFG.poolOwner=c.poolWallet||''; CFG.rpcProxy=c.rpcProxy||CFG.rpcProxy; CFG.ready=!!c.ready;
+      if(c.water){ WATER_MAX=c.water.max||WATER_MAX; WATER_PCT=c.water.pct||WATER_PCT; WATER_CD=c.water.cooldown||WATER_CD; }
       if(c.seeds) for(var k in c.seeds){ if(SEEDS[k]){ SEEDS[k].cost=c.seeds[k].cost; SEEDS[k].grow=c.seeds[k].grow; SEEDS[k].xp=c.seeds[k].xp; } }
       if(c.upgrades) UPS.forEach(function(u){ if(c.upgrades[u.k]){ u.base=c.upgrades[u.k].base; u.mul=c.upgrades[u.k].mul; u.max=c.upgrades[u.k].max; } });
       if(CFG.poolOwner){ var pv=$('poolVerify'); if(pv){ pv.href='https://solscan.io/account/'+CFG.poolOwner; pv.style.display='inline-flex'; } } } }catch(e){}
