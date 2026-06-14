@@ -13,6 +13,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=4" />
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=4" />
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 :root{
   --void:#070a07;--void2:#0c120c;--panel:#101a12;--panel2:#16241a;
@@ -167,6 +168,19 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
 .row .xp{font-family:var(--fd);font-size:13px;color:var(--green)}
 .row .xp i{font-style:normal;font-size:8px;color:var(--dim);display:block;text-align:right;letter-spacing:.1em}
 .empty-note{color:var(--dim);font-size:12px;text-align:center;padding:24px 10px}
+/* market */
+.mkrow{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:13px;margin-bottom:7px;background:linear-gradient(180deg,rgba(16,26,18,.7),rgba(10,15,11,.7));border:1px solid var(--line)}
+.mkrow .ic{font-size:22px;width:26px;text-align:center}
+.mkrow .mid{flex:1;min-width:0}
+.mkrow .nm{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mkrow .sub{font-size:9px;color:var(--dim);letter-spacing:.04em;margin-top:1px}
+.mkrow .price{font-family:var(--fd);font-size:12px;color:var(--gold);white-space:nowrap}
+.mkbtn{font-family:var(--fd);font-size:10px;letter-spacing:.04em;border:0;border-radius:20px;padding:9px 13px;cursor:pointer;background:linear-gradient(90deg,var(--green-dim),var(--green));color:#04140a}
+.mkbtn:active{transform:scale(.95)}
+.mkbtn.sell{background:transparent;border:1px solid var(--green-dim);color:var(--green)}
+.mkbtn.del{background:transparent;border:1px solid var(--ember);color:var(--ember)}
+.mkq{font-size:8px;font-family:var(--fd);letter-spacing:.06em;padding:2px 6px;border-radius:10px;margin-left:6px}
+.mkq.fire{background:#7a3a12;color:var(--ember)} .mkq.exotic{background:var(--smoke);color:#f0d9ff}
 
 /* how it works */
 .how{background:linear-gradient(180deg,rgba(16,26,18,.7),rgba(10,15,11,.7));border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
@@ -238,7 +252,8 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
   <!-- TABS -->
   <div class="tabs">
     <div class="tab on" data-v="grow">🌱 Grow</div>
-    <div class="tab" data-v="board">🏆 Leaderboard</div>
+    <div class="tab" data-v="market">🛒 Market</div>
+    <div class="tab" data-v="board">🏆 Board</div>
     <div class="tab" data-v="how">❔ How</div>
   </div>
 
@@ -261,6 +276,18 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
     <div class="podium" id="podium"></div>
     <div class="lbl">▸ Full Standings</div>
     <div id="rows"></div>
+  </div>
+
+  <!-- MARKET VIEW -->
+  <div class="view" id="v-market">
+    <div id="marketMsg" class="empty-note" style="display:none"></div>
+    <div id="marketBody">
+      <div class="lbl">▸ Your Stash</div>
+      <p class="hh" style="font-size:11px;color:var(--dim);margin:0 0 12px">List your seeds, nugs &amp; NFTs. On a sale <b style="color:var(--ember)">5% burns</b>, <b style="color:var(--green)">95% to you</b>.</p>
+      <div id="stash"></div>
+      <div class="lbl" style="margin-top:20px">▸ The Plug — Buy</div>
+      <div id="listings"></div>
+    </div>
   </div>
 
   <!-- HOW VIEW -->
@@ -380,7 +407,8 @@ var DEMO_BANK=50000000; // demo is free play — auto top-up so it never blocks
 var DEMO_DEF={ on:false, bal:DEMO_BANK, xp:0, contributed:0, basePool:0,
   seeds:{}, lvl:{light:0,nutes:0,plot:0,auto:0}, plots:[], seasonEnd:Date.now()+SEASON_MS };
 var D; // demo state
-var LIVE={ token:null, wallet:null, lvl:{}, seeds:{}, plots:[], xp:0, poolWhole:0, endsAt:null, board:null, balance:null, lastWinners:null };
+var LIVE={ token:null, wallet:null, lvl:{}, seeds:{}, plots:[], nugs:[], nfts:[], xp:0, poolWhole:0, endsAt:null, board:null, balance:null, lastWinners:null };
+var MARKET_FEE_BPS=500;
 // real season data shown to everyone (incl. demo), so the pool/board are never fake
 var PUB={ poolWhole:0, endsAt:Date.now()+SEASON_MS, board:null, lastWinners:null };
 
@@ -476,7 +504,7 @@ async function buyOnChain(costWhole,kind,item){
 }
 
 /* ---------- live data sync ---------- */
-function applyPlayer(p){ LIVE.lvl=p.lvl||{}; LIVE.seeds=p.seeds||{};
+function applyPlayer(p){ LIVE.lvl=p.lvl||{}; LIVE.seeds=p.seeds||{}; LIVE.nugs=p.nugs||[]; LIVE.nfts=p.nfts||[];
   LIVE.plots=(p.plots||[]).map(function(x){return {strain:x.strain,at:x.at,w:x.waters||0};}); }
 async function refreshState(){
   var st=await apiGet('state');
@@ -665,6 +693,66 @@ function renderBoard(){ var V=VM(); var list;
 }
 
 /* ============================================================
+   market ("The Plug") — live only
+============================================================ */
+function strainName(k){ return (SEEDS[k]&&SEEDS[k].nm)||k; }
+function itemLabel(kind,item){ return strainName(item.strain)+(kind==='seed'?' Seed':kind==='nug'?' Nug':' NFT'); }
+function itemIcon(kind){ return kind==='nft'?'💎':kind==='seed'?'🌱':'🌿'; }
+function qBadge(q){ return (q==='fire'||q==='exotic')?' <span class="mkq '+q+'">'+q.toUpperCase()+'</span>':''; }
+
+function renderMarket(){ var msg=$('marketMsg'), body=$('marketBody');
+  if(MODE!=='live'){ msg.style.display='block'; msg.textContent='Connect your wallet to trade nugs, seeds & NFTs with other growers.'; body.style.display='none'; return; }
+  msg.style.display='none'; body.style.display='block'; renderStash(); fetchListings(); }
+
+function renderStash(){ var w=$('stash'); var rows='';
+  SEED_ORDER.forEach(function(k){ var n=(LIVE.seeds&&LIVE.seeds[k])||0; if(n>0){
+    rows+='<div class="mkrow"><div class="ic">🌱</div><div class="mid"><div class="nm">'+strainName(k)+' Seed ×'+n+'</div><div class="sub">seed</div></div>'
+      +'<button class="mkbtn sell" onclick="promptList(\'seed\',\''+k+'\',\''+strainName(k)+' Seed\')">List</button></div>'; } });
+  (LIVE.nugs||[]).forEach(function(it){ rows+='<div class="mkrow"><div class="ic">🌿</div><div class="mid"><div class="nm">'+strainName(it.strain)+' Nug'+qBadge(it.quality)+'</div><div class="sub">harvested bud</div></div>'
+    +'<button class="mkbtn sell" onclick="promptList(\'nug\',\''+it.id+'\',\''+strainName(it.strain)+' Nug\')">List</button></div>'; });
+  (LIVE.nfts||[]).forEach(function(it){ rows+='<div class="mkrow"><div class="ic">💎</div><div class="mid"><div class="nm">'+strainName(it.strain)+' NFT</div><div class="sub">#'+it.serial+' · rare drop</div></div>'
+    +'<button class="mkbtn sell" onclick="promptList(\'nft\',\''+it.id+'\',\''+strainName(it.strain)+' NFT\')">List</button></div>'; });
+  w.innerHTML=rows||'<div class="empty-note">Nothing to sell yet — harvest some buds first 🌿</div>'; }
+
+async function fetchListings(){ var w=$('listings'); var lb=await apiGet('listings',{limit:50});
+  if(!lb||lb.error){ w.innerHTML='<div class="empty-note">market unavailable</div>'; return; }
+  var arr=lb.listings||[]; if(!arr.length){ w.innerHTML='<div class="empty-note">No listings yet — be the first to sell. 🛒</div>'; return; }
+  w.innerHTML=arr.map(function(l){ var mine=l.seller===LIVE.wallet;
+    return '<div class="mkrow"><div class="ic">'+itemIcon(l.kind)+'</div><div class="mid">'
+      +'<div class="nm">'+itemLabel(l.kind,l.item)+(l.item.quality?qBadge(l.item.quality):'')+'</div>'
+      +'<div class="sub">'+(mine?'your listing':shortW(l.seller))+'</div></div>'
+      +'<div class="price">🔥 '+fmt(l.price)+'</div>'
+      +(mine?'<button class="mkbtn del" onclick="delistListing('+l.id+')">Delist</button>'
+            :'<button class="mkbtn" onclick="buyListing('+l.id+',\''+l.seller+'\','+l.price+')">Buy</button>')
+      +'</div>'; }).join(''); }
+
+async function promptList(kind,iid,label){ var p=prompt('List '+label+' for how much $CHRONIC?'); if(p==null)return;
+  var price=Math.floor(Number(p)); if(!(price>=1)){ toast('enter a number',true); return; }
+  var r=await apiPost('market_list',{kind:kind,iid:iid,price:price}); if(r.error){ toast(r.error,true); return; }
+  applyPlayer(r.player); renderMarket(); renderAll(); toast('listed for '+fmt(price)+' 🛒'); }
+async function delistListing(id){ var r=await apiPost('market_delist',{id:id}); if(r.error){ toast(r.error,true); return; }
+  applyPlayer(r.player); renderMarket(); renderAll(); toast('delisted'); }
+
+async function payMarket(seller,priceWhole){ var c=await chain();
+  var owner=new c.w3.PublicKey(LIVE.wallet), mint=new c.w3.PublicKey(CFG.mint), sellerPk=new c.w3.PublicKey(seller);
+  var fromAta=c.spl.getAssociatedTokenAddressSync(mint,owner), sellerAta=c.spl.getAssociatedTokenAddressSync(mint,sellerPk);
+  var total=BigInt(Math.round(priceWhole))*(10n**BigInt(CFG.decimals)); var fee=total*BigInt(MARKET_FEE_BPS)/10000n, toSeller=total-fee;
+  var ix=[c.spl.createAssociatedTokenAccountIdempotentInstruction(owner,sellerAta,sellerPk,mint)];
+  if(fee>0n) ix.push(c.spl.createBurnCheckedInstruction(fromAta,mint,owner,fee,CFG.decimals));
+  ix.push(c.spl.createTransferCheckedInstruction(fromAta,mint,sellerAta,owner,toSeller,CFG.decimals));
+  var tx=new c.w3.Transaction(); tx.add.apply(tx,ix); tx.feePayer=owner;
+  var bh=await conn(c.w3).getLatestBlockhash(); tx.recentBlockhash=bh.blockhash;
+  var signed=await getProvider().signTransaction(tx); var sig=await conn(c.w3).sendRawTransaction(signed.serialize());
+  await confirmSig(c,sig); return sig; }
+async function buyListing(id,seller,priceWhole){ if(MODE!=='live'){ toast('connect to buy',true); return; } if(!CFG.ready){ toast('on-chain not live yet',true); return; }
+  var r=await apiPost('market_reserve',{id:id}); if(r.error){ toast(r.error==='reserved'?'someone’s buying it…':r.error,true); return; }
+  toast('approve payment 🔥');
+  try{ var sig=await payMarket(seller,priceWhole); var res=await apiPost('market_buy',{id:id,sig:sig});
+    if(res.error){ toast('buy failed: '+(res.reason||res.error),true); return; }
+    applyPlayer(res.player); LIVE.balance=await fetchBalance(); renderMarket(); renderAll(); toast('bought! 🛒');
+  }catch(e){ toast(/reject/i.test((e&&e.message)||'')?'cancelled':'pay failed',true); } }
+
+/* ============================================================
    HUD / pool / countdown
 ============================================================ */
 function renderHud(){ var V=VM(); $('balN').textContent=(V.balance==null)?'—':fmt(V.balance); $('xpHud').textContent=fmt(V.xp);
@@ -691,7 +779,7 @@ function burst(x,y,col){ for(var i=0;i<16;i++){ var e=document.createElement('di
 
 /* ---------- tabs ---------- */
 function switchTab(v){ document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('on',t.dataset.v===v);});
-  document.querySelectorAll('.view').forEach(function(x){x.classList.toggle('on',x.id==='v-'+v);}); if(v==='board')renderBoard(); }
+  document.querySelectorAll('.view').forEach(function(x){x.classList.toggle('on',x.id==='v-'+v);}); if(v==='board')renderBoard(); if(v==='market')renderMarket(); }
 document.querySelectorAll('.tab').forEach(function(t){ t.addEventListener('click',function(){switchTab(t.dataset.v);}); });
 
 /* ---------- veil / wallet ---------- */
@@ -717,13 +805,16 @@ function tick(){ var V=VM(); _tickN++;
 /* ============================================================
    boot
 ============================================================ */
+function tgInit(){ try{ var t=window.Telegram&&window.Telegram.WebApp; if(t&&t.initData!==undefined){ t.ready(); t.expand(); if(t.setHeaderColor)t.setHeaderColor('#070a07'); document.body.classList.add('in-tg'); } }catch(e){} }
 async function boot(){
+  tgInit();
   loadDemo(); buildGarden(); buildSeedShop(); buildShop();
   // pull live config (mint, pool, catalog). best-effort — demo works without it.
   try{ var c=await apiGet('config'); if(c&&!c.error){ CFG.mint=c.mint||CFG.mint; CFG.decimals=c.decimals||CFG.decimals;
       CFG.poolOwner=c.poolWallet||''; CFG.rpcProxy=c.rpcProxy||CFG.rpcProxy; CFG.ready=!!c.ready;
       if(c.water){ WATER_MAX=c.water.max||WATER_MAX; WATER_PCT=c.water.pct||WATER_PCT; WATER_CD=c.water.cooldown||WATER_CD; }
       if(c.quality&&c.quality.length) QUALITY=c.quality;
+      if(c.marketFeeBps) MARKET_FEE_BPS=c.marketFeeBps;
       if(c.seeds) for(var k in c.seeds){ if(SEEDS[k]){ SEEDS[k].cost=c.seeds[k].cost; SEEDS[k].grow=c.seeds[k].grow; SEEDS[k].xp=c.seeds[k].xp; } }
       if(c.upgrades) UPS.forEach(function(u){ if(c.upgrades[u.k]){ u.base=c.upgrades[u.k].base; u.mul=c.upgrades[u.k].mul; u.max=c.upgrades[u.k].max; } });
       if(CFG.poolOwner){ var pv=$('poolVerify'); if(pv){ pv.href='https://solscan.io/account/'+CFG.poolOwner; pv.style.display='inline-flex'; } } } }catch(e){}

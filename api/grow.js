@@ -61,7 +61,8 @@ function decorate(player) {
     const st = G.plotState(p, lvl);
     return { strain: p.strain, at: p.at, waters: st.waters, growMs: st.gt, ripe: st.ripe, xp: st.xp };
   });
-  return { wallet: player.wallet, lvl, seeds: player.seeds || {}, plots };
+  return { wallet: player.wallet, lvl, seeds: player.seeds || {}, plots,
+    nugs: player.nugs || [], nfts: player.nfts || [] };
 }
 
 module.exports = async (req, res) => {
@@ -84,9 +85,17 @@ module.exports = async (req, res) => {
         rpcProxy: '/api/solrpc', burnBps: G.BURN_BPS, poolBps: G.POOL_BPS,
         seeds: G.SEEDS, upgrades: G.UPGRADES,
         water: { max: G.MAX_WATERS, pct: G.WATER_PCT, cooldown: G.WATER_COOLDOWN_MS },
-        quality: G.QUALITY,
+        quality: G.QUALITY, marketFeeBps: G.MARKET_FEE_BPS,
         ready: Boolean(G.POOL_WALLET),
       });
+    }
+
+    // ── public: browse market listings ─────────────────────────────────
+    if (action === 'listings') {
+      const limit = Math.min(100, parseInt(req.query.limit || '50', 10) || 50);
+      const rows = await G.sbSelect(
+        `grow_listings?status=eq.active&select=id,seller,kind,item,price,created_at&order=created_at.desc&limit=${limit}`);
+      return json(res, 200, { listings: rows });
     }
 
     // ── public: season + leaderboard ───────────────────────────────────
@@ -147,8 +156,8 @@ module.exports = async (req, res) => {
 
     async function loadPlayer() {
       const rows = await G.sbSelect(
-        `grow_players?wallet=eq.${wallet}&select=wallet,lvl,seeds,plots`);
-      return rows[0] || { wallet, lvl: {}, seeds: {}, plots: [] };
+        `grow_players?wallet=eq.${wallet}&select=wallet,lvl,seeds,plots,nugs,nfts`);
+      return rows[0] || { wallet, lvl: {}, seeds: {}, plots: [], nugs: [], nfts: [] };
     }
     async function myXp(seasonId) {
       const rows = await G.sbSelect(
@@ -229,7 +238,53 @@ module.exports = async (req, res) => {
       const xp = Math.max(1, Math.round(st.xp * q.mult));
       const r = await G.sbRpc('grow_sell', { p_wallet: wallet, p_idx: idx, p_xp: xp });
       if (!r || r.ok === false) return json(res, 400, { error: (r && r.reason) || 'sell failed' });
-      return json(res, 200, { ok: true, xpAdded: xp, quality: q.name, mult: q.mult, player: decorate(await loadPlayer()) });
+      // harvest drop: a tradeable nug, + a rare strain NFT on an exotic×exotic pop
+      const nug = { id: crypto.randomUUID(), strain: plot.strain, quality: q.name };
+      let nft = null;
+      if (plot.strain === 'exotic' && q.name === 'exotic') {
+        nft = { id: crypto.randomUUID(), strain: plot.strain, serial: Date.now().toString(36).toUpperCase() };
+      }
+      await G.sbRpc('grow_add_drop', { p_wallet: wallet, p_nug: nug, p_nft: nft });
+      return json(res, 200, { ok: true, xpAdded: xp, quality: q.name, mult: q.mult, nft: !!nft, player: decorate(await loadPlayer()) });
+    }
+
+    // ── market: list / delist / reserve / buy ──────────────────────────
+    if (action === 'market_list') {
+      const { kind, iid } = body; const price = Math.floor(Number(body.price));
+      if (!['seed', 'nug', 'nft'].includes(kind) || !iid) return json(res, 400, { error: 'bad item' });
+      if (!(price >= 1)) return json(res, 400, { error: 'bad price' });
+      const r = await G.sbRpc('grow_market_list', { p_wallet: wallet, p_kind: kind, p_iid: String(iid), p_price: price });
+      if (!r || r.ok === false) return json(res, 400, { error: (r && r.reason) || 'list failed' });
+      return json(res, 200, { ok: true, player: decorate(await loadPlayer()) });
+    }
+
+    if (action === 'market_delist') {
+      const id = parseInt(body.id, 10); if (!(id >= 0)) return json(res, 400, { error: 'bad id' });
+      const r = await G.sbRpc('grow_market_delist', { p_wallet: wallet, p_id: id });
+      if (!r || r.ok === false) return json(res, 400, { error: (r && r.reason) || 'delist failed' });
+      return json(res, 200, { ok: true, player: decorate(await loadPlayer()) });
+    }
+
+    if (action === 'market_reserve') {
+      const id = parseInt(body.id, 10); if (!(id >= 0)) return json(res, 400, { error: 'bad id' });
+      const r = await G.sbRpc('grow_market_reserve', { p_buyer: wallet, p_id: id });
+      if (!r || r.ok === false) return json(res, 400, { error: (r && r.reason) || 'reserve failed' });
+      const fee = Math.floor(Number(r.price) * G.MARKET_FEE_BPS / 10000);
+      return json(res, 200, { ok: true, seller: r.seller, price: Number(r.price), burnFee: fee, toSeller: Number(r.price) - fee });
+    }
+
+    if (action === 'market_buy') {
+      const id = parseInt(body.id, 10); const sig = body.sig;
+      if (!(id >= 0) || !sig) return json(res, 400, { error: 'missing id/sig' });
+      const rows = await G.sbSelect(`grow_listings?id=eq.${id}&select=seller,price,status,buyer`);
+      const l = rows[0];
+      if (!l) return json(res, 400, { error: 'no listing' });
+      if (l.status !== 'reserved' || l.buyer !== wallet) return json(res, 400, { error: 'not reserved by you' });
+      const v = await G.verifyMarketTx(sig, wallet, l.seller, G.base(l.price));
+      if (!v.ok) return json(res, 400, { error: 'payment invalid', reason: v.reason });
+      const r = await G.sbRpc('grow_market_complete', { p_buyer: wallet, p_id: id, p_sig: sig });
+      if (!r || r.ok === false) return json(res, 400, { error: (r && r.reason) || 'buy failed' });
+      return json(res, 200, { ok: true, player: decorate(await loadPlayer()) });
     }
 
     return json(res, 400, { error: 'unknown action' });
