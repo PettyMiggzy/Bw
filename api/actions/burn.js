@@ -141,8 +141,10 @@ module.exports = async (req, res) => {
   // ---- POST: build the burn transaction (lazy web3 + readable errors) ----
   try {
     const web3 = require('@solana/web3.js');
-    const conn = new web3.Connection(G.SOLANA_RPC, 'confirmed');
-    const { blockhash } = await conn.getLatestBlockhash();
+    // fetch blockhash via our RPC proxy (avoids web3's Connection/websocket path)
+    const bh = await G.solRpc('getLatestBlockhash', [{ commitment: 'confirmed' }]);
+    const blockhash = bh && bh.value && bh.value.blockhash;
+    if (!blockhash) throw new Error('no blockhash');
     const serialized = buildBurnTx(web3, account, amountWhole, blockhash);
     return send(res, 200, {
       type: 'transaction',
