@@ -132,6 +132,15 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
 .rar{position:absolute;top:8px;right:8px;z-index:2;font-family:var(--fd);font-size:7px;letter-spacing:.08em;padding:3px 7px;border-radius:20px}
 .rar.mids{background:#5b6b4a;color:#dff5cf} .rar.loud{background:var(--green-deep);color:var(--green)}
 .rar.gas{background:#7a3a12;color:var(--ember)} .rar.exotic{background:var(--smoke);color:#f0d9ff}
+.seedart{width:100%;aspect-ratio:1/1;border-radius:10px;margin-bottom:6px;display:grid;place-items:center;font-size:42px;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.06)}
+.seedart>span{position:relative;z-index:2;filter:drop-shadow(0 3px 6px rgba(0,0,0,.5))}
+.seedart::after{content:"";position:absolute;inset:0;background:radial-gradient(60% 55% at 50% 22%,rgba(255,255,255,.16),transparent 62%)}
+.seedart.mids{background:linear-gradient(160deg,#3a4a2a,#161e10)}
+.seedart.loud{background:linear-gradient(160deg,#0e4a2a,#06200f)}
+.seedart.gas{background:linear-gradient(160deg,#8a4214,#2a1606)}
+.seedart.exotic{background:linear-gradient(160deg,#6a2fa0,#281042)}
+@keyframes seedpulse{0%,100%{box-shadow:0 0 0 0 rgba(82,255,143,0)}50%{box-shadow:0 0 0 3px rgba(82,255,143,.5)}}
+.ups.pulse .up{animation:seedpulse 1s ease-in-out 2}
 
 /* leaderboard */
 .podium{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:8px;align-items:end;margin-bottom:18px}
@@ -338,6 +347,8 @@ var DEMO_DEF={ on:false, bal:8000000, xp:0, contributed:0, basePool:14000000,
   seeds:{}, lvl:{light:0,nutes:0,plot:0,auto:0}, plots:[], seasonEnd:Date.now()+SEASON_MS };
 var D; // demo state
 var LIVE={ token:null, wallet:null, lvl:{}, seeds:{}, plots:[], xp:0, poolWhole:0, endsAt:null, board:null, balance:null, lastWinners:null };
+// real season data shown to everyone (incl. demo), so the pool/board are never fake
+var PUB={ poolWhole:0, endsAt:Date.now()+SEASON_MS, board:null, lastWinners:null };
 
 function loadDemo(){ try{D=JSON.parse(localStorage.getItem('cg3'))||null;}catch(e){D=null;} if(!D)D=JSON.parse(JSON.stringify(DEMO_DEF));
   for(var k in DEMO_DEF) if(typeof D[k]==='undefined') D[k]=JSON.parse(JSON.stringify(DEMO_DEF[k]));
@@ -358,8 +369,8 @@ function VM(){
       lvl:LIVE.lvl||{}, seeds:LIVE.seeds||{}, plots:LIVE.plots||[], board:LIVE.board };
   }
   return { live:false, connected:D.on, wallet:null, balance:D.on?D.bal:null, xp:D.xp,
-    poolWhole:Math.round(D.basePool+D.contributed), endsAt:D.seasonEnd,
-    lvl:D.lvl, seeds:D.seeds, plots:D.plots, board:null };
+    poolWhole:PUB.poolWhole, endsAt:PUB.endsAt,
+    lvl:D.lvl, seeds:D.seeds, plots:D.plots, board:PUB.board };
 }
 function plotCount(V){ return STARTPLOTS+((V.lvl&&V.lvl.plot)||0); }
 function growMsOf(strain,lvl){ var s=SEEDS[strain]||SEEDS.mids; return Math.round(s.grow*Math.pow(0.85,(lvl&&lvl.light)||0)); }
@@ -446,6 +457,9 @@ async function refreshSeason(){
   }
 }
 async function refreshLive(){ await refreshState(); LIVE.balance=await fetchBalance(); await refreshSeason(); renderAll(); }
+async function refreshPublic(){ try{ var lb=await apiGet('leaderboard',{limit:25}); if(lb&&!lb.error){
+  PUB.poolWhole=lb.poolWhole||0; if(lb.endsAt) PUB.endsAt=new Date(lb.endsAt).getTime(); PUB.lastWinners=lb.lastWinners||null;
+  PUB.board=(lb.board||[]).map(function(r){ return {who:shortW(r.wallet),addr:'',xp:r.xp,you:false}; }); } }catch(e){} }
 
 /* ---------- connect / login ---------- */
 function getProvider(){ var p=(window.phantom&&window.phantom.solana)||window.solana; return (p&&p.isPhantom)?p:null; }
@@ -516,7 +530,8 @@ async function water(i){
 }
 async function plant(){
   var V=VM(); var strain=bestOwnedSeed(V);
-  if(!strain){ toast('no seeds — buy some in the Seed Plug',true); switchTab('grow'); return; }
+  if(!strain){ toast('buy a seed first 👇'); switchTab('grow');
+    var sd=$('seeds'); if(sd){ sd.scrollIntoView({behavior:'smooth',block:'center'}); sd.classList.add('pulse'); setTimeout(function(){sd.classList.remove('pulse');},2100); } return; }
   if(MODE==='live'){ var r=await apiPost('plant',{strain:strain}); if(r.error){toast(r.error,true);return;} applyPlayer(r.player); renderAll(); toast('planted '+SEEDS[strain].nm+' 🌱'); return; }
   D.seeds[strain]=(D.seeds[strain]||0)-1; D.plots.push({strain:strain,at:Date.now()}); saveDemo(); renderAll(); toast('planted '+SEEDS[strain].nm+' 🌱');
 }
@@ -564,11 +579,12 @@ function buildSeedShop(){ var w=$('seeds'); w.innerHTML='';
 function renderSeedShop(){ var V=VM();
   SEED_ORDER.forEach(function(k){ var s=SEEDS[k]; var d=document.querySelector('.up[data-k="'+k+'"]'); if(!d)return;
     var owned=(V.seeds[k]||0); var can=(V.balance==null)||(V.balance>=s.cost); d.classList.toggle('afford',can&&V.connected); d.classList.toggle('cant',!can);
+    var icon=k==='exotic'?'💎':k==='gas'?'🔥':k==='loud'?'🌿':'🌱';
     d.innerHTML=(owned>0?'<span class="own">×'+owned+'</span>':'')+'<span class="rar '+s.rar+'">'+s.rar.toUpperCase()+'</span>'
-      +'<img class="seedimg" src="'+s.img+'" alt="'+s.nm+'"/>'
+      +'<div class="seedart '+s.rar+'"><span>'+icon+'</span></div>'
       +'<div class="nm">'+s.nm+'</div><div class="ds">'+s.ds+'</div>'
       +'<div class="meta"><span>⚡ '+fmt(xpOf(k,V.lvl))+' XP</span><span>⏱ '+Math.round(growMsOf(k,V.lvl)/1000)+'s</span></div>'
-      +'<div class="cost">🔥 '+fmt(s.cost)+'</div>'; }); }
+      +'<div class="cost">🔥 '+fmt(s.cost)+' · buy</div>'; }); }
 
 function buildShop(){ var w=$('ups'); w.innerHTML='';
   UPS.forEach(function(u){ var d=document.createElement('div'); d.className='up'; d.dataset.u=u.k;
@@ -586,14 +602,17 @@ function renderShop(){ var V=VM();
 ============================================================ */
 function demoBoard(){ var V=VM(); var list=RIVALS.map(function(r){return {who:r.who,addr:r.addr,xp:r.xp,you:false};});
   list.push({who:'YOU',addr:'demo',xp:V.xp,you:true}); list.sort(function(a,b){return b.xp-a.xp;}); return list; }
-function renderLastWin(){ var el=$('lastWin'); if(!el)return; var w=(MODE==='live')?LIVE.lastWinners:null;
+function renderLastWin(){ var el=$('lastWin'); if(!el)return; var w=(MODE==='live')?LIVE.lastWinners:PUB.lastWinners;
   if(!w||!w.length){ el.innerHTML=''; el.style.display='none'; return; }
   var medals=['🥇','🥈','🥉'];
   el.style.display='block';
   el.innerHTML='<span class="h">◆ Last Season’s Winners</span>'+w.map(function(x,i){
     return medals[i]+' '+shortW(x.wallet)+' — <b>'+fmt(x.whole)+' $CHRONIC</b>'; }).join('&nbsp;&nbsp;·&nbsp;&nbsp;');
 }
-function renderBoard(){ var V=VM(); var list=(V.live&&V.board)?V.board.slice().sort(function(a,b){return b.xp-a.xp;}):demoBoard();
+function renderBoard(){ var V=VM(); var list;
+  if(V.live&&V.board){ list=V.board.slice(); }
+  else { list=(PUB.board?PUB.board.slice():[]); if(D.on||V.xp>0) list.push({who:'YOU (demo)',addr:'demo',xp:V.xp,you:true}); }
+  list.sort(function(a,b){return b.xp-a.xp;});
   var P=V.poolWhole; renderLastWin();
   var pod=$('podium'); pod.innerHTML='';
   if(!list.length){ pod.innerHTML=''; $('rows').innerHTML='<div class="empty-note">No growers yet this season — be the first to burn. 🔥</div>'; return; }
@@ -655,6 +674,7 @@ async function autoTend(){ if(_autoBusy)return; var V=VM(); if(!(V.lvl&&V.lvl.au
 function tick(){ var V=VM(); _tickN++;
   autoTend();
   if(MODE==='live' && _tickN%60===0) refreshSeason(); // ~every 30s keep pool/board/rollover fresh
+  else if(MODE!=='live' && _tickN%60===0) refreshPublic().then(renderAll);
   for(var i=0;i<Math.min(V.plots.length,plotCount(V));i++) renderPlot(i);
   renderCountdown(); }
 
@@ -673,7 +693,7 @@ async function boot(){
       if(CFG.poolOwner){ var pv=$('poolVerify'); if(pv){ pv.href='https://solscan.io/account/'+CFG.poolOwner; pv.style.display='inline-flex'; } } } }catch(e){}
   // NEVER auto-connect: always boot in demo. Live mode starts only when the
   // user explicitly taps "Connect Phantom". No session is restored from storage.
-  MODE='demo'; _poolShown=VM().poolWhole; renderAll();
+  MODE='demo'; await refreshPublic(); _poolShown=VM().poolWhole; renderAll();
   clearInterval(window._tk); window._tk=setInterval(tick,500);
 }
 boot();
