@@ -257,7 +257,7 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
     <div class="how">
       <h3>The loop</h3>
       <div class="step"><div class="n">1</div><div class="t"><b>Burn to buy.</b> Spend <span class="g">$CHRONIC</span> on seeds &amp; gear. <span class="o">60% is burned forever</span>, <span class="y">40% drops into this week's pool.</span></div></div>
-      <div class="step"><div class="n">2</div><div class="t"><b>Grow, water &amp; sell.</b> Plant a seed, <span class="g">tap it to water</span> (each splash speeds growth), then sell the ripe buds. Every sale earns <span class="g">XP</span> — fancier strains pay more.</div></div>
+      <div class="step"><div class="n">2</div><div class="t"><b>Grow, water &amp; sell.</b> Plant a seed, <span class="g">tap it to water</span> (each splash speeds growth), then sell the ripe buds. Every sale earns <span class="g">XP</span> — fancier strains pay more, and each harvest rolls a quality: <span class="o">🔥 Fire</span> or <span class="y">💎 Exotic</span> multiply your XP.</div></div>
       <div class="step"><div class="n">3</div><div class="t"><b>Climb.</b> XP ranks you on the <span class="y">weekly leaderboard.</span> Burn more, grow more, climb higher.</div></div>
       <div class="step"><div class="n">4</div><div class="t"><b>Top 3 win.</b> When the 7-day season ends, the <span class="y">top 3 growers split the whole pool</span> proportional to their XP. Then it resets and the race starts again.</div></div>
       <div class="disc">
@@ -319,6 +319,9 @@ function upCost(k,lvl){ var u=UPS.filter(function(x){return x.k===k;})[0]; retur
 
 var CFG={ mint:'J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump', decimals:6, poolOwner:'', rpcProxy:'/api/solrpc', ready:false };
 var WATER_MAX=5, WATER_PCT=0.10, WATER_CD=5000;
+var QUALITY=[{name:'common',mult:1,w:65},{name:'fire',mult:1.6,w:25},{name:'exotic',mult:2.5,w:10}];
+function rollQ(){ var r=Math.random()*100,acc=0; for(var i=0;i<QUALITY.length;i++){acc+=QUALITY[i].w; if(r<acc)return QUALITY[i];} return QUALITY[0]; }
+function qToast(name,gain){ var l=name==='exotic'?'💎 EXOTIC harvest! ':name==='fire'?'🔥 FIRE harvest! ':'sold · '; toast(l+'+'+fmt(gain)+' XP ⚡'); }
 
 /* mock rivals for demo board */
 var RIVALS=[
@@ -520,8 +523,8 @@ async function plant(){
 async function sell(i){
   var el=document.querySelector('.plot[data-i="'+i+'"]'); if(el){ var r=el.getBoundingClientRect(); burst(r.left+r.width/2,r.top+r.height/2); }
   if(MODE==='live'){ var res=await apiPost('sell',{idx:i}); if(res.error){toast(res.error==='not ripe'?'still growing…':res.error,true);return;}
-    applyPlayer(res.player); LIVE.xp+=res.xpAdded; await refreshSeason(); renderAll(); toast('sold · +'+fmt(res.xpAdded)+' XP ⚡'); return; }
-  var p=D.plots[i]; if(!p) return; var gain=xpOf(p.strain,D.lvl); D.plots.splice(i,1); D.xp+=gain; saveDemo(); renderAll(); toast('sold · +'+fmt(gain)+' XP ⚡');
+    applyPlayer(res.player); LIVE.xp+=res.xpAdded; await refreshSeason(); renderAll(); qToast(res.quality,res.xpAdded); return; }
+  var p=D.plots[i]; if(!p) return; var q=rollQ(); var gain=Math.max(1,Math.round(xpOf(p.strain,D.lvl)*q.mult)); D.plots.splice(i,1); D.xp+=gain; saveDemo(); renderAll(); qToast(q.name,gain);
 }
 
 /* ============================================================
@@ -545,8 +548,11 @@ function renderPlot(i){ var V=VM(); var el=document.querySelector('.plot[data-i=
   var p=V.plots[i]; var s=SEEDS[p.strain]||SEEDS.mids; var pr=progressOf(p,V.lvl); var w=p.w||0;
   if(pr>=1){ el.classList.add('ripe'); tag.textContent='● SELL'; xpd.textContent='+'+fmt(xpOf(p.strain,V.lvl))+' XP'; plant.textContent=''; plant.style.animation='none';
     var bud=i%BUDS.length; var img=document.createElement('img'); img.className='budimg'; img.src=BUDS[bud]; el.insertBefore(img,el.querySelector('.prog')); prog.style.width='100%'; }
-  else { tag.textContent=s.nm+' · '+(pr>=0.5?'growing…':'sprouting…'); xpd.textContent=(w>=WATER_MAX?'💧 max':'💧 tap'); plant.style.filter='none';
-    plant.textContent=pr>=0.5?'🌿':'🌱'; plant.style.fontSize=pr>=0.5?'50px':'34px'; plant.style.animation='sway '+(2.2+(i%3)*0.3)+'s ease-in-out infinite'; prog.style.width=(pr*100)+'%'; }
+  else { var stg=pr<0.3?'sprouting…':(pr<0.85?'growing…':'budding…');
+    tag.textContent=s.nm+' · '+stg; xpd.textContent=(w>=WATER_MAX?'💧 max':'💧 tap');
+    plant.textContent=pr<0.3?'🌱':'🌿'; plant.style.fontSize=Math.round(30+pr*30)+'px';
+    plant.style.filter=pr>=0.85?'drop-shadow(0 0 11px rgba(82,255,143,.75))':'none';
+    plant.style.animation='sway '+(2.2+(i%3)*0.3)+'s ease-in-out infinite'; prog.style.width=(pr*100)+'%'; }
 }
 
 /* ============================================================
@@ -661,6 +667,7 @@ async function boot(){
   try{ var c=await apiGet('config'); if(c&&!c.error){ CFG.mint=c.mint||CFG.mint; CFG.decimals=c.decimals||CFG.decimals;
       CFG.poolOwner=c.poolWallet||''; CFG.rpcProxy=c.rpcProxy||CFG.rpcProxy; CFG.ready=!!c.ready;
       if(c.water){ WATER_MAX=c.water.max||WATER_MAX; WATER_PCT=c.water.pct||WATER_PCT; WATER_CD=c.water.cooldown||WATER_CD; }
+      if(c.quality&&c.quality.length) QUALITY=c.quality;
       if(c.seeds) for(var k in c.seeds){ if(SEEDS[k]){ SEEDS[k].cost=c.seeds[k].cost; SEEDS[k].grow=c.seeds[k].grow; SEEDS[k].xp=c.seeds[k].xp; } }
       if(c.upgrades) UPS.forEach(function(u){ if(c.upgrades[u.k]){ u.base=c.upgrades[u.k].base; u.mul=c.upgrades[u.k].mul; u.max=c.upgrades[u.k].max; } });
       if(CFG.poolOwner){ var pv=$('poolVerify'); if(pv){ pv.href='https://solscan.io/account/'+CFG.poolOwner; pv.style.display='inline-flex'; } } } }catch(e){}
