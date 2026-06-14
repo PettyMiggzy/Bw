@@ -357,7 +357,8 @@ var RIVALS=[
 
 /* ---------- runtime state ---------- */
 var MODE='demo';
-var DEMO_DEF={ on:false, bal:8000000, xp:0, contributed:0, basePool:14000000,
+var DEMO_BANK=50000000; // demo is free play — auto top-up so it never blocks
+var DEMO_DEF={ on:false, bal:DEMO_BANK, xp:0, contributed:0, basePool:0,
   seeds:{}, lvl:{light:0,nutes:0,plot:0,auto:0}, plots:[], seasonEnd:Date.now()+SEASON_MS };
 var D; // demo state
 var LIVE={ token:null, wallet:null, lvl:{}, seeds:{}, plots:[], xp:0, poolWhole:0, endsAt:null, board:null, balance:null, lastWinners:null };
@@ -366,7 +367,8 @@ var PUB={ poolWhole:0, endsAt:Date.now()+SEASON_MS, board:null, lastWinners:null
 
 function loadDemo(){ try{D=JSON.parse(localStorage.getItem('cg3'))||null;}catch(e){D=null;} if(!D)D=JSON.parse(JSON.stringify(DEMO_DEF));
   for(var k in DEMO_DEF) if(typeof D[k]==='undefined') D[k]=JSON.parse(JSON.stringify(DEMO_DEF[k]));
-  if(Date.now()>=D.seasonEnd){ D.basePool=Math.round(300000+Math.random()*250000); D.contributed=0; D.xp=0; D.plots=[]; D.seasonEnd=Date.now()+SEASON_MS; } }
+  if(D.bal<1000000) D.bal=DEMO_BANK; // refill stale/old saves so demo never blocks
+  if(Date.now()>=D.seasonEnd){ D.xp=0; D.plots=[]; D.seasonEnd=Date.now()+SEASON_MS; } }
 function saveDemo(){ localStorage.setItem('cg3',JSON.stringify(D)); }
 
 /* ---------- helpers ---------- */
@@ -520,8 +522,8 @@ function buySeed(strain){
   var V=VM();
   if(MODE==='live'){ buyOnChain(SEEDS[strain].cost,'seed',strain); return; }
   if(!D.on){ openVeil(); return; }
-  var cost=SEEDS[strain].cost; if(D.bal<cost){ toast('need '+fmt(cost)+' $CHRONIC',true); return; }
-  D.bal-=cost; D.contributed+=Math.round(cost*0.4); D.seeds[strain]=(D.seeds[strain]||0)+1; saveDemo(); renderAll();
+  var cost=SEEDS[strain].cost; if(D.bal<cost){ D.bal=DEMO_BANK; toast('demo wallet topped up 🪙'); }
+  D.bal-=cost; D.seeds[strain]=(D.seeds[strain]||0)+1; saveDemo(); renderAll();
   toast('bought '+SEEDS[strain].nm+' 🌱 — plant it');
 }
 function buyUp(u){
@@ -529,8 +531,8 @@ function buyUp(u){
   var cost=upCost(u.k,lvl);
   if(MODE==='live'){ buyOnChain(cost,'upgrade',u.k); return; }
   if(!D.on){ openVeil(); return; }
-  if(D.bal<cost){ toast('need '+fmt(cost)+' $CHRONIC',true); return; }
-  D.bal-=cost; D.contributed+=Math.round(cost*0.4); D.lvl[u.k]=lvl+1; saveDemo(); renderAll(); toast(u.nm+' up! 🔧');
+  if(D.bal<cost){ D.bal=DEMO_BANK; toast('demo wallet topped up 🪙'); }
+  D.bal-=cost; D.lvl[u.k]=lvl+1; saveDemo(); renderAll(); toast(u.nm+' up! 🔧');
 }
 var _lastWater={};
 async function water(i){
