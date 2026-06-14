@@ -30,6 +30,10 @@ h1{font-family:var(--fh);font-size:clamp(34px,11vw,58px);line-height:.92;text-al
 .rnd{display:block;width:100%;max-width:300px;margin:0 auto 18px;font-family:var(--fd);font-size:13px;letter-spacing:.04em;border:0;border-radius:14px;padding:14px;cursor:pointer;background:linear-gradient(90deg,var(--ember2),var(--ember));color:#1a0800;box-shadow:0 8px 24px rgba(255,106,43,.3)}
 .rnd:active{transform:scale(.98)}
 .cat{font-family:var(--fd);font-size:12px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;margin:24px 0 10px;text-align:center}
+.target{max-width:520px;margin:0 auto 14px}
+.target input{width:100%;background:rgba(16,26,18,.8);border:1px solid var(--line);border-radius:13px;color:var(--green);font-family:var(--fm);font-size:12px;padding:13px 14px;outline:none}
+.target input:focus{border-color:var(--green-dim)}
+.tgtmsg{font-size:10px;text-align:center;margin-top:6px;min-height:12px;color:var(--dim)}
 .tw{background:linear-gradient(180deg,rgba(16,26,18,.9),rgba(10,15,11,.92));border:1px solid var(--line);border-radius:16px;padding:15px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:12px}
 .tw p{font-size:13px;line-height:1.55;color:var(--text)}
 .tw .row{display:flex;gap:8px}
@@ -61,6 +65,10 @@ h1{font-family:var(--fh);font-size:clamp(34px,11vw,58px);line-height:.92;text-al
     <button id="copyCa">copy CA</button>
   </div>
 
+  <div class="target">
+    <input id="tgt" placeholder="🎯 paste a tweet URL to reply to (optional)" />
+    <div class="tgtmsg" id="tgtMsg"></div>
+  </div>
   <button class="rnd" id="rnd">🎲 surprise me — random raid</button>
   <div id="tweets"></div>
 
@@ -104,23 +112,43 @@ var TWEETS=[
   {c:'📣 Raid',t:"tag someone who needs to burn $CHRONIC 🔥💀",u:BURN},
   {c:'📣 Raid',t:"retweet if supply should only go down 🔥 $CHRONIC",u:HOME},
   {c:'📣 Raid',t:"drop your burns below 🔥 let's see em $CHRONIC fam 👇",u:BURN},
-  {c:'📣 Raid',t:"new here? grab $CHRONIC on pump.fun, then burn it. welcome to the smoke 🌿🔥",u:PUMP}
+  {c:'📣 Raid',t:"new here? grab $CHRONIC on pump.fun, then burn it. welcome to the smoke 🌿🔥",u:PUMP},
+
+  {c:'💬 Reply ammo',t:"burn it don't hoard it 🔥💀 $CHRONIC",u:BURN},
+  {c:'💬 Reply ammo',t:"this but $CHRONIC 🔥",u:HOME},
+  {c:'💬 Reply ammo',t:"supply only goes down 📉🔥 $CHRONIC",u:BURN},
+  {c:'💬 Reply ammo',t:"have you burned today? 🔥 $CHRONIC",u:BURN},
+  {c:'💬 Reply ammo',t:"$CHRONIC GROW pays the top 3 growers every week btw 🏆🌱",u:GROW},
+  {c:'💬 Reply ammo',t:"few understand 💀🌿 $CHRONIC",u:HOME},
+
+  {c:'⏰ Timely',t:"the $CHRONIC GROW pool closes soon and the top 3 split it. last chance to climb 🏆🔥👇",u:GROW},
+  {c:'⏰ Timely',t:"gm 🌿 burn your $CHRONIC before someone outburns you 🔥",u:BURN},
+  {c:'⏰ Timely',t:"4:20 — light one up and send some $CHRONIC to the fire for the skeleton 💀🌿🔥",u:BURN},
+  {c:'⏰ Timely',t:"weekend grind: plant, water, climb the $CHRONIC GROW board 🌱🏆 the pool's waiting 👇",u:GROW}
 ];
 var $=function(i){return document.getElementById(i);};
 var _th;function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(_th);_th=setTimeout(function(){t.classList.remove('show');},1600);}
-function intent(t,u){return 'https://twitter.com/intent/tweet?text='+encodeURIComponent(t)+'&url='+encodeURIComponent(u);}
+var REPLY_ID=null;
+function parseId(s){var m=String(s||'').match(/status\/(\d+)/);return m?m[1]:null;}
+function intent(t,u,rid){ if(rid) return 'https://twitter.com/intent/tweet?in_reply_to='+rid+'&text='+encodeURIComponent(t+'\n'+u); return 'https://twitter.com/intent/tweet?text='+encodeURIComponent(t)+'&url='+encodeURIComponent(u); }
 var FLAT=[],cats=[],byCat={};
-TWEETS.forEach(function(x){ if(!byCat[x.c]){byCat[x.c]=[];cats.push(x.c);} byCat[x.c].push(x); });
-var html='';
-cats.forEach(function(c){ html+='<div class="cat">'+c+'</div>';
-  byCat[c].forEach(function(x){ var i=FLAT.length; FLAT.push(x);
-    html+='<div class="tw"><p>'+x.t.replace(/\n/g,'<br>')+'</p><div class="row">'
-      +'<a class="post" target="_blank" rel="noopener" href="'+intent(x.t,x.u)+'">🐦 Post on X</a>'
-      +'<button class="copy" data-i="'+i+'">copy</button></div></div>'; }); });
-var w=$('tweets'); w.innerHTML=html;
+TWEETS.forEach(function(x){ if(!byCat[x.c]){byCat[x.c]=[];cats.push(x.c);} byCat[x.c].push(x); FLAT.push(x); });
+var w=$('tweets');
+function render(){ var html='';
+  cats.forEach(function(c){ html+='<div class="cat">'+c+'</div>';
+    byCat[c].forEach(function(x){ var i=FLAT.indexOf(x);
+      html+='<div class="tw"><p>'+x.t.replace(/\n/g,'<br>')+'</p><div class="row">'
+        +'<a class="post" target="_blank" rel="noopener" href="'+intent(x.t,x.u,REPLY_ID)+'">'+(REPLY_ID?'💬 Reply on X':'🐦 Post on X')+'</a>'
+        +'<button class="copy" data-i="'+i+'">copy</button></div></div>'; }); });
+  w.innerHTML=html; }
+render();
 w.addEventListener('click',function(e){var b=e.target.closest('.copy');if(!b)return;var x=FLAT[+b.dataset.i];
   navigator.clipboard&&navigator.clipboard.writeText(x.t+'\n'+x.u);toast('copied 🐦');});
-$('rnd').addEventListener('click',function(){var x=FLAT[Math.floor(Math.random()*FLAT.length)];window.open(intent(x.t,x.u),'_blank');});
+$('rnd').addEventListener('click',function(){var x=FLAT[Math.floor(Math.random()*FLAT.length)];window.open(intent(x.t,x.u,REPLY_ID),'_blank');});
+$('tgt').addEventListener('input',function(){ REPLY_ID=parseId(this.value); var m=$('tgtMsg');
+  if(REPLY_ID){m.textContent='✓ posts will reply under that tweet';m.style.color='var(--green)';}
+  else if(this.value){m.textContent='paste a full link like x.com/user/status/123…';m.style.color='var(--ember)';}
+  else{m.textContent='';} render(); });
 $('copyCa').addEventListener('click',function(){navigator.clipboard&&navigator.clipboard.writeText($('ca').textContent);toast('CA copied');});
 </script>
 </body>
