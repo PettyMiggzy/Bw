@@ -8,16 +8,18 @@
  *           sends { account, signature }; we verify the burn on-chain and credit
  *           XP toward the $CHRONIC GROW weekly leaderboard.
  *
- * Burn is 100% destroyed (standard SPL burn). XP = ~1 per 1,000 $CHRONIC burned.
+ * Only @solana/web3.js is used, lazily, inside the POST path (so the GET card
+ * never depends on it and any load error surfaces as JSON, not a hard crash).
+ * The SPL burnChecked instruction + associated-token address are built by hand.
  */
-const { Connection, PublicKey, Transaction } = require('@solana/web3.js');
-const { getAssociatedTokenAddressSync, createBurnCheckedInstruction } = require('@solana/spl-token');
 const G = require('../_grow.js');
 
 const ICON = 'https://www.burnchronic.xyz/assets/og-chronic.jpg';
 const SITE = 'https://www.burnchronic.xyz';
 const MIN_BURN = 1;
 const MAX_BURN = 1e12;
+const TOKEN_PROGRAM = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+const ATA_PROGRAM = 'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL';
 
 function fmt(n) { n = Math.floor(n); if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B'; if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M'; if (n >= 1e3) return (n / 1e3).toFixed(0) + 'K'; return '' + n; }
 
@@ -37,6 +39,34 @@ async function readBody(req) {
   const chunks = []; for await (const c of req) chunks.push(c);
   const raw = Buffer.concat(chunks).toString();
   try { return raw ? JSON.parse(raw) : {}; } catch (_) { return {}; }
+}
+
+// build an SPL Token burnChecked transaction by hand (web3.js only)
+function buildBurnTx(web3, account, amountWhole, blockhash) {
+  const { PublicKey, Transaction, TransactionInstruction } = web3;
+  const owner = new PublicKey(account);
+  const mint = new PublicKey(G.MINT);
+  const tokenProg = new PublicKey(TOKEN_PROGRAM);
+  const ataProg = new PublicKey(ATA_PROGRAM);
+  const [ata] = PublicKey.findProgramAddressSync([owner.toBuffer(), tokenProg.toBuffer(), mint.toBuffer()], ataProg);
+  const amt = BigInt(amountWhole) * (10n ** BigInt(G.DECIMALS));
+  const data = Buffer.alloc(10);
+  data.writeUInt8(15, 0);            // BurnChecked
+  data.writeBigUInt64LE(amt, 1);     // amount
+  data.writeUInt8(G.DECIMALS, 9);    // decimals
+  const ix = new TransactionInstruction({
+    programId: tokenProg,
+    keys: [
+      { pubkey: ata, isSigner: false, isWritable: true },
+      { pubkey: mint, isSigner: false, isWritable: true },
+      { pubkey: owner, isSigner: true, isWritable: false },
+    ],
+    data,
+  });
+  const tx = new Transaction().add(ix);
+  tx.feePayer = owner;
+  tx.recentBlockhash = blockhash;
+  return tx.serialize({ requireAllSignatures: false, verifySignatures: false }).toString('base64');
 }
 
 // confirm a burn actually happened on-chain for `wallet`
@@ -60,11 +90,9 @@ module.exports = async (req, res) => {
   setHeaders(res);
   if (req.method === 'OPTIONS') { res.status(204).end(); return; }
 
-  // ---- GET: the Action card ----
+  // ---- GET: the Action card (no chain deps) ----
   if (req.method === 'GET') {
-    const mk = (label, amt, params) => Object.assign(
-      { type: 'transaction', label, href: `/api/actions/burn?amount=${amt}` },
-      params ? { parameters: params } : {});
+    const mk = (label, amt) => ({ type: 'transaction', label, href: `/api/actions/burn?amount=${amt}` });
     return send(res, 200, {
       type: 'action',
       icon: ICON,
@@ -75,7 +103,8 @@ module.exports = async (req, res) => {
         mk('Burn 50K 🔥', 50000),
         mk('Burn 250K 🔥', 250000),
         mk('Burn 1M 🔥', 1000000),
-        Object.assign(mk('Burn 🔥', '{amount}'), { parameters: [{ name: 'amount', label: 'how much $CHRONIC?', type: 'number', required: true, min: MIN_BURN }] }),
+        { type: 'transaction', label: 'Burn 🔥', href: '/api/actions/burn?amount={amount}',
+          parameters: [{ name: 'amount', label: 'how much $CHRONIC?', type: 'number', required: true, min: MIN_BURN }] },
       ] },
     });
   }
@@ -109,21 +138,12 @@ module.exports = async (req, res) => {
     });
   }
 
-  // ---- POST: build the burn transaction ----
+  // ---- POST: build the burn transaction (lazy web3 + readable errors) ----
   try {
-    const owner = new PublicKey(account);
-    const mint = new PublicKey(G.MINT);
-    const ata = getAssociatedTokenAddressSync(mint, owner);
-    const amt = BigInt(amountWhole) * (10n ** BigInt(G.DECIMALS));
-    const ix = createBurnCheckedInstruction(ata, mint, owner, amt, G.DECIMALS);
-
-    const conn = new Connection(G.SOLANA_RPC, 'confirmed');
+    const web3 = require('@solana/web3.js');
+    const conn = new web3.Connection(G.SOLANA_RPC, 'confirmed');
     const { blockhash } = await conn.getLatestBlockhash();
-    const tx = new Transaction().add(ix);
-    tx.feePayer = owner;
-    tx.recentBlockhash = blockhash;
-    const serialized = tx.serialize({ requireAllSignatures: false, verifySignatures: false }).toString('base64');
-
+    const serialized = buildBurnTx(web3, account, amountWhole, blockhash);
     return send(res, 200, {
       type: 'transaction',
       transaction: serialized,
