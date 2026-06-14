@@ -40,7 +40,7 @@ const SEEDS = {
 const UPGRADES = {
   light: { base: 150000,  mul: 1.9,  max: 8 },
   nutes: { base: 200000,  mul: 1.85, max: 10 },
-  plot:  { base: 400000,  mul: 2.1,  max: 5 },
+  plot:  { base: 400000,  mul: 2.1,  max: 8 },
   auto:  { base: 3000000, mul: 1,    max: 1 },
 };
 const BURN_BPS = 6000; // 60.00%

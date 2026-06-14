@@ -96,7 +96,8 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
   display:flex;align-items:flex-end;justify-content:center;transition:transform .12s,box-shadow .2s,border-color .2s}
 .plot:active{transform:scale(.97)}
 .plot .soil{position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(180deg,#3a2a16,#1a120a);border-top:2px solid rgba(120,90,40,.5)}
-.plot .plant{position:relative;z-index:2;font-size:46px;line-height:1;margin-bottom:14%;transition:transform .4s,filter .4s}
+.plot .plant{position:relative;z-index:2;font-size:46px;line-height:1;margin-bottom:14%;transition:transform .4s,filter .4s;transform-origin:bottom center}
+@keyframes sway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
 .plot .budimg{position:relative;z-index:2;width:70%;margin-bottom:9%;border-radius:12px;box-shadow:0 0 26px rgba(82,255,143,.55);animation:ripeglow 1.6s ease-in-out infinite}
 @keyframes ripeglow{50%{box-shadow:0 0 42px rgba(245,207,87,.85)}}
 .plot .prog{position:absolute;left:8px;right:8px;bottom:6px;z-index:3;height:5px;border-radius:5px;background:rgba(0,0,0,.5);overflow:hidden}
@@ -297,7 +298,7 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
 ============================================================ */
 
 var API='/api/grow';
-var MAXPLOTS=9, STARTPLOTS=4, SEASON_MS=7*24*60*60*1000;
+var MAXPLOTS=12, STARTPLOTS=4, SEASON_MS=7*24*60*60*1000;
 var BUDS=['/assets/stash-1.jpg','/assets/stash-2.jpg','/assets/stash-3.jpg','/assets/stash-4.jpg','/assets/stash-5.jpg','/assets/stash-6.jpg'];
 
 /* catalog — defaults; overwritten by /api/grow?action=config */
@@ -311,7 +312,7 @@ var SEED_ORDER=['mids','loud','gas','exotic'];
 var UPS=[
   {k:'light',ic:'💡',nm:'GROW LIGHT', ds:'grow 15% faster',  base:150000, mul:1.9, max:8},
   {k:'nutes',ic:'🧪',nm:'NUTRIENTS',  ds:'+40% XP / sale',   base:200000, mul:1.85,max:10},
-  {k:'plot', ic:'🪴',nm:'NEW PLOT',   ds:'open another plot',base:400000, mul:2.1, max:5},
+  {k:'plot', ic:'🪴',nm:'NEW PLOT',   ds:'open another plot',base:400000, mul:2.1, max:8},
   {k:'auto', ic:'🤖',nm:'AUTO-TENDER',ds:'auto-sells ripe',  base:3000000,mul:1,   max:1}
 ];
 function upCost(k,lvl){ var u=UPS.filter(function(x){return x.k===k;})[0]; return Math.round(u.base*Math.pow(u.mul,lvl||0)); }
@@ -540,12 +541,12 @@ function renderPlot(i){ var V=VM(); var el=document.querySelector('.plot[data-i=
   el.classList.remove('empty','ripe','locked'); var tag=el.querySelector('.tag'),xpd=el.querySelector('.xpd'),plant=el.querySelector('.plant'),prog=el.querySelector('.prog i');
   el.querySelectorAll('.budimg').forEach(function(b){b.remove();}); xpd.textContent='';
   if(i>=plotCount(V)){ el.classList.add('locked'); el.innerHTML='<div class="lk">PLOT LOCKED</div>'; return; }
-  if(i>=V.plots.length){ el.classList.add('empty'); tag.textContent='+ plant'; plant.textContent='🫘'; plant.style.fontSize='22px'; plant.style.filter='grayscale(.6) opacity(.6)'; prog.style.width='0'; return; }
+  if(i>=V.plots.length){ el.classList.add('empty'); tag.textContent='+ plant'; plant.textContent='🫘'; plant.style.fontSize='22px'; plant.style.filter='grayscale(.6) opacity(.6)'; plant.style.animation='none'; prog.style.width='0'; return; }
   var p=V.plots[i]; var s=SEEDS[p.strain]||SEEDS.mids; var pr=progressOf(p,V.lvl); var w=p.w||0;
-  if(pr>=1){ el.classList.add('ripe'); tag.textContent='● SELL'; xpd.textContent='+'+fmt(xpOf(p.strain,V.lvl))+' XP'; plant.textContent='';
+  if(pr>=1){ el.classList.add('ripe'); tag.textContent='● SELL'; xpd.textContent='+'+fmt(xpOf(p.strain,V.lvl))+' XP'; plant.textContent=''; plant.style.animation='none';
     var bud=i%BUDS.length; var img=document.createElement('img'); img.className='budimg'; img.src=BUDS[bud]; el.insertBefore(img,el.querySelector('.prog')); prog.style.width='100%'; }
   else { tag.textContent=s.nm+' · '+(pr>=0.5?'growing…':'sprouting…'); xpd.textContent=(w>=WATER_MAX?'💧 max':'💧 tap'); plant.style.filter='none';
-    plant.textContent=pr>=0.5?'🌿':'🌱'; plant.style.fontSize=pr>=0.5?'50px':'34px'; prog.style.width=(pr*100)+'%'; }
+    plant.textContent=pr>=0.5?'🌿':'🌱'; plant.style.fontSize=pr>=0.5?'50px':'34px'; plant.style.animation='sway '+(2.2+(i%3)*0.3)+'s ease-in-out infinite'; prog.style.width=(pr*100)+'%'; }
 }
 
 /* ============================================================
