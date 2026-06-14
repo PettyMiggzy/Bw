@@ -85,10 +85,10 @@ module.exports = async (req, res) => {
     // ── public: client config (mint, pool, catalog) ────────────────────
     if (action === 'config') {
       return json(res, 200, {
-        mint: G.MINT, decimals: G.DECIMALS, poolTokenAccount: G.POOL_TOKEN_ACCOUNT,
+        mint: G.MINT, decimals: G.DECIMALS, poolWallet: G.POOL_WALLET,
         rpcProxy: '/api/solrpc', burnBps: G.BURN_BPS, poolBps: G.POOL_BPS,
         seeds: G.SEEDS, upgrades: G.UPGRADES,
-        ready: Boolean(G.POOL_TOKEN_ACCOUNT),
+        ready: Boolean(G.POOL_WALLET),
       });
     }
 

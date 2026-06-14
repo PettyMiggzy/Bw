@@ -310,7 +310,7 @@ var UPS=[
 ];
 function upCost(k,lvl){ var u=UPS.filter(function(x){return x.k===k;})[0]; return Math.round(u.base*Math.pow(u.mul,lvl||0)); }
 
-var CFG={ mint:'J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump', decimals:6, pool:'', rpcProxy:'/api/solrpc', ready:false };
+var CFG={ mint:'J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump', decimals:6, poolOwner:'', rpcProxy:'/api/solrpc', ready:false };
 
 /* mock rivals for demo board */
 var RIVALS=[
@@ -387,19 +387,22 @@ async function confirmSig(c,sig){
 
 /* build + send the burn(60%)+pool(40%) tx, then have the server verify it */
 async function buyOnChain(costWhole,kind,item){
-  if(!CFG.ready||!CFG.pool){ toast('on-chain buys not live yet',true); return false; }
+  if(!CFG.ready||!CFG.poolOwner){ toast('on-chain buys not live yet',true); return false; }
   var prov=window.phantom&&window.phantom.solana?window.phantom.solana:window.solana;
   if(!prov){ toast('wallet not found',true); return false; }
   toast('building burn… approve in wallet 🔥');
   try{
     var c=await chain();
-    var owner=new c.w3.PublicKey(LIVE.wallet), mint=new c.w3.PublicKey(CFG.mint), pool=new c.w3.PublicKey(CFG.pool);
+    var owner=new c.w3.PublicKey(LIVE.wallet), mint=new c.w3.PublicKey(CFG.mint), poolOwner=new c.w3.PublicKey(CFG.poolOwner);
     var fromAta=c.spl.getAssociatedTokenAddressSync(mint,owner);
+    var poolAta=c.spl.getAssociatedTokenAddressSync(mint,poolOwner);
     var total=BigInt(Math.round(costWhole))*(10n**BigInt(CFG.decimals));
     var burn=total*60n/100n, poolAmt=total-burn;
+    // create the pool's token account if it doesn't exist yet (idempotent, payer = player)
+    var ixC=c.spl.createAssociatedTokenAccountIdempotentInstruction(owner,poolAta,poolOwner,mint);
     var ixB=c.spl.createBurnCheckedInstruction(fromAta,mint,owner,burn,CFG.decimals);
-    var ixT=c.spl.createTransferCheckedInstruction(fromAta,mint,pool,owner,poolAmt,CFG.decimals);
-    var tx=new c.w3.Transaction().add(ixB,ixT); tx.feePayer=owner;
+    var ixT=c.spl.createTransferCheckedInstruction(fromAta,mint,poolAta,owner,poolAmt,CFG.decimals);
+    var tx=new c.w3.Transaction().add(ixC,ixB,ixT); tx.feePayer=owner;
     var bh=await conn(c.w3).getLatestBlockhash(); tx.recentBlockhash=bh.blockhash;
     var signed=await prov.signTransaction(tx);
     var sig=await conn(c.w3).sendRawTransaction(signed.serialize());
@@ -607,7 +610,7 @@ async function boot(){
   loadDemo(); buildGarden(); buildSeedShop(); buildShop();
   // pull live config (mint, pool, catalog). best-effort — demo works without it.
   try{ var c=await apiGet('config'); if(c&&!c.error){ CFG.mint=c.mint||CFG.mint; CFG.decimals=c.decimals||CFG.decimals;
-      CFG.pool=c.poolTokenAccount||''; CFG.rpcProxy=c.rpcProxy||CFG.rpcProxy; CFG.ready=!!c.ready;
+      CFG.poolOwner=c.poolWallet||''; CFG.rpcProxy=c.rpcProxy||CFG.rpcProxy; CFG.ready=!!c.ready;
       if(c.seeds) for(var k in c.seeds){ if(SEEDS[k]){ SEEDS[k].cost=c.seeds[k].cost; SEEDS[k].grow=c.seeds[k].grow; SEEDS[k].xp=c.seeds[k].xp; } }
       if(c.upgrades) UPS.forEach(function(u){ if(c.upgrades[u.k]){ u.base=c.upgrades[u.k].base; u.mul=c.upgrades[u.k].mul; u.max=c.upgrades[u.k].max; } }); } }catch(e){}
   // NEVER auto-connect: always boot in demo. Live mode starts only when the

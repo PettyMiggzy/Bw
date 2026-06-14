@@ -20,7 +20,7 @@ weekly                            tools/settle-season.js   ──────▶
 
 **Why the burn is trustworthy without a program:** a buy is ONE atomic Solana transaction the player signs — it *burns 60%* and *transfers 40%* to the pool account in the same tx. The server then re-reads that exact tx on-chain (`getTransaction`) and only grants the item if the burn + pool amounts and the mint and the signer all check out. You can't get credit without the burn actually happening, and XP only ever comes from verified buys — so the leaderboard can't be farmed for free.
 
-**Custody / ownership:** the 40% pool collects in a normal token account (`POOL_TOKEN_ACCOUNT`) and payouts are signed by that wallet's key (`POOL_SECRET_KEY`, used only by the settle script, never on Vercel). This is the "deploy with a burner, transfer to my wallet" flow — see handover below.
+**Custody / ownership:** the 40% pool collects in the pool wallet's token account (set `POOL_WALLET` to the plain wallet address) and payouts are signed by that wallet's key (`POOL_SECRET_KEY`, used only by the settle script, never on Vercel). This is the "deploy with a burner, transfer to my wallet" flow — see handover below.
 
 ## Files
 
@@ -35,12 +35,12 @@ weekly                            tools/settle-season.js   ──────▶
 ## Setup
 
 1. **Supabase** — open the SQL editor, paste & run `supabase/grow-schema.sql`.
-2. **Pool wallet** — create the wallet that holds the pool (the burner for now). Make/ensure its $CHRONIC associated token account exists; that address is `POOL_TOKEN_ACCOUNT`.
+2. **Pool wallet** — create the wallet that holds the pool (the burner for now). Use its plain address as `POOL_WALLET` — its $CHRONIC token account is auto-created on the first buy, so you don't need to derive one.
 3. **Vercel env** (Project → Settings → Environment Variables):
    - `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`
    - `SOLANA_RPC` = your Alchemy Solana URL
    - `CHRONIC_MINT` (default already correct), `CHRONIC_DECIMALS=6`
-   - `POOL_TOKEN_ACCOUNT`
+   - `POOL_WALLET` (the pool wallet address; alias `POOL_TOKEN_ACCOUNT` also accepted)
    - Do **NOT** put `POOL_SECRET_KEY` on Vercel — it's only for the settle script.
 4. **Deploy** — push; Vercel serves `/api/grow` and `/api/solrpc`.
 
@@ -64,7 +64,7 @@ The pool is just a wallet, so transferring "ownership" is a config swap — no c
 
 1. Create your real treasury wallet + its $CHRONIC ATA.
 2. Move any pooled $CHRONIC from the burner's ATA to the new ATA (one transfer).
-3. Update `POOL_TOKEN_ACCOUNT` in Vercel to the new ATA and redeploy.
+3. Update `POOL_WALLET` in Vercel to the new wallet address and redeploy.
 4. Use the new wallet's key as `POOL_SECRET_KEY` for the settle script. Retire the burner.
 
 ## Not done yet (next step)

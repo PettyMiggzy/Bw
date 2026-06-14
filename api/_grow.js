@@ -10,8 +10,9 @@
  *   SOLANA_RPC              - Solana RPC URL (default: public mainnet-beta)
  *   CHRONIC_MINT            - SPL mint (default: the live pump.fun mint)
  *   CHRONIC_DECIMALS        - token decimals (default: 6)
- *   POOL_TOKEN_ACCOUNT      - the pool wallet's $CHRONIC associated token acct
- *                             (the 40% lands here; burner now, your wallet later)
+ *   POOL_WALLET             - the pool wallet ADDRESS (the 40% lands in its
+ *                             $CHRONIC token account; burner now, your wallet
+ *                             later). Alias: POOL_TOKEN_ACCOUNT also accepted.
  */
 
 const crypto = require('crypto');
@@ -19,7 +20,9 @@ const crypto = require('crypto');
 const SOLANA_RPC = process.env.SOLANA_RPC || 'https://api.mainnet-beta.solana.com';
 const MINT = process.env.CHRONIC_MINT || 'J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump';
 const DECIMALS = parseInt(process.env.CHRONIC_DECIMALS || '6', 10);
-const POOL_TOKEN_ACCOUNT = process.env.POOL_TOKEN_ACCOUNT || '';
+// the pool wallet ADDRESS (owner). The 40% is verified by its token-balance
+// gain, so you only need the plain wallet address — not a token account.
+const POOL_WALLET = process.env.POOL_WALLET || process.env.POOL_TOKEN_ACCOUNT || '';
 
 const SB_URL = process.env.SUPABASE_URL || '';
 const SB_KEY = process.env.SUPABASE_SERVICE_KEY || '';
@@ -149,13 +152,24 @@ function collectTokenIx(tx) {
   return out;
 }
 
+// sum a wallet's $CHRONIC balance across a token-balances array (base units)
+function poolBalance(arr) {
+  return (arr || []).reduce((acc, b) => {
+    if (b.owner === POOL_WALLET && b.mint === MINT) {
+      try { return acc + BigInt(b.uiTokenAmount.amount); } catch (_) { return acc; }
+    }
+    return acc;
+  }, 0n);
+}
+
 /*
  * Verify a buy tx actually burned 60% and pooled 40% of `expectedTotalBase`,
- * signed by `wallet`, against our mint + pool account.
+ * signed by `wallet`. The pool credit is checked via the pool WALLET's
+ * token-balance gain (pre->post), so POOL_WALLET is a plain wallet address.
  * Returns { ok, reason?, burn, pool }.
  */
 async function verifyBuyTx(sig, wallet, expectedTotalBase) {
-  if (!POOL_TOKEN_ACCOUNT) return { ok: false, reason: 'pool_not_configured' };
+  if (!POOL_WALLET) return { ok: false, reason: 'pool_not_configured' };
   if (typeof sig !== 'string' || sig.length < 80 || sig.length > 100) return { ok: false, reason: 'bad_sig' };
 
   const tx = await solRpc('getTransaction', [sig, {
@@ -171,30 +185,26 @@ async function verifyBuyTx(sig, wallet, expectedTotalBase) {
   if (signerPk !== wallet) return { ok: false, reason: 'wrong_signer' };
 
   const { burn: needBurn, pool: needPool } = splitOf(expectedTotalBase);
-  const ix = collectTokenIx(tx);
-  let gotBurn = 0n, gotPool = 0n;
 
-  for (const p of ix) {
+  // burn: from the parsed spl-token burn instruction(s) authored by the wallet
+  let gotBurn = 0n;
+  for (const p of collectTokenIx(tx)) {
     const t = p.type, info = p.info || {};
-    const amt = info.tokenAmount ? BigInt(info.tokenAmount.amount) : (info.amount ? BigInt(info.amount) : 0n);
-    // mint guard (burnChecked/transferChecked carry mint; plain burn/transfer don't)
     if (info.mint && info.mint !== MINT) continue;
-
-    if ((t === 'burn' || t === 'burnChecked') && info.authority === wallet) {
-      gotBurn += amt;
-    } else if ((t === 'transfer' || t === 'transferChecked') &&
-               info.destination === POOL_TOKEN_ACCOUNT && info.authority === wallet) {
-      gotPool += amt;
-    }
+    const amt = info.tokenAmount ? BigInt(info.tokenAmount.amount) : (info.amount ? BigInt(info.amount) : 0n);
+    if ((t === 'burn' || t === 'burnChecked') && info.authority === wallet) gotBurn += amt;
   }
-
   if (gotBurn < needBurn) return { ok: false, reason: 'burn_short' };
+
+  // pool: the pool wallet's $CHRONIC balance must rise by >= the 40% share
+  const gotPool = poolBalance(tx.meta.postTokenBalances) - poolBalance(tx.meta.preTokenBalances);
   if (gotPool < needPool) return { ok: false, reason: 'pool_short' };
+
   return { ok: true, burn: needBurn.toString(), pool: needPool.toString() };
 }
 
 module.exports = {
-  SOLANA_RPC, MINT, DECIMALS, POOL_TOKEN_ACCOUNT,
+  SOLANA_RPC, MINT, DECIMALS, POOL_WALLET,
   SEEDS, UPGRADES, BURN_BPS, POOL_BPS,
   base, splitOf, upgradeCost,
   sbEnabled, sbHeaders, sbRpc, sbSelect, sbUpsert,
