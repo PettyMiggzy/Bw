@@ -151,24 +151,24 @@ async function showFeed(){
   var cas=[], pad={};
   try{ var pf=await (await fetch('/api/launch',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'feed'})})).json();
     (pf.launches||[]).forEach(function(l){ if(cas.indexOf(l.mint)<0){cas.push(l.mint);pad[l.mint]=1;} }); }catch(e){}
-  for(var ep of ['top','latest']){ try{ var bs=await (await fetch('https://api.dexscreener.com/token-boosts/'+ep+'/v1')).json();
+  for(var ep of ['token-boosts/top','token-boosts/latest','token-profiles/latest']){ try{ var bs=await (await fetch('https://api.dexscreener.com/'+ep+'/v1')).json();
     (bs||[]).filter(function(b){return b.chainId==='solana';}).forEach(function(b){ if(cas.indexOf(b.tokenAddress)<0)cas.push(b.tokenAddress); }); }catch(e){} }
   FEATURED.forEach(function(c){ if(cas.indexOf(c)<0)cas.push(c); });
   cas=cas.slice(0,30);
   var data={};
   try{ var dx=await (await fetch('https://api.dexscreener.com/latest/dex/tokens/'+cas.join(','))).json();
     (dx.pairs||[]).forEach(function(p){ if(p.chainId!=='solana')return; var a=p.baseToken.address; var lq=(p.liquidity&&p.liquidity.usd)||0;
-      if(!data[a]||lq>data[a]._lq) data[a]={ca:a,name:p.baseToken.name,symbol:p.baseToken.symbol,price:Number(p.priceUsd),ch:p.priceChange?Number(p.priceChange.h24||0):0,mc:p.marketCap||p.fdv||0,vol:p.volume?Number(p.volume.h24||0):0,img:p.info?p.info.imageUrl:'',_lq:lq}; }); }catch(e){}
+      if(!data[a]||lq>data[a]._lq) data[a]={ca:a,name:p.baseToken.name,symbol:p.baseToken.symbol,price:Number(p.priceUsd),ch:p.priceChange?Number(p.priceChange.h24||0):0,mc:p.marketCap||p.fdv||0,vol:p.volume?Number(p.volume.h24||0):0,created:p.pairCreatedAt||0,dex:p.dexId||'',img:p.info?p.info.imageUrl:'',_lq:lq}; }); }catch(e){}
   FEEDPAD=pad; FEEDCOINS=cas.map(function(c){return data[c];}).filter(Boolean);
   renderFeed(FEEDFILTER);
 }
 function renderFeed(f){ FEEDFILTER=f; if(!FEEDCOINS){ showFeed(); return; }
   var list=FEEDCOINS.slice();
-  if(f==='new') list=list.filter(function(d){return FEEDPAD[d.ca];});
+  if(f==='new') list.sort(function(a,b){return (FEEDPAD[b.ca]?1e15:0)-(FEEDPAD[a.ca]?1e15:0) || (b.created||0)-(a.created||0);});
   else if(f==='gainers') list.sort(function(a,b){return (b.ch||0)-(a.ch||0);});
   else if(f==='volume') list.sort(function(a,b){return (b.vol||0)-(a.vol||0);});
   else list.sort(function(a,b){return (FEEDPAD[b.ca]?1:0)-(FEEDPAD[a.ca]?1:0) || (b.vol||0)-(a.vol||0);});
-  var labels={trending:'🔥 Trending',gainers:'📈 Gainers',volume:'💧 Volume',new:'🚀 New Pad'};
+  var labels={trending:'🔥 Trending',gainers:'📈 Gainers',volume:'💧 Volume',new:'🚀 New'};
   var tabs='<div class="ftabs">'+['trending','gainers','volume','new'].map(function(t){return '<div class="ftab'+(t===f?' on':'')+'" data-f="'+t+'">'+labels[t]+'</div>';}).join('')+'</div>';
   var grid=list.length?'<div class="coingrid">'+list.map(function(d){return coinCard(d,FEEDPAD[d.ca]);}).join('')+'</div>'
     :'<div class="muted">'+(f==='new'?'no pad launches yet — <a style="color:var(--green);text-decoration:none" href="/launch">be the first 🚀</a>':'nothing here — paste a CA above')+'</div>';
