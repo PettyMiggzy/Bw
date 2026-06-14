@@ -1,5 +1,8 @@
 {
   "cleanUrls": true,
+  "rewrites": [
+    { "source": "/flex", "destination": "/api/flex" }
+  ],
   "headers": [
     {
       "source": "/index.html",

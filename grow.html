@@ -685,7 +685,8 @@ function renderBoard(){ var V=VM(); var list;
     var rank=youI>=0?(youI+1):null;
     var txt=rank?('I’m rank #'+rank+' on $CHRONIC GROW 🌱🔥 — '+fmt(V.xp)+' XP. top 3 split the '+fmt(P)+' $CHRONIC weekly pool. catch up 👇')
                 :('$CHRONIC GROW 🌱 burn to grow — top 3 split the '+fmt(P)+' $CHRONIC weekly pool every week 🔥👇');
-    sb.href='https://twitter.com/intent/tweet?text='+encodeURIComponent(txt)+'&url='+encodeURIComponent('https://www.burnchronic.xyz/grow'); }
+    var su=rank?('https://www.burnchronic.xyz/flex?type=rank&rank='+rank+'&xp='+Math.floor(V.xp)):('https://www.burnchronic.xyz/flex?type=pool&pool='+P);
+    sb.href='https://twitter.com/intent/tweet?text='+encodeURIComponent(txt)+'&url='+encodeURIComponent(su); }
 }
 
 /* ============================================================
