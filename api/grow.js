@@ -84,6 +84,7 @@ module.exports = async (req, res) => {
         rpcProxy: '/api/solrpc', burnBps: G.BURN_BPS, poolBps: G.POOL_BPS,
         seeds: G.SEEDS, upgrades: G.UPGRADES,
         water: { max: G.MAX_WATERS, pct: G.WATER_PCT, cooldown: G.WATER_COOLDOWN_MS },
+        quality: G.QUALITY,
         ready: Boolean(G.POOL_WALLET),
       });
     }
@@ -224,9 +225,11 @@ module.exports = async (req, res) => {
       if (!G.SEEDS[plot.strain]) return json(res, 400, { error: 'bad plot' });
       const st = G.plotState(plot, player.lvl);
       if (!st.ripe) return json(res, 400, { error: 'not ripe' });
-      const r = await G.sbRpc('grow_sell', { p_wallet: wallet, p_idx: idx, p_xp: st.xp });
+      const q = G.rollQuality();
+      const xp = Math.max(1, Math.round(st.xp * q.mult));
+      const r = await G.sbRpc('grow_sell', { p_wallet: wallet, p_idx: idx, p_xp: xp });
       if (!r || r.ok === false) return json(res, 400, { error: (r && r.reason) || 'sell failed' });
-      return json(res, 200, { ok: true, xpAdded: st.xp, player: decorate(await loadPlayer()) });
+      return json(res, 200, { ok: true, xpAdded: xp, quality: q.name, mult: q.mult, player: decorate(await loadPlayer()) });
     }
 
     return json(res, 400, { error: 'unknown action' });

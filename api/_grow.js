@@ -52,6 +52,19 @@ const MAX_WATERS = 5;
 const WATER_PCT = 0.10;
 const WATER_COOLDOWN_MS = 5000;
 
+// harvest quality roll — multiplies the sale's XP. Adds payoff variance;
+// still burn-gated (you only harvest seeds you bought), so it can't be farmed.
+const QUALITY = [
+  { name: 'common', mult: 1.0, w: 65 },
+  { name: 'fire',   mult: 1.6, w: 25 },
+  { name: 'exotic', mult: 2.5, w: 10 },
+];
+function rollQuality() {
+  let r = Math.random() * 100, acc = 0;
+  for (const q of QUALITY) { acc += q.w; if (r < acc) return q; }
+  return QUALITY[0];
+}
+
 // effective state of a plot given the player's upgrade levels + waters
 function plotState(plot, lvl) {
   const seed = SEEDS[plot.strain] || SEEDS.mids;
@@ -223,6 +236,7 @@ module.exports = {
   SOLANA_RPC, MINT, DECIMALS, POOL_WALLET,
   SEEDS, UPGRADES, BURN_BPS, POOL_BPS,
   MAX_WATERS, WATER_PCT, WATER_COOLDOWN_MS, plotState,
+  QUALITY, rollQuality,
   base, splitOf, upgradeCost,
   sbEnabled, sbHeaders, sbRpc, sbSelect, sbUpsert,
   b58decode, isPubkey, verifySignature, solRpc, verifyBuyTx,
