@@ -16,7 +16,7 @@ const SOL = 'So11111111111111111111111111111111111111112';
 const SLIPPAGE_BPS = 500;
 const FEE_BPS = parseInt(process.env.SWAP_FEE_BPS || '100', 10);           // 1%
 const FEE_WALLET = process.env.SWAP_FEE_WALLET || 'E7Cr2nad1SvBWF8vcGhNW575UVVPdTcgHEqSTMQzoUr5';
-const REFERRAL = process.env.SWAP_REFERRAL_ACCOUNT || '';
+const REFERRAL = process.env.SWAP_REFERRAL_ACCOUNT || '4HgJt8K66Nwu6wb8QCj8scojhmtDETCrAHJWZngHXjSE';
 const REFERRAL_PROGRAM = 'REFER4ZgmyYx9c6He5XfaTMiGfdLwRnkV4RPp9t9iF3';
 
 function cors(res) {
