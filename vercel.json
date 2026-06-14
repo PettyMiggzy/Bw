@@ -28,6 +28,12 @@
         { "key": "Access-Control-Allow-Origin", "value": "*" },
         { "key": "Content-Type", "value": "application/json" }
       ]
+    },
+    {
+      "source": "/(terminal|launch|buy|sell|burn|raid|grow|bundle|nfts|chronic|claim|generator)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate" }
+      ]
     }
   ]
 }
