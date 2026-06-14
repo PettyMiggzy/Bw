@@ -136,7 +136,8 @@ async function doBurn(){
     try{ await api(true,amount,{account:wallet,signature:sig}); }catch(e){}
     toast('🔥 burned '+fmt(amount)+' · +'+fmt(xpFor(amount))+' XP');
     var txt='I just torched '+fmt(amount)+' $CHRONIC 🔥💀 gone forever — supply only goes down. burn it don’t hoard it 👇';
-    $('shareBtn').href='https://twitter.com/intent/tweet?text='+encodeURIComponent(txt)+'&url='+encodeURIComponent('https://www.burnchronic.xyz/burn');
+    var shareUrl='https://www.burnchronic.xyz/flex?type=burn&amount='+amount;
+    $('shareBtn').href='https://twitter.com/intent/tweet?text='+encodeURIComponent(txt)+'&url='+encodeURIComponent(shareUrl);
     $('shareBtn').style.display='block';
     btn.disabled=false; btn.textContent='🔥 Burn again';
   }catch(e){ toast(/reject/i.test((e&&e.message)||'')?'cancelled':'burn failed',true); btn.disabled=false; btn.textContent=label; }

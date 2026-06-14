@@ -4,7 +4,8 @@
   "private": true,
   "description": "$CHRONIC site + Solana Actions (Blinks)",
   "dependencies": {
-    "@solana/web3.js": "^1.95.3"
+    "@solana/web3.js": "^1.95.3",
+    "@vercel/og": "^0.6.4"
   },
   "overrides": {
     "uuid": "8.3.2"
