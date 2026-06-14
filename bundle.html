@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>🔍 $CHRONIC Bundle Checker</title>
+<meta name="description" content="Solana bundle / insider checker — paste a token CA, see holder concentration, launch snipers, and common-funding clusters." />
+<link rel="canonical" href="https://www.burnchronic.xyz/bundle" />
+<meta property="og:title" content="🔍 $CHRONIC Bundle Checker" />
+<meta property="og:description" content="See the bundle before you ape — holder concentration, snipers, funding clusters, rug score. Solana." />
+<meta property="og:image" content="https://www.burnchronic.xyz/assets/og-chronic.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=4" />
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+:root{--void:#070a07;--panel:#101a12;--green:#52ff8f;--green-dim:#2bd96a;--green-deep:#0c3d22;--ember:#ff6a2b;--ember2:#ff3d1f;--gold:#f5cf57;--purple:#a85cff;--text:#e9ffe9;--dim:#84a78d;--line:rgba(82,255,143,.16);--fd:'Bungee',sans-serif;--fh:'Bungee Shade',sans-serif;--fm:'Space Mono',monospace;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--void);color:var(--text);font-family:var(--fm);min-height:100vh;
+ background-image:radial-gradient(120% 55% at 50% -10%,rgba(82,255,143,.14),transparent 60%),radial-gradient(80% 50% at 100% 14%,rgba(168,92,255,.12),transparent 55%);}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;background-image:linear-gradient(rgba(82,255,143,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(82,255,143,.045) 1px,transparent 1px);background-size:42px 42px;mask-image:radial-gradient(120% 80% at 50% 0,#000,transparent 75%)}
+.bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:11px 14px;backdrop-filter:blur(12px);background:linear-gradient(180deg,rgba(7,10,7,.92),rgba(7,10,7,.4));border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:9px;font-family:var(--fd);color:var(--gold);font-size:15px;text-decoration:none}
+.brand img{width:26px;height:26px;border-radius:7px}
+.bar a.nav{color:var(--dim);font-size:12px;text-decoration:none}
+.wrap{position:relative;z-index:2;max-width:620px;margin:0 auto;padding:24px 16px 80px}
+h1{font-family:var(--fh);font-size:clamp(32px,10vw,54px);line-height:.92;text-align:center;color:var(--green);text-shadow:0 0 30px rgba(82,255,143,.4),4px 4px 0 var(--green-deep)}
+.sub{text-align:center;color:var(--dim);font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin:8px 0 22px}
+.search{display:flex;gap:8px;margin-bottom:18px}
+.search input{flex:1;background:rgba(16,26,18,.85);border:1px solid var(--line);border-radius:13px;color:var(--green);font-family:var(--fm);font-size:13px;padding:14px;outline:none}
+.search input:focus{border-color:var(--green-dim)}
+.search button{font-family:var(--fd);font-size:13px;border:0;border-radius:13px;padding:14px 18px;cursor:pointer;background:linear-gradient(90deg,var(--green-dim),var(--green));color:#04140a}
+.search button:disabled{opacity:.5}
+.card{background:linear-gradient(180deg,rgba(16,26,18,.9),rgba(10,15,11,.92));border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:14px}
+.scorecard{text-align:center;border-width:2px}
+.scorecard.low{border-color:var(--green-dim)} .scorecard.med{border-color:var(--gold)} .scorecard.high{border-color:var(--ember)}
+.scorebig{font-family:var(--fh);font-size:64px;line-height:1}
+.scorecard.low .scorebig{color:var(--green)} .scorecard.med .scorebig{color:var(--gold)} .scorecard.high .scorebig{color:var(--ember)}
+.scorelbl{font-family:var(--fd);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-top:2px}
+.flags{margin-top:14px;text-align:left}
+.flag{font-size:12px;color:var(--text);background:rgba(7,10,7,.5);border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-top:7px}
+.flag.bad{border-color:rgba(255,106,43,.4)} .flag b{color:var(--ember)}
+.h2{font-family:var(--fd);font-size:12px;letter-spacing:.14em;color:var(--ember);text-transform:uppercase;margin:0 0 12px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:rgba(7,10,7,.45);border:1px solid var(--line);border-radius:12px;padding:11px;text-align:center}
+.stat b{display:block;font-family:var(--fd);font-size:20px;color:var(--green)}
+.stat.warn b{color:var(--ember)} .stat.mid b{color:var(--gold)}
+.stat i{font-style:normal;font-size:9px;letter-spacing:.08em;color:var(--dim);text-transform:uppercase}
+.row{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:11px;margin-top:7px;background:rgba(7,10,7,.4);border:1px solid var(--line);font-size:12px}
+.row a{color:var(--green);text-decoration:none;font-weight:700}
+.row .p{margin-left:auto;font-family:var(--fd);color:var(--gold)}
+.row .lp{font-size:8px;font-family:var(--fd);letter-spacing:.06em;color:var(--purple);border:1px solid var(--purple);border-radius:10px;padding:2px 6px}
+.cluster{background:rgba(255,106,43,.06);border:1px solid rgba(255,106,43,.3);border-radius:12px;padding:11px;margin-top:8px;font-size:12px}
+.cluster .f{color:var(--ember);font-weight:700}
+.cluster .w{color:var(--dim);font-size:11px;margin-top:5px;word-break:break-all}
+.cluster .w a{color:var(--dim);text-decoration:none}
+.muted{color:var(--dim);font-size:11px;text-align:center;line-height:1.6}
+.note{font-size:10px;color:var(--dim);margin-top:10px;line-height:1.5}
+.foot{text-align:center;margin-top:22px;font-size:11px;color:var(--dim)}.foot a{color:var(--green);text-decoration:none}
+.spin{text-align:center;color:var(--dim);font-size:13px;padding:30px}
+</style>
+</head>
+<body>
+<div class="bar">
+  <a class="brand" href="/"><img src="/assets/coin-logo.png" alt="$CHRONIC"/>SCAN</a>
+  <a class="nav" href="/">‹ back</a>
+</div>
+<div class="wrap">
+  <h1>BUNDLE CHECKER</h1>
+  <div class="sub">see the bundle before you ape · solana</div>
+  <div class="search">
+    <input id="ca" placeholder="paste token CA (mint address)" spellcheck="false" />
+    <button id="go">SCAN</button>
+  </div>
+  <div id="out"></div>
+  <div class="foot">🔍 read-only on-chain · 🔥 <a href="/burn">burn</a> · 🌱 <a href="/grow">grow</a> · <a href="/">home</a></div>
+</div>
+<script>
+var $=function(i){return document.getElementById(i);};
+function sh(a){return a?a.slice(0,4)+'…'+a.slice(-4):'?';}
+function sol(a){return 'https://solscan.io/account/'+a;}
+function esc(s){return String(s).replace(/[<>&]/g,function(c){return{'<':'&lt;','>':'&gt;','&':'&amp;'}[c];});}
+
+async function scan(){
+  var ca=$('ca').value.trim(); if(ca.length<32){ $('out').innerHTML='<div class="muted">paste a valid token mint address</div>'; return; }
+  $('go').disabled=true; $('out').innerHTML='<div class="spin">🔍 tracing wallets &amp; funding… (can take ~10–20s)</div>';
+  try{
+    var r=await fetch('/api/bundle?ca='+encodeURIComponent(ca)); var d=await r.json();
+    if(d.error){ $('out').innerHTML='<div class="muted">'+esc(d.error)+'</div>'; $('go').disabled=false; return; }
+    render(d);
+  }catch(e){ $('out').innerHTML='<div class="muted">scan failed — try again</div>'; }
+  $('go').disabled=false;
+}
+
+function render(d){
+  var html='';
+  // score
+  if(d.score){ var lv=d.score.level;
+    html+='<div class="card scorecard '+lv+'"><div class="scorebig">'+d.score.value+'</div>'
+      +'<div class="scorelbl">'+(lv==='high'?'🚩 high risk / bundled':lv==='med'?'⚠️ some signals':'✅ looks clean-ish')+'</div>';
+    if(d.score.flags&&d.score.flags.length){ html+='<div class="flags">'+d.score.flags.map(function(f){return '<div class="flag bad">🚩 '+esc(f)+'</div>';}).join('')+'</div>'; }
+    html+='</div>';
+  }
+  // holders
+  if(d.holders){ var h=d.holders;
+    var c10=h.top10Pct>=50?'warn':h.top10Pct>=30?'mid':'';
+    html+='<div class="card"><div class="h2">▸ Holder Concentration</div><div class="stats">'
+      +'<div class="stat '+c10+'"><b>'+h.top10Pct+'%</b><i>top 10</i></div>'
+      +'<div class="stat"><b>'+h.top20Pct+'%</b><i>top 20</i></div>'
+      +'<div class="stat"><b>'+h.largestPct+'%</b><i>biggest</i></div></div>';
+    (h.top||[]).slice(0,10).forEach(function(t,i){ html+='<div class="row"><span style="color:var(--dim)">#'+(i+1)+'</span>'
+      +'<a href="'+sol(t.owner)+'" target="_blank" rel="noopener">'+sh(t.owner)+'</a>'+(t.lp?'<span class="lp">LP/CURVE</span>':'')+'<span class="p">'+t.pct+'%</span></div>'; });
+    html+='<div class="note">LP/curve wallets are excluded from the concentration % (that’s liquidity, not an insider).</div></div>';
+  }
+  // launch
+  if(d.launch){ var l=d.launch; var cs=l.sniperPct>=25?'warn':l.sniperPct>=10?'mid':'';
+    html+='<div class="card"><div class="h2">▸ Launch Snipers</div><div class="stats">'
+      +'<div class="stat '+cs+'"><b>'+l.sniperPct+'%</b><i>sniped slot 1</i></div>'
+      +'<div class="stat"><b>'+l.sniperCount+'</b><i>snipers</i></div>'
+      +'<div class="stat"><b>'+(l.reachedCreation?'yes':'~')+'</b><i>at creation</i></div></div>';
+    (l.buyers||[]).slice(0,8).forEach(function(b){ html+='<div class="row"><a href="'+sol(b.wallet)+'" target="_blank" rel="noopener">'+sh(b.wallet)+'</a><span style="color:var(--dim);font-size:10px">slot '+b.slot+'</span><span class="p">'+b.pct+'%</span></div>'; });
+    html+='</div>';
+  }
+  // funding
+  if(d.funding){ var f=d.funding;
+    html+='<div class="card"><div class="h2">▸ Funding Clusters</div>';
+    if(f.clusters&&f.clusters.length){ html+='<div class="muted" style="text-align:left;margin-bottom:6px">wallets funded by the same source = a coordinated bundle:</div>';
+      f.clusters.forEach(function(c){ html+='<div class="cluster"><span class="f">🚩 '+c.size+' wallets ← funder '+sh(c.funder)+'</span>'
+        +'<div class="w">'+c.wallets.map(function(w){return '<a href="'+sol(w)+'" target="_blank" rel="noopener">'+sh(w)+'</a>';}).join(' · ')+'</div></div>'; });
+    } else { html+='<div class="muted">no shared-funder clusters found among the top wallets ✅<br/><span style="font-size:10px">(traced '+(f.traced||0)+' wallets)</span></div>'; }
+    html+='</div>';
+  }
+  if(d.notes&&d.notes.length){ html+='<div class="note" style="text-align:center">⚠️ partial: '+d.notes.map(esc).join(' · ')+'</div>'; }
+  html+='<div class="note" style="text-align:center">not financial advice · signals only · DYOR 💀</div>';
+  $('out').innerHTML=html;
+}
+
+$('go').addEventListener('click',scan);
+$('ca').addEventListener('keydown',function(e){if(e.key==='Enter')scan();});
+// prefill from ?ca=
+var q=new URLSearchParams(location.search).get('ca'); if(q){ $('ca').value=q; scan(); }
+</script>
+</body>
+</html>
