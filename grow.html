@@ -337,7 +337,6 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
 
 var API='/api/grow';
 var MAXPLOTS=12, STARTPLOTS=4, SEASON_MS=7*24*60*60*1000;
-var BUDS=['/assets/stash-1.jpg','/assets/stash-2.jpg','/assets/stash-3.jpg','/assets/stash-4.jpg','/assets/stash-5.jpg','/assets/stash-6.jpg'];
 
 /* catalog — defaults; overwritten by /api/grow?action=config */
 var SEEDS={
@@ -391,15 +390,6 @@ function budSVG(rar){
     +'<g stroke="#ff7a3d" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".85">'+pist+'</g>'
     +'<g fill="#fff" opacity=".7">'+fr+'</g>'+spark+'</svg>';
 }
-
-/* mock rivals for demo board */
-var RIVALS=[
-  {who:'ashking.sol',addr:'7xKQ…be9F',xp:184200},{who:'pufflord',addr:'9aMv…2Tu1',xp:142800},
-  {who:'greengoblin',addr:'Hn3p…kQ8d',xp:96500},{who:'420blazeit',addr:'2Fzr…9wXc',xp:71300},
-  {who:'skeletoncrew',addr:'Dw8h…Lm4a',xp:54900},{who:'incinerator',addr:'5Tqp…vZ2e',xp:38600},
-  {who:'budbandit',addr:'Kx1n…7Rps',xp:24100},{who:'cheeflord',addr:'Bv6c…q3Hd',xp:15400},
-  {who:'dankdealer',addr:'Pf9w…tA5k',xp:8800}
-];
 
 /* ---------- runtime state ---------- */
 var MODE='demo';
@@ -664,8 +654,6 @@ function renderShop(){ var V=VM();
 /* ============================================================
    leaderboard
 ============================================================ */
-function demoBoard(){ var V=VM(); var list=RIVALS.map(function(r){return {who:r.who,addr:r.addr,xp:r.xp,you:false};});
-  list.push({who:'YOU',addr:'demo',xp:V.xp,you:true}); list.sort(function(a,b){return b.xp-a.xp;}); return list; }
 function renderLastWin(){ var el=$('lastWin'); if(!el)return; var w=(MODE==='live')?LIVE.lastWinners:PUB.lastWinners;
   if(!w||!w.length){ el.innerHTML=''; el.style.display='none'; return; }
   var medals=['🥇','🥈','🥉'];
@@ -805,7 +793,7 @@ function tick(){ var V=VM(); _tickN++;
 /* ============================================================
    boot
 ============================================================ */
-function tgInit(){ try{ var t=window.Telegram&&window.Telegram.WebApp; if(t&&t.initData!==undefined){ t.ready(); t.expand(); if(t.setHeaderColor)t.setHeaderColor('#070a07'); document.body.classList.add('in-tg'); } }catch(e){} }
+function tgInit(){ try{ var t=window.Telegram&&window.Telegram.WebApp; if(t&&t.platform&&t.platform!=='unknown'){ t.ready(); t.expand(); if(t.setHeaderColor)t.setHeaderColor('#070a07'); document.body.classList.add('in-tg'); } }catch(e){} }
 async function boot(){
   tgInit();
   loadDemo(); buildGarden(); buildSeedShop(); buildShop();

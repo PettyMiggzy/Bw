@@ -35,7 +35,7 @@ create policy "anon_read_listings" on grow_listings for select using (true);
 create or replace function grow_market_list(p_wallet text, p_kind text, p_iid text, p_price numeric)
 returns json
 language plpgsql security definer set search_path = public as $$
-declare pl grow_players%rowtype; have int; arr jsonb; el jsonb; keep jsonb; snap jsonb; found boolean := false;
+declare pl grow_players%rowtype; have int; arr jsonb; el jsonb; keep jsonb; snap jsonb; hit boolean := false;
 begin
   if p_price is null or p_price < 1 then return json_build_object('ok', false, 'reason', 'bad_price'); end if;
   select * into pl from grow_players where wallet = p_wallet for update;
@@ -51,10 +51,10 @@ begin
     arr := case when p_kind='nug' then pl.nugs else pl.nfts end;
     keep := '[]'::jsonb;
     for el in select * from jsonb_array_elements(arr) loop
-      if not found and (el ->> 'id') = p_iid then snap := el; found := true;
+      if not hit and (el ->> 'id') = p_iid then snap := el; hit := true;
       else keep := keep || jsonb_build_array(el); end if;
     end loop;
-    if not found then return json_build_object('ok', false, 'reason', 'no_item'); end if;
+    if not hit then return json_build_object('ok', false, 'reason', 'no_item'); end if;
     if p_kind='nug' then update grow_players set nugs = keep, updated_at = now() where wallet = p_wallet;
     else update grow_players set nfts = keep, updated_at = now() where wallet = p_wallet; end if;
   else
