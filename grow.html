@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<title>$CHRONIC GROW — burn to grow, grow to win</title>
+<meta name="description" content="Burn $CHRONIC to grow. 60% burned forever, 40% into the weekly pool. Top 3 growers split the pot by XP. Resets every 7 days." />
+<link rel="canonical" href="https://burnchronic.xyz/grow" />
+<meta property="og:title" content="$CHRONIC GROW — burn to grow, grow to win" />
+<meta property="og:description" content="Burn $CHRONIC, stack XP, top the leaderboard. 60% burned · 40% to the weekly pool. Top 3 split it." />
+<meta property="og:image" content="https://www.burnchronic.xyz/assets/og-chronic.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=4" />
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=4" />
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --void:#070a07;--void2:#0c120c;--panel:#101a12;--panel2:#16241a;
+  --green:#52ff8f;--green-dim:#2bd96a;--green-deep:#0c3d22;
+  --ember:#ff6a2b;--ember2:#ff3d1f;--gold:#f5cf57;--gold2:#d9a93a;--purple:#a85cff;--smoke:#6b34a8;
+  --text:#e9ffe9;--dim:#84a78d;--line:rgba(82,255,143,.16);
+  --fd:'Bungee',sans-serif;--fh:'Bungee Shade',sans-serif;--fm:'Space Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--void);color:var(--text);font-family:var(--fm);overflow-x:hidden;
+  background-image:radial-gradient(120% 55% at 50% -10%,rgba(107,52,168,.3),transparent 60%),
+    radial-gradient(80% 50% at 100% 12%,rgba(255,106,43,.12),transparent 55%),
+    radial-gradient(80% 50% at 0% 18%,rgba(82,255,143,.1),transparent 55%);}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  background-image:linear-gradient(rgba(82,255,143,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(82,255,143,.045) 1px,transparent 1px);
+  background-size:42px 42px;mask-image:radial-gradient(120% 80% at 50% 0,#000,transparent 75%)}
+.wrap{position:relative;z-index:2;max-width:760px;margin:0 auto;padding:0 14px 130px}
+
+/* top bar */
+.bar{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 6px;
+  backdrop-filter:blur(12px);background:linear-gradient(180deg,rgba(7,10,7,.94),rgba(7,10,7,.45));border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:9px;font-family:var(--fd);color:var(--gold);font-size:15px;text-decoration:none}
+.brand img{width:26px;height:26px;border-radius:7px}
+.bar .right{display:flex;align-items:center;gap:8px}
+.chip{display:flex;align-items:center;gap:6px;background:rgba(16,26,18,.8);border:1px solid var(--line);border-radius:30px;padding:7px 12px;font-size:12px;font-weight:700}
+.chip b{color:var(--green)} .chip.x b{color:var(--gold)}
+.chip .ic{font-size:13px}
+.wallet{font-family:var(--fd);font-size:11px;letter-spacing:.04em;background:linear-gradient(90deg,var(--ember2),var(--ember));color:#1a0800;border:0;border-radius:30px;padding:9px 15px;cursor:pointer;transition:transform .12s}
+.wallet:active{transform:scale(.95)}
+.wallet.on{background:linear-gradient(90deg,var(--green-deep),var(--panel2));color:var(--green);border:1px solid var(--green-dim)}
+
+/* hero */
+h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;text-align:center;margin:24px 0 4px;
+  color:var(--green);text-shadow:0 0 36px rgba(82,255,143,.5),5px 5px 0 var(--ember2)}
+.tagline{text-align:center;color:var(--dim);font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:20px}
+.tagline b{color:var(--gold)}
+
+/* season pool card */
+.season{position:relative;overflow:hidden;border-radius:22px;padding:20px 18px;margin-bottom:8px;
+  background:linear-gradient(160deg,rgba(168,92,255,.18),rgba(16,26,18,.92) 45%),radial-gradient(120% 90% at 100% 0,rgba(255,106,43,.22),transparent 55%);
+  border:1px solid rgba(168,92,255,.4);box-shadow:0 18px 60px rgba(107,52,168,.3)}
+.season::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(60% 60% at 50% -10%,rgba(82,255,143,.12),transparent 60%)}
+.season .lab{font-family:var(--fd);font-size:10px;letter-spacing:.22em;color:var(--purple);text-transform:uppercase}
+.season .pool{font-family:var(--fh);font-size:clamp(40px,13vw,72px);line-height:1;color:var(--gold);text-shadow:0 0 30px rgba(245,207,87,.4);margin:6px 0 2px}
+.season .pool span{font-size:.42em;color:var(--green);font-family:var(--fd);margin-left:6px}
+.season .sub{color:var(--dim);font-size:12px}
+.season .sub b{color:var(--green)}
+.season .timerrow{display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap}
+.cd{display:flex;gap:6px}
+.cd .u{background:rgba(7,10,7,.6);border:1px solid var(--line);border-radius:10px;padding:7px 10px;text-align:center;min-width:48px}
+.cd .u b{display:block;font-family:var(--fd);font-size:18px;color:var(--text);line-height:1}
+.cd .u i{font-style:normal;font-size:8px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.cd .lab2{font-size:10px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;align-self:center;margin-right:2px}
+.split{display:flex;gap:8px;margin-top:14px}
+.split .s{flex:1;background:rgba(7,10,7,.45);border:1px solid var(--line);border-radius:12px;padding:9px 11px}
+.split .s .p{font-family:var(--fd);font-size:17px}
+.split .s.burn .p{color:var(--ember)} .split .s.pool .p{color:var(--gold)}
+.split .s .d{font-size:9px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase;margin-top:2px}
+
+/* tabs */
+.tabs{display:flex;gap:8px;margin:18px 0 16px;position:sticky;top:56px;z-index:55;padding:6px 0;
+  background:linear-gradient(180deg,var(--void) 70%,transparent)}
+.tab{flex:1;font-family:var(--fd);font-size:12px;letter-spacing:.04em;text-align:center;padding:12px 8px;border-radius:14px;cursor:pointer;
+  background:rgba(16,26,18,.6);border:1px solid var(--line);color:var(--dim);transition:.18s}
+.tab.on{color:#04140a;background:linear-gradient(90deg,var(--green-dim),var(--green));border-color:transparent;box-shadow:0 8px 24px rgba(82,255,143,.25)}
+.view{display:none} .view.on{display:block;animation:fade .3s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* garden */
+.garden{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px}
+.plot{position:relative;aspect-ratio:1/1.05;border-radius:16px;cursor:pointer;overflow:hidden;
+  background:linear-gradient(180deg,#1a140c,#0e0a06);border:1px solid rgba(120,90,40,.4);
+  display:flex;align-items:flex-end;justify-content:center;transition:transform .12s,box-shadow .2s,border-color .2s}
+.plot:active{transform:scale(.97)}
+.plot .soil{position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(180deg,#3a2a16,#1a120a);border-top:2px solid rgba(120,90,40,.5)}
+.plot .plant{position:relative;z-index:2;font-size:46px;line-height:1;margin-bottom:14%;transition:transform .4s,filter .4s}
+.plot .budimg{position:relative;z-index:2;width:70%;margin-bottom:9%;border-radius:12px;box-shadow:0 0 26px rgba(82,255,143,.55);animation:ripeglow 1.6s ease-in-out infinite}
+@keyframes ripeglow{50%{box-shadow:0 0 42px rgba(245,207,87,.85)}}
+.plot .prog{position:absolute;left:8px;right:8px;bottom:6px;z-index:3;height:5px;border-radius:5px;background:rgba(0,0,0,.5);overflow:hidden}
+.plot .prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--green-dim),var(--green));transition:width .5s linear}
+.plot .tag{position:absolute;top:8px;left:8px;z-index:3;font-size:9px;letter-spacing:.06em;color:var(--dim);text-transform:uppercase;max-width:80%}
+.plot .xpd{position:absolute;top:8px;right:8px;z-index:3;font-size:9px;color:var(--gold);font-weight:700}
+.plot.empty .tag{color:var(--gold)}
+.plot.ripe{border-color:var(--green);box-shadow:0 0 22px rgba(82,255,143,.4)}
+.plot.ripe .tag{color:var(--green);animation:blink 1s steps(2) infinite}
+.plot.locked{cursor:default;opacity:.45;align-items:center}
+.plot.locked .lk{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--fd);font-size:11px;color:var(--dim);text-align:center;padding:8px}
+@keyframes blink{50%{opacity:.35}}
+
+/* shop */
+.shop h2{font-family:var(--fd);font-size:13px;letter-spacing:.16em;color:var(--ember);text-transform:uppercase;margin:6px 0 4px;display:flex;align-items:center;gap:8px}
+.shop .hh{font-size:11px;color:var(--dim);letter-spacing:0;text-transform:none;margin:0 0 12px}
+.ups{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.up{position:relative;background:linear-gradient(180deg,rgba(16,26,18,.88),rgba(10,15,11,.9));border:1px solid var(--line);border-radius:16px;
+  padding:12px;cursor:pointer;transition:transform .12s,border-color .2s;display:flex;flex-direction:column;gap:3px;overflow:hidden}
+.up:active{transform:scale(.97)}
+.up.afford{border-color:var(--green-dim)}
+.up.cant{opacity:.55}
+.up .seedimg{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;margin-bottom:5px}
+.up .ic{font-size:22px}
+.up .nm{font-family:var(--fd);font-size:12px;color:var(--gold);line-height:1.1}
+.up .ds{font-size:10px;color:var(--dim);line-height:1.3}
+.up .meta{display:flex;gap:8px;font-size:9px;color:var(--green-dim);margin-top:1px}
+.up .lv{font-size:10px;color:var(--green);letter-spacing:.04em}
+.up .cost{margin-top:5px;font-family:var(--fd);font-size:13px;color:var(--ember);display:flex;align-items:center;gap:5px}
+.up.maxed{opacity:.5}.up.maxed .cost{color:var(--dim)}
+.rar{position:absolute;top:8px;right:8px;z-index:2;font-family:var(--fd);font-size:7px;letter-spacing:.08em;padding:3px 7px;border-radius:20px}
+.rar.mids{background:#5b6b4a;color:#dff5cf} .rar.loud{background:var(--green-deep);color:var(--green)}
+.rar.gas{background:#7a3a12;color:var(--ember)} .rar.exotic{background:var(--smoke);color:#f0d9ff}
+
+/* leaderboard */
+.podium{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:8px;align-items:end;margin-bottom:18px}
+.pod{position:relative;border-radius:16px;padding:14px 8px 12px;text-align:center;background:linear-gradient(180deg,rgba(16,26,18,.9),rgba(10,15,11,.92));border:1px solid var(--line)}
+.pod .rk{font-family:var(--fh);font-size:26px;line-height:1}
+.pod.g1{border-color:var(--gold);box-shadow:0 0 28px rgba(245,207,87,.28);padding-top:20px;padding-bottom:18px}
+.pod.g1 .rk{color:var(--gold)} .pod.g2 .rk{color:#cfe3d6} .pod.g3 .rk{color:var(--ember)}
+.pod .who{font-family:var(--fm);font-size:11px;color:var(--text);margin-top:6px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pod .xp{font-size:10px;color:var(--dim);margin-top:1px}
+.pod .win{margin-top:8px;font-family:var(--fd);font-size:13px;color:var(--gold)}
+.pod .win i{display:block;font-style:normal;font-size:8px;color:var(--dim);letter-spacing:.1em;margin-top:2px}
+.pod.you{outline:2px dashed var(--green);outline-offset:2px}
+
+.lbl{font-family:var(--fd);font-size:12px;letter-spacing:.14em;color:var(--ember);text-transform:uppercase;margin:4px 0 10px}
+.row{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:13px;margin-bottom:7px;
+  background:linear-gradient(180deg,rgba(16,26,18,.7),rgba(10,15,11,.7));border:1px solid var(--line)}
+.row.you{border-color:var(--green);background:linear-gradient(180deg,rgba(12,61,34,.55),rgba(10,15,11,.7))}
+.row .rk{font-family:var(--fd);font-size:14px;color:var(--dim);width:30px;text-align:center}
+.row.top .rk{color:var(--gold)}
+.row .who{flex:1;font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .who small{display:block;color:var(--dim);font-weight:400;font-size:9px;letter-spacing:.04em}
+.row .xp{font-family:var(--fd);font-size:13px;color:var(--green)}
+.row .xp i{font-style:normal;font-size:8px;color:var(--dim);display:block;text-align:right;letter-spacing:.1em}
+
+/* how it works */
+.how{background:linear-gradient(180deg,rgba(16,26,18,.7),rgba(10,15,11,.7));border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
+.how h3{font-family:var(--fd);font-size:13px;color:var(--green);letter-spacing:.06em;margin-bottom:12px}
+.step{display:flex;gap:12px;margin-bottom:14px}
+.step .n{flex:0 0 30px;height:30px;border-radius:9px;display:grid;place-items:center;font-family:var(--fd);font-size:13px;background:var(--green-deep);color:var(--green)}
+.step .t{font-size:12px;color:var(--dim);line-height:1.5;padding-top:4px}
+.step .t b{color:var(--text)} .step .t .g{color:var(--green)} .step .t .o{color:var(--ember)} .step .t .y{color:var(--gold)}
+.disc{font-size:10px;color:var(--dim);line-height:1.6;border-top:1px solid var(--line);padding-top:12px;margin-top:4px}
+
+/* toast + raid */
+.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%) translateY(20px);z-index:400;opacity:0;
+  background:var(--green);color:#04140a;font-family:var(--fd);font-size:12px;padding:10px 18px;border-radius:30px;transition:opacity .25s,transform .25s;pointer-events:none;text-align:center;max-width:90vw}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.bad{background:var(--ember2);color:#fff}
+.ember{position:fixed;z-index:300;width:8px;height:8px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#ffd36a,#ff5a1f);box-shadow:0 0 8px #ff7a2b}
+.foot{display:flex;gap:10px;justify-content:center;margin-top:26px}
+.foot button,.foot a{background:transparent;border:1px solid var(--line);color:var(--dim);font-family:var(--fm);font-size:11px;padding:8px 14px;border-radius:20px;cursor:pointer;text-decoration:none}
+
+/* connect veil */
+#veil{position:fixed;inset:0;z-index:500;background:rgba(4,6,4,.86);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:24px}
+#veil.on{display:flex}
+#veil .card{max-width:340px;text-align:center;background:linear-gradient(180deg,var(--panel2),var(--void2));border:1px solid var(--line);border-radius:20px;padding:28px 22px}
+#veil img{width:90px;border-radius:14px;margin-bottom:14px}
+#veil h3{font-family:var(--fd);color:var(--green);font-size:18px;margin-bottom:8px}
+#veil p{color:var(--dim);font-size:12px;line-height:1.5;margin-bottom:18px}
+#veil button{font-family:var(--fd);width:100%;background:linear-gradient(90deg,var(--ember2),var(--ember));color:#1a0800;border:0;border-radius:14px;padding:14px;cursor:pointer;font-size:13px}
+#veil .x{margin-top:12px;background:transparent;color:var(--dim);font-family:var(--fm);font-size:11px}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <a class="brand" href="/"><img src="/assets/coin-logo.png" alt="$CHRONIC"/>GROW</a>
+  <div class="right">
+    <div class="chip"><span class="ic">🪙</span><b id="balN">—</b></div>
+    <div class="chip x"><span class="ic">⚡</span><b id="xpHud">0</b><span style="color:var(--dim);font-weight:400">XP</span></div>
+    <button class="wallet" id="walletBtn">Connect</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <h1 class="title">$CHRONIC GROW</h1>
+  <div class="tagline">burn to grow · <b>grow to win</b> · top 3 split the pot every 7 days</div>
+
+  <!-- SEASON POOL -->
+  <div class="season">
+    <div class="lab">◆ This Week's Pool</div>
+    <div class="pool"><span id="poolN">0</span><span>$CHRONIC</span></div>
+    <div class="sub">Top 3 growers split it by <b>XP share</b> when the season ends.</div>
+    <div class="timerrow">
+      <span class="lab2">Resets in</span>
+      <div class="cd" id="cd">
+        <div class="u"><b id="cdD">0</b><i>days</i></div>
+        <div class="u"><b id="cdH">0</b><i>hrs</i></div>
+        <div class="u"><b id="cdM">0</b><i>min</i></div>
+        <div class="u"><b id="cdS">0</b><i>sec</i></div>
+      </div>
+    </div>
+    <div class="split">
+      <div class="s burn"><div class="p">🔥 60%</div><div class="d">burned forever</div></div>
+      <div class="s pool"><div class="p">🏆 40%</div><div class="d">into the pool</div></div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab on" data-v="grow">🌱 Grow</div>
+    <div class="tab" data-v="board">🏆 Leaderboard</div>
+    <div class="tab" data-v="how">❔ How</div>
+  </div>
+
+  <!-- GROW VIEW -->
+  <div class="view on" id="v-grow">
+    <div class="garden" id="garden"></div>
+    <div class="shop">
+      <h2>▸ The Seed Plug</h2>
+      <p class="hh">Buy seeds with $CHRONIC. Every buy: <b style="color:var(--ember)">60% burned</b> · <b style="color:var(--gold)">40% to the pool</b>. Better strains = more XP.</p>
+      <div class="ups" id="seeds"></div>
+      <h2 style="margin-top:24px">▸ The Supply Run</h2>
+      <p class="hh">Upgrades grow faster &amp; juice your XP. Same split — it all feeds the burn + pool.</p>
+      <div class="ups" id="ups"></div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD VIEW -->
+  <div class="view" id="v-board">
+    <div class="podium" id="podium"></div>
+    <div class="lbl">▸ Full Standings</div>
+    <div id="rows"></div>
+  </div>
+
+  <!-- HOW VIEW -->
+  <div class="view" id="v-how">
+    <div class="how">
+      <h3>The loop</h3>
+      <div class="step"><div class="n">1</div><div class="t"><b>Burn to plant.</b> Spend <span class="g">$CHRONIC</span> on seeds &amp; gear. <span class="o">60% is burned forever</span>, <span class="y">40% drops into this week's pool.</span></div></div>
+      <div class="step"><div class="n">2</div><div class="t"><b>Grow &amp; sell.</b> Plants ripen, you sell the buds. Every sale earns <span class="g">XP</span> — fancier strains pay more.</div></div>
+      <div class="step"><div class="n">3</div><div class="t"><b>Climb.</b> XP ranks you on the <span class="y">weekly leaderboard.</span> Burn more, grow more, climb higher.</div></div>
+      <div class="step"><div class="n">4</div><div class="t"><b>Top 3 win.</b> When the 7-day season ends, the <span class="y">top 3 growers split the whole pool</span> proportional to their XP. Then it resets and the race starts again.</div></div>
+      <div class="disc">
+        No dev cut — 100% of every spend goes to the burn or the players' pool. Prize is paid in $CHRONIC.
+        <br><br>This is a front-end preview: balances, pool and leaderboard are simulated locally and reset on refresh of the season. Wallet + on-chain settlement come next.
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <a href="/">‹ back to site</a>
+    <button id="reset">↻ reset preview</button>
+  </div>
+</div>
+
+<!-- connect veil -->
+<div id="veil">
+  <div class="card">
+    <img src="/assets/coin-logo.png" alt="$CHRONIC"/>
+    <h3>Connect Wallet</h3>
+    <p>Front-end preview — this drops you into a demo wallet so you can feel the loop. Real Solana wallet connect ships with the backend.</p>
+    <button id="doConnect">Enter the grow (demo)</button>
+    <button class="x" id="closeVeil">maybe later</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   $CHRONIC GROW — front-end preview
+   Economy (simulated): spend $CHRONIC -> 60% burn / 40% pool.
+   Sell buds -> XP. Weekly season, top 3 split pool by XP share.
+   Backend (wallet + on-chain settlement) wired later.
+============================================================ */
+
+var fmt=function(n){ n=Math.floor(n); if(n>=1e9)return(n/1e9).toFixed(2)+'B'; if(n>=1e6)return(n/1e6).toFixed(2)+'M'; if(n>=1e3)return(n/1e3).toFixed(1)+'K'; return ''+n; };
+var $=function(id){return document.getElementById(id);};
+
+/* ---------- config ---------- */
+var BUDS=['/assets/stash-1.jpg','/assets/stash-2.jpg','/assets/stash-3.jpg','/assets/stash-4.jpg','/assets/stash-5.jpg','/assets/stash-6.jpg'];
+var MAXPLOTS=9, STARTPLOTS=4;
+var SEASON_MS=7*24*60*60*1000;
+
+// seed tiers (rarity) — cost in $CHRONIC, grow time, XP on sell
+var SEEDS=[
+  {k:'mids',  nm:'Mids',   img:'/assets/strain-mids.png',  rar:'mids',  cost:250,   grow:30000, xp:10,  ds:'cheap & quick'},
+  {k:'loud',  nm:'Loud',   img:'/assets/strain-loud.png',  rar:'loud',  cost:1200,  grow:60000, xp:60,  ds:'solid mid-shelf'},
+  {k:'gas',   nm:'Gas',    img:'/assets/strain-gas.png',   rar:'gas',   cost:5000,  grow:120000,xp:320, ds:'top-shelf fire'},
+  {k:'exotic',nm:'Exotic', img:'/assets/strain-exotic.png',rar:'exotic',cost:20000, grow:240000,xp:1600,ds:'rare loud, max XP'}
+];
+var UPS=[
+  {k:'light',ic:'💡',nm:'GROW LIGHT', ds:'grow 15% faster',  base:3000, mul:1.9,max:8},
+  {k:'nutes',ic:'🧪',nm:'NUTRIENTS',  ds:'+40% XP / sale',   base:4000, mul:1.85,max:10},
+  {k:'plot', ic:'🪴',nm:'NEW PLOT',   ds:'open another plot',base:8000, mul:2.1,max:MAXPLOTS-STARTPLOTS},
+  {k:'auto', ic:'🤖',nm:'AUTO-TENDER',ds:'auto-sells ripe',  base:60000,mul:1,  max:1}
+];
+
+/* ---------- mock rivals on the board ---------- */
+var RIVALS=[
+  {who:'ashking.sol',   addr:'7xKQ…be9F', xp:184200},
+  {who:'pufflord',      addr:'9aMv…2Tu1', xp:142800},
+  {who:'greengoblin',   addr:'Hn3p…kQ8d', xp:96500},
+  {who:'420blazeit',    addr:'2Fzr…9wXc', xp:71300},
+  {who:'skeletoncrew',  addr:'Dw8h…Lm4a', xp:54900},
+  {who:'incinerator',   addr:'5Tqp…vZ2e', xp:38600},
+  {who:'budbandit',     addr:'Kx1n…7Rps', xp:24100},
+  {who:'cheeflord',     addr:'Bv6c…q3Hd', xp:15400},
+  {who:'dankdealer',    addr:'Pf9w…tA5k', xp:8800}
+];
+
+/* ---------- state ---------- */
+var S, DEF={
+  bal:120000, xp:0, burned:0, contributed:0, connected:false,
+  plots:[], lvl:{light:0,nutes:0,plot:0,auto:0},
+  seasonEnd: Date.now()+SEASON_MS, basePool:415000
+};
+function load(){ try{S=JSON.parse(localStorage.getItem('cg2'))||null;}catch(e){S=null;} if(!S) S=JSON.parse(JSON.stringify(DEF));
+  for(var k in DEF) if(typeof S[k]==='undefined') S[k]=JSON.parse(JSON.stringify(DEF[k]));
+  while(S.plots.length<MAXPLOTS) S.plots.push({state:'empty',at:0,bud:0,seed:null});
+  if(Date.now()>=S.seasonEnd) rollSeason(); }
+function save(){ localStorage.setItem('cg2',JSON.stringify(S)); }
+
+/* pool = base + your 40% contribution + (simulated rival flow scales base) */
+function pool(){ return Math.round(S.basePool + S.contributed*0.4 + S.contributed); }
+// note: pool grows by 40% of YOUR spend; basePool represents everyone else already in.
+
+function plotCount(){ return STARTPLOTS+S.lvl.plot; }
+function growTimeOf(seed){ return Math.round(seed.grow*Math.pow(0.85,S.lvl.light)); }
+function xpOf(seed){ return Math.round(seed.xp*Math.pow(1.4,S.lvl.nutes)); }
+
+/* ---------- spend helper: 60% burn / 40% pool ---------- */
+function spend(amt,label){
+  if(S.bal<amt){ toast('need '+fmt(amt)+' $CHRONIC',true); return false; }
+  S.bal-=amt; S.burned+=Math.round(amt*0.6); S.contributed+=Math.round(amt*0.4);
+  save(); renderHud(); renderPoolUI();
+  return true;
+}
+
+/* ---------- garden ---------- */
+function buildGarden(){ var g=$('garden'); g.innerHTML='';
+  for(var i=0;i<MAXPLOTS;i++){ var d=document.createElement('div'); d.className='plot'; d.dataset.i=i;
+    d.innerHTML='<div class="soil"></div><div class="tag"></div><div class="xpd"></div><div class="plant"></div><div class="prog"><i></i></div>';
+    d.addEventListener('click',(function(idx){return function(){tapPlot(idx);};})(i)); g.appendChild(d);} }
+
+function tapPlot(i){ if(i>=plotCount()) return; if(!S.connected){ openVeil(); return; }
+  var p=S.plots[i];
+  if(p.state==='empty'){ openSeedPick(i); }
+  else if(p.state==='ripe'){ sell(i); } }
+
+// quick seed picker: cycle to cheapest affordable, or open shop hint
+function openSeedPick(i){
+  // plant the best strain you can afford, default to mids
+  var choice=null;
+  for(var j=SEEDS.length-1;j>=0;j--){ if(S.bal>=SEEDS[j].cost){ choice=SEEDS[j]; break; } }
+  if(!choice){ toast('no $CHRONIC — top up to plant',true); switchTab('grow'); return; }
+  plant(i,choice);
+}
+function plantSeed(seedKey){ // called from shop buttons
+  var seed=SEEDS.filter(function(s){return s.k===seedKey;})[0];
+  // find first empty plot
+  for(var i=0;i<plotCount();i++){ if(S.plots[i].state==='empty'){ if(!S.connected){openVeil();return;} plant(i,seed); switchTab('grow'); return; } }
+  toast('no empty plots — sell or unlock more',true);
+}
+function plant(i,seed){
+  if(!spend(seed.cost,'seed')) return;
+  var p=S.plots[i]; p.state='seed'; p.at=Date.now(); p.bud=Math.floor(Math.random()*BUDS.length); p.seed=seed.k;
+  save(); renderPlot(i); refreshShops();
+  toast('planted '+seed.nm+' 🌱  (-'+fmt(seed.cost)+')');
+}
+function sell(i){ var p=S.plots[i]; var seed=SEEDS.filter(function(s){return s.k===p.seed;})[0]||SEEDS[0];
+  var el=document.querySelector('.plot[data-i="'+i+'"]'); var r=el.getBoundingClientRect(); burst(r.left+r.width/2,r.top+r.height/2);
+  var gain=xpOf(seed); S.xp+=gain; p.state='empty'; p.at=0; p.seed=null;
+  save(); renderPlot(i); renderHud(); renderBoard(); toast('sold '+seed.nm+' · +'+fmt(gain)+' XP ⚡'); }
+
+function tick(){ var now=Date.now();
+  for(var i=0;i<plotCount();i++){ var p=S.plots[i]; if(p.state==='seed'||p.state==='veg'){
+    var seed=SEEDS.filter(function(s){return s.k===p.seed;})[0]||SEEDS[0];
+    var gt=growTimeOf(seed); var pr=Math.min(1,(now-p.at)/gt);
+    var ns=pr>=1?'ripe':(pr>=0.5?'veg':'seed');
+    if(ns!==p.state){ p.state=ns; if(ns==='ripe'&&S.lvl.auto){ sell(i); continue; } save(); }
+    renderPlot(i,pr); } }
+  renderCountdown(); }
+
+function renderPlot(i,pr){ var el=document.querySelector('.plot[data-i="'+i+'"]'); if(!el)return; var p=S.plots[i];
+  el.classList.remove('empty','ripe','locked'); var tag=el.querySelector('.tag'),xpd=el.querySelector('.xpd'),plant=el.querySelector('.plant'),prog=el.querySelector('.prog i');
+  el.querySelectorAll('.budimg').forEach(function(b){b.remove();}); xpd.textContent='';
+  if(i>=plotCount()){ el.classList.add('locked'); el.innerHTML='<div class="lk">PLOT LOCKED</div>'; return; }
+  var seed=p.seed?SEEDS.filter(function(s){return s.k===p.seed;})[0]:null;
+  if(p.state==='empty'){ el.classList.add('empty'); tag.textContent='+ plant'; plant.textContent='🫘'; plant.style.fontSize='22px'; plant.style.filter='grayscale(.6) opacity(.6)'; prog.style.width='0'; }
+  else if(p.state==='ripe'){ el.classList.add('ripe'); tag.textContent='● SELL'; if(seed)xpd.textContent='+'+fmt(xpOf(seed))+' XP'; plant.textContent='';
+    var img=document.createElement('img'); img.className='budimg'; img.src=BUDS[p.bud||0]; el.insertBefore(img,el.querySelector('.prog')); prog.style.width='100%'; }
+  else { tag.textContent=(seed?seed.nm+' · ':'')+(p.state==='veg'?'growing…':'sprouting…'); plant.style.filter='none';
+    plant.textContent=p.state==='veg'?'🌿':'🌱'; plant.style.fontSize=p.state==='veg'?'50px':'34px';
+    if(pr==null&&seed){var gt=growTimeOf(seed);pr=Math.min(1,(Date.now()-p.at)/gt);} prog.style.width=((pr||0)*100)+'%'; } }
+
+/* ---------- shops ---------- */
+function buildSeedShop(){ var w=$('seeds'); w.innerHTML='';
+  SEEDS.forEach(function(s){ var d=document.createElement('div'); d.className='up'; d.dataset.k=s.k;
+    d.addEventListener('click',function(){ plantSeed(s.k); }); w.appendChild(d); }); renderSeedShop(); }
+function renderSeedShop(){ SEEDS.forEach(function(s){ var d=document.querySelector('.up[data-k="'+s.k+'"]'); if(!d)return;
+  var can=S.bal>=s.cost; d.classList.toggle('afford',can); d.classList.toggle('cant',!can);
+  d.innerHTML='<span class="rar '+s.rar+'">'+s.rar.toUpperCase()+'</span>'
+    +'<img class="seedimg" src="'+s.img+'" alt="'+s.nm+'"/>'
+    +'<div class="nm">'+s.nm+'</div><div class="ds">'+s.ds+'</div>'
+    +'<div class="meta"><span>⚡ '+fmt(xpOf(s))+' XP</span><span>⏱ '+Math.round(growTimeOf(s)/1000)+'s</span></div>'
+    +'<div class="cost">🔥 '+fmt(s.cost)+'</div>'; }); }
+
+function buildShop(){ var w=$('ups'); w.innerHTML='';
+  UPS.forEach(function(u){ var d=document.createElement('div'); d.className='up'; d.dataset.u=u.k;
+    d.addEventListener('click',function(){buyUp(u);}); w.appendChild(d); }); renderShop(); }
+function costUp(u){ return Math.round(u.base*Math.pow(u.mul,S.lvl[u.k])); }
+function renderShop(){ UPS.forEach(function(u){ var d=document.querySelector('.up[data-u="'+u.k+'"]'); if(!d)return;
+  var maxed=S.lvl[u.k]>=u.max; var c=costUp(u); var lvtxt=u.max>1?('LVL '+S.lvl[u.k]):(S.lvl[u.k]?'OWNED':'');
+  var can=!maxed&&S.bal>=c; d.classList.toggle('afford',can); d.classList.toggle('cant',!can&&!maxed); d.classList.toggle('maxed',maxed);
+  d.innerHTML='<div class="ic">'+u.ic+'</div><div class="nm">'+u.nm+'</div><div class="ds">'+u.ds+'</div><div class="lv">'+lvtxt+'</div>'
+    +'<div class="cost">'+(maxed?'MAXED':('🔥 '+fmt(c)))+'</div>'; }); }
+function buyUp(u){ if(!S.connected){openVeil();return;} if(S.lvl[u.k]>=u.max){toast('maxed out');return;} var c=costUp(u);
+  if(!spend(c,'upgrade')) return; S.lvl[u.k]++; save(); refreshShops(); if(u.k==='plot')renderPlot(plotCount()-1); toast(u.nm+' up! 🔧'); }
+
+function refreshShops(){ renderSeedShop(); renderShop(); }
+
+/* ---------- leaderboard ---------- */
+function standings(){
+  var list=RIVALS.map(function(r){return {who:r.who,addr:r.addr,xp:r.xp,you:false};});
+  list.push({who:'YOU',addr: S.connected?'demo…wallet':'not connected',xp:S.xp,you:true});
+  list.sort(function(a,b){return b.xp-a.xp;});
+  return list;
+}
+function renderBoard(){
+  var list=standings(), P=pool();
+  var top3=list.slice(0,3); var sum=top3.reduce(function(a,b){return a+b.xp;},0)||1;
+  var medals=['🥇','🥈','🥉'], order=[1,0,2]; // center the winner
+  var pod=$('podium'); pod.innerHTML='';
+  order.forEach(function(idx){ var p=top3[idx]; if(!p)return;
+    var share=Math.round(P*(p.xp/sum));
+    var d=document.createElement('div'); d.className='pod g'+(idx+1)+(p.you?' you':'');
+    d.innerHTML='<div class="rk">'+medals[idx]+'</div><div class="who">'+p.who+'</div>'
+      +'<div class="xp">'+fmt(p.xp)+' XP</div>'
+      +'<div class="win">'+fmt(share)+'<i>$CHRONIC</i></div>';
+    pod.appendChild(d); });
+
+  var rows=$('rows'); rows.innerHTML='';
+  list.forEach(function(p,i){ var d=document.createElement('div'); d.className='row'+(p.you?' you':'')+(i<3?' top':'');
+    d.innerHTML='<div class="rk">'+(i+1)+'</div>'
+      +'<div class="who">'+p.who+'<small>'+p.addr+'</small></div>'
+      +'<div class="xp">'+fmt(p.xp)+'<i>XP</i></div>';
+    rows.appendChild(d); }); }
+
+/* ---------- season ---------- */
+function rollSeason(){
+  // fold your contribution into base, bump rivals a bit, reset XP & timer
+  S.basePool=Math.round(pool()*0.15)+Math.round(300000+Math.random()*250000);
+  S.contributed=0; S.xp=0; S.seasonEnd=Date.now()+SEASON_MS;
+  RIVALS.forEach(function(r){ r.xp=Math.round(r.xp*(0.4+Math.random()*0.5)); });
+  save();
+}
+function renderCountdown(){ var ms=Math.max(0,S.seasonEnd-Date.now());
+  if(ms<=0){ rollSeason(); renderBoard(); renderPoolUI(); ms=S.seasonEnd-Date.now(); }
+  var s=Math.floor(ms/1000), d=Math.floor(s/86400); s-=d*86400; var h=Math.floor(s/3600); s-=h*3600; var m=Math.floor(s/60); s-=m*60;
+  $('cdD').textContent=d; $('cdH').textContent=String(h).padStart(2,'0'); $('cdM').textContent=String(m).padStart(2,'0'); $('cdS').textContent=String(s).padStart(2,'0'); }
+
+/* ---------- HUD / pool ---------- */
+function renderHud(){ $('balN').textContent=S.connected?fmt(S.bal):'—'; $('xpHud').textContent=fmt(S.xp);
+  var b=$('walletBtn'); b.textContent=S.connected?'demo…wallet':'Connect'; b.classList.toggle('on',S.connected); }
+function renderPoolUI(){ animateNum($('poolN'),pool()); renderBoard(); }
+
+var _poolShown=0;
+function animateNum(el,to){ var from=_poolShown||0; var t0=performance.now(), dur=600;
+  function step(t){ var k=Math.min(1,(t-t0)/dur); var v=Math.round(from+(to-from)*(1-Math.pow(1-k,3))); el.textContent=fmt(v); if(k<1)requestAnimationFrame(step); else _poolShown=to; }
+  requestAnimationFrame(step); }
+
+/* ---------- particles + toast ---------- */
+function burst(x,y){ for(var i=0;i<16;i++){ var e=document.createElement('div'); e.className='ember'; document.body.appendChild(e);
+  e.style.left=x+'px'; e.style.top=y+'px'; var ang=Math.random()*Math.PI*2, dist=40+Math.random()*100, dur=600+Math.random()*500;
+  e.animate([{transform:'translate(-50%,-50%) scale(1)',opacity:1},{transform:'translate(calc(-50% + '+Math.cos(ang)*dist+'px), calc(-50% + '+(Math.sin(ang)*dist-60)+'px)) scale(0)',opacity:0}],{duration:dur,easing:'cubic-bezier(.2,.7,.3,1)'});
+  setTimeout((function(el){return function(){el.remove();};})(e),dur);} }
+var _th;
+function toast(m,bad){ var t=$('toast'); t.textContent=m; t.classList.toggle('bad',!!bad); t.classList.add('show'); clearTimeout(_th); _th=setTimeout(function(){t.classList.remove('show');},1700); }
+
+/* ---------- tabs ---------- */
+function switchTab(v){ document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('on',t.dataset.v===v);});
+  document.querySelectorAll('.view').forEach(function(x){x.classList.toggle('on',x.id==='v-'+v);}); if(v==='board')renderBoard(); }
+document.querySelectorAll('.tab').forEach(function(t){ t.addEventListener('click',function(){switchTab(t.dataset.v);}); });
+
+/* ---------- wallet (demo) ---------- */
+function openVeil(){ $('veil').classList.add('on'); }
+$('walletBtn').addEventListener('click',function(){ if(S.connected){ if(confirm('Disconnect demo wallet?')){S.connected=false;save();renderHud();} } else openVeil(); });
+$('doConnect').addEventListener('click',function(){ S.connected=true; save(); $('veil').classList.remove('on'); renderHud(); toast('demo wallet connected — go burn 🔥'); });
+$('closeVeil').addEventListener('click',function(){ $('veil').classList.remove('on'); });
+
+/* ---------- reset ---------- */
+$('reset').addEventListener('click',function(){ if(confirm('Reset the preview? Balance, XP, plots & season wiped.')){ localStorage.removeItem('cg2'); boot(); toast('preview reset'); } });
+
+/* ---------- boot ---------- */
+function boot(){ load(); buildGarden(); buildSeedShop(); buildShop();
+  for(var i=0;i<MAXPLOTS;i++) renderPlot(i);
+  renderHud(); _poolShown=pool(); $('poolN').textContent=fmt(pool()); renderBoard(); renderCountdown();
+  clearInterval(window._tk); window._tk=setInterval(tick,500); }
+boot();
+</script>
+</body>
+</html>
