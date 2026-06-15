@@ -3,22 +3,30 @@
 burnchronic.xyz — a Solana meme-coin ecosystem ($CHRONIC) of static HTML pages
 + Vercel serverless functions that all funnel back to burning the token.
 
-## Wallet signing — HARD RULE
-Every on-chain transaction submission MUST use `provider.signAndSendTransaction`
-(so Phantom/Blowfish gets full sign-and-submit context), falling back to
-`signTransaction` + `sendRawTransaction` ONLY for wallets that lack it.
+## Wallet signing — HARD RULE (Phantom warning avoidance)
+Follow Phantom's domain-and-transaction-warning docs. Two cases:
 
-- Do NOT introduce a bare `signTransaction()` + `sendRawTransaction()` flow.
-  Phantom support confirmed that pattern triggers the "this dApp could be
-  malicious" warning even for benign txs.
-- Canonical helper: `assets/wallet.js` → `chronicSignAndSend(provider, tx, conn)`.
-  New pages should use it. Existing pages inline the same
-  `if (provider.signAndSendTransaction) {…} else {…}` pattern — keep it.
-- Pattern reference (used on terminal/buy/sell/burn/grow/launch):
+- **Single-signer tx (the default):** submit via `provider.signAndSendTransaction`
+  so Phantom/Blowfish gets full sign-and-submit context. Fall back to
+  `signTransaction` + `sendRawTransaction` ONLY for wallets that lack it.
+  Do NOT ship a bare `signTransaction` + `sendRawTransaction` flow — Phantom
+  support confirmed it triggers the "this dApp could be malicious" warning even
+  for benign txs. Used on terminal/buy/sell/burn/grow.
   ```js
   if (p.signAndSendTransaction) { var s = await p.signAndSendTransaction(tx); sig = s.signature || s; }
   else { var signed = await p.signTransaction(tx); sig = await conn(w3).sendRawTransaction(signed.serialize()); }
   ```
+- **Multi-signer tx (e.g. the launchpad: new mint keypair + user):** do the
+  OPPOSITE — Phantom signs via `signTransaction`, then submit yourself. Never
+  `signAndSendTransaction` a multi-signer tx. Used on launch.html.
+
+Other requirements: keep ONE signer per tx where possible; use Address Lookup
+Tables if near the size limit; and **simulate with `sigVerify:false` before
+asking the user to sign** (`assets/wallet.js` → `chronicSimulate(conn, tx)`,
+best-effort — only blocks on a definite execution error).
+
+Canonical helpers in `assets/wallet.js`: `chronicSignAndSend`, `chronicSimulate`.
+Load with `<script src="/assets/wallet.js"></script>`.
 
 ## Architecture
 - Frontend: standalone `*.html` pages with inline scripts; web3 via

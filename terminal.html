@@ -121,6 +121,7 @@ h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:
 .padcta{display:block;text-align:center;text-decoration:none;font-family:var(--fd);font-size:12px;color:#1a0f00;background:linear-gradient(90deg,var(--gold),#ffd97a);border-radius:13px;padding:13px;margin-bottom:16px;box-shadow:0 0 20px rgba(245,207,87,.22)}
 .padcta:active{transform:scale(.99)}
 </style>
+<script src="/assets/wallet.js"></script>
 </head>
 <body>
 <div class="bar">
@@ -335,7 +336,9 @@ async function trade(){
     var j=await r.json(); if(j.error||!j.transaction){ toast(j.error||'no route',true); btn.disabled=false; btn.textContent=label; return; }
     btn.textContent='approve in wallet';
     var w3=await web3(); var raw=Uint8Array.from(atob(j.transaction),function(c){return c.charCodeAt(0);});
-    var tx=w3.VersionedTransaction.deserialize(raw); var p=provider(); var sig;
+    var tx=w3.VersionedTransaction.deserialize(raw);
+    var sim=await chronicSimulate(conn(w3),tx); if(!sim.ok){ toast('trade would fail — try a smaller size',true); btn.disabled=false; btn.textContent=label; return; }
+    var p=provider(); var sig;
     if(p.signAndSendTransaction){ var s=await p.signAndSendTransaction(tx); sig=s.signature||s; } else { var sg=await p.signTransaction(tx); sig=await conn(w3).sendRawTransaction(sg.serialize()); }
     btn.textContent='confirming… ⛓';
     for(var i=0;i<28;i++){ try{ var st=await conn(w3).getSignatureStatuses([sig]); var v=st&&st.value&&st.value[0]; if(v&&(v.confirmationStatus==='confirmed'||v.confirmationStatus==='finalized')){ if(v.err)throw new Error('failed'); break; } }catch(e){ if(/failed/.test(e.message))throw e; } await new Promise(function(r){setTimeout(r,1500);}); }

@@ -31,5 +31,27 @@
     const signed = await provider.signTransaction(tx);
     return await connection.sendRawTransaction(signed.serialize());
   }
+  /*
+   * MULTI-SIGNER transactions (e.g. a token launch where a new mint keypair
+   * also signs) must NOT use signAndSendTransaction. Per Phantom's docs, sign
+   * with Phantom via signTransaction, combine with the other signatures, then
+   * submit yourself. Use chronicSignAndSend ONLY for single-signer txs.
+   */
+
+  /*
+   * Simulate a tx with sigVerify:false BEFORE asking the user to sign, so it
+   * won't fail on-chain (Phantom recommends this). Best-effort: returns ok on
+   * any simulation-infrastructure error so it never blocks a valid trade; only
+   * returns {ok:false} when the RPC reports a definite execution error.
+   */
+  async function chronicSimulate(connection, tx) {
+    try {
+      const r = await connection.simulateTransaction(tx, { sigVerify: false, replaceRecentBlockhash: true });
+      if (r && r.value && r.value.err) return { ok: false, err: r.value.err, logs: (r.value.logs || []) };
+    } catch (_) { /* legacy overload / infra hiccup — don't block */ }
+    return { ok: true };
+  }
+
   g.chronicSignAndSend = chronicSignAndSend;
+  g.chronicSimulate = chronicSimulate;
 })(typeof window !== 'undefined' ? window : globalThis);
