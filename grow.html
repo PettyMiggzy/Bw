@@ -451,7 +451,7 @@ function conn(w3){ return new w3.Connection(location.origin+(CFG.rpcProxy||'/api
 
 async function fetchBalance(){
   try{ var c=await chain(); var owner=new c.w3.PublicKey(LIVE.wallet); var mint=new c.w3.PublicKey(CFG.mint);
-    var ata=c.spl.getAssociatedTokenAddressSync(mint,owner);
+    var ata=c.spl.getAssociatedTokenAddressSync(mint,owner,false,c.spl.TOKEN_2022_PROGRAM_ID);
     var b=await conn(c.w3).getTokenAccountBalance(ata); return Math.floor(Number((b.value&&b.value.uiAmount)||0));
   }catch(e){ return 0; } }
 
@@ -473,14 +473,15 @@ async function buyOnChain(costWhole,kind,item){
   try{
     var c=await chain();
     var owner=new c.w3.PublicKey(LIVE.wallet), mint=new c.w3.PublicKey(CFG.mint), poolOwner=new c.w3.PublicKey(CFG.poolOwner);
-    var fromAta=c.spl.getAssociatedTokenAddressSync(mint,owner);
-    var poolAta=c.spl.getAssociatedTokenAddressSync(mint,poolOwner);
+    var T22=c.spl.TOKEN_2022_PROGRAM_ID; // $CHRONIC is a Token-2022 mint
+    var fromAta=c.spl.getAssociatedTokenAddressSync(mint,owner,false,T22);
+    var poolAta=c.spl.getAssociatedTokenAddressSync(mint,poolOwner,false,T22);
     var total=BigInt(Math.round(costWhole))*(10n**BigInt(CFG.decimals));
     var burn=total*60n/100n, poolAmt=total-burn;
     // create the pool's token account if it doesn't exist yet (idempotent, payer = player)
-    var ixC=c.spl.createAssociatedTokenAccountIdempotentInstruction(owner,poolAta,poolOwner,mint);
-    var ixB=c.spl.createBurnCheckedInstruction(fromAta,mint,owner,burn,CFG.decimals);
-    var ixT=c.spl.createTransferCheckedInstruction(fromAta,mint,poolAta,owner,poolAmt,CFG.decimals);
+    var ixC=c.spl.createAssociatedTokenAccountIdempotentInstruction(owner,poolAta,poolOwner,mint,T22);
+    var ixB=c.spl.createBurnCheckedInstruction(fromAta,mint,owner,burn,CFG.decimals,[],T22);
+    var ixT=c.spl.createTransferCheckedInstruction(fromAta,mint,poolAta,owner,poolAmt,CFG.decimals,[],T22);
     var tx=new c.w3.Transaction().add(ixC,ixB,ixT); tx.feePayer=owner;
     var bh=await conn(c.w3).getLatestBlockhash(); tx.recentBlockhash=bh.blockhash;
     var sig; if(prov.signAndSendTransaction){ var s=await prov.signAndSendTransaction(tx); sig=s.signature||s; }
@@ -732,11 +733,12 @@ async function delistListing(id){ var r=await apiPost('market_delist',{id:id}); 
 
 async function payMarket(seller,priceWhole){ var c=await chain();
   var owner=new c.w3.PublicKey(LIVE.wallet), mint=new c.w3.PublicKey(CFG.mint), sellerPk=new c.w3.PublicKey(seller);
-  var fromAta=c.spl.getAssociatedTokenAddressSync(mint,owner), sellerAta=c.spl.getAssociatedTokenAddressSync(mint,sellerPk);
+  var T22=c.spl.TOKEN_2022_PROGRAM_ID; // $CHRONIC is a Token-2022 mint
+  var fromAta=c.spl.getAssociatedTokenAddressSync(mint,owner,false,T22), sellerAta=c.spl.getAssociatedTokenAddressSync(mint,sellerPk,false,T22);
   var total=BigInt(Math.round(priceWhole))*(10n**BigInt(CFG.decimals)); var fee=total*BigInt(MARKET_FEE_BPS)/10000n, toSeller=total-fee;
-  var ix=[c.spl.createAssociatedTokenAccountIdempotentInstruction(owner,sellerAta,sellerPk,mint)];
-  if(fee>0n) ix.push(c.spl.createBurnCheckedInstruction(fromAta,mint,owner,fee,CFG.decimals));
-  ix.push(c.spl.createTransferCheckedInstruction(fromAta,mint,sellerAta,owner,toSeller,CFG.decimals));
+  var ix=[c.spl.createAssociatedTokenAccountIdempotentInstruction(owner,sellerAta,sellerPk,mint,T22)];
+  if(fee>0n) ix.push(c.spl.createBurnCheckedInstruction(fromAta,mint,owner,fee,CFG.decimals,[],T22));
+  ix.push(c.spl.createTransferCheckedInstruction(fromAta,mint,sellerAta,owner,toSeller,CFG.decimals,[],T22));
   var tx=new c.w3.Transaction(); tx.add.apply(tx,ix); tx.feePayer=owner;
   var bh=await conn(c.w3).getLatestBlockhash(); tx.recentBlockhash=bh.blockhash;
   var prov=getProvider(), sig; if(prov.signAndSendTransaction){ var s=await prov.signAndSendTransaction(tx); sig=s.signature||s; }

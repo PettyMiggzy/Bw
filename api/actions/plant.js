@@ -13,7 +13,8 @@ const G = require('../_grow.js');
 
 const ICON = 'https://www.burnchronic.xyz/assets/og-chronic.jpg';
 const SITE = 'https://www.burnchronic.xyz';
-const TOKEN_PROGRAM = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+// $CHRONIC is a Token-2022 mint — token program + ATA seed must be Token-2022.
+const TOKEN_PROGRAM = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
 const ATA_PROGRAM = 'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL';
 const NAMES = { mids: 'Mids', loud: 'Loud', gas: 'Gas', exotic: 'Exotic' };
 

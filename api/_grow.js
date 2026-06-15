@@ -174,7 +174,7 @@ function collectTokenIx(tx) {
   const out = [];
   const msg = tx && tx.transaction && tx.transaction.message;
   const push = (ix) => {
-    if (ix && ix.program === 'spl-token' && ix.parsed) out.push(ix.parsed);
+    if (ix && (ix.program === 'spl-token' || ix.program === 'spl-token-2022') && ix.parsed) out.push(ix.parsed);
   };
   if (msg && Array.isArray(msg.instructions)) msg.instructions.forEach(push);
   const inner = tx && tx.meta && tx.meta.innerInstructions;

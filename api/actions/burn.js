@@ -18,7 +18,9 @@ const ICON = 'https://www.burnchronic.xyz/assets/og-chronic.jpg';
 const SITE = 'https://www.burnchronic.xyz';
 const MIN_BURN = 1;
 const MAX_BURN = 1e12;
-const TOKEN_PROGRAM = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+// $CHRONIC is a Token-2022 mint, so the token program (and the ATA seed) must
+// be Token-2022, not the legacy SPL Token program.
+const TOKEN_PROGRAM = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
 const ATA_PROGRAM = 'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL';
 
 function fmt(n) { n = Math.floor(n); if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B'; if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M'; if (n >= 1e3) return (n / 1e3).toFixed(0) + 'K'; return '' + n; }
@@ -75,7 +77,7 @@ async function verifyBurn(sig, wallet, needBase) {
   if (!tx || (tx.meta && tx.meta.err)) return false;
   let burned = 0n;
   const scan = (ixs) => { for (const ix of ixs || []) {
-    if (ix.program === 'spl-token' && ix.parsed) {
+    if ((ix.program === 'spl-token' || ix.program === 'spl-token-2022') && ix.parsed) {
       const t = ix.parsed.type, info = ix.parsed.info || {};
       if ((t === 'burn' || t === 'burnChecked') && info.authority === wallet && (!info.mint || info.mint === G.MINT)) {
         burned += info.tokenAmount ? BigInt(info.tokenAmount.amount) : (info.amount ? BigInt(info.amount) : 0n);
