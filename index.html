@@ -785,7 +785,7 @@ const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.targ
 document.querySelectorAll('.rv').forEach(e=>io.observe(e));
 
 /* ===== community burn wallet (set BURN_WALLET to activate the panel) ===== */
-const BURN_WALLET='';
+const BURN_WALLET='6869BJqsz86WYkQJtc2do5s97hoKXMF8YxZe3oWwzpva';
 async function renderBurnWallet(){
   if(!BURN_WALLET) return; // hidden until the burn wallet address is set
   const card=document.getElementById('burnWalletCard'); if(!card) return;
