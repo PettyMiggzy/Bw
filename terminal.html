@@ -117,6 +117,9 @@ h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:
 .coin .cright .ct{font-size:7px;color:var(--dim);font-family:var(--fd);letter-spacing:.04em}
 .coin .cmini{height:4px;border-radius:3px;background:rgba(7,10,7,.7);overflow:hidden;margin-top:4px}
 .coin .cmini i{display:block;height:100%;background:linear-gradient(90deg,var(--green-dim),var(--gold))}
+.coin .ph{background:linear-gradient(135deg,var(--green-deep),var(--panel));color:var(--green);font-family:var(--fd);font-size:13px;letter-spacing:.02em}
+.padcta{display:block;text-align:center;text-decoration:none;font-family:var(--fd);font-size:12px;color:#1a0f00;background:linear-gradient(90deg,var(--gold),#ffd97a);border-radius:13px;padding:13px;margin-bottom:16px;box-shadow:0 0 20px rgba(245,207,87,.22)}
+.padcta:active{transform:scale(.99)}
 </style>
 </head>
 <body>
@@ -132,7 +135,8 @@ h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:
     <button id="go">LOAD</button>
   </div>
   <div id="out"></div>
-  <div class="foot">🔥 <a href="/burn">burn</a> · 🌱 <a href="/grow">grow</a> · 🪙 <a href="/buy">buy $CHRONIC</a> · <a href="/">home</a></div>
+  <a class="padcta" href="/launch">🚀 Launch your own coin — keep 50% of trade fees forever ›</a>
+  <div class="foot">🔥 <a href="/burn">burn</a> · 🌱 <a href="/grow">grow</a> · 🚀 <a href="/launch">launch</a> · 🪙 <a href="/buy">buy $CHRONIC</a> · <a href="/">home</a></div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
@@ -167,11 +171,17 @@ function isCurve(d){ return d.dex==='pumpfun'||d.dex==='pump'; }
 function isGrad(d){ return d.dex && !isCurve(d); }
 function gradPct(d){ return Math.max(0,Math.min(100,Math.round(((d.mc||0)/GRAD_MC)*100))); }
 function ageStr(ms){ if(!ms)return '—'; var s=(Date.now()-ms)/1000; if(s<60)return Math.max(0,Math.floor(s))+'s'; if(s<3600)return Math.floor(s/60)+'m'; if(s<86400)return Math.floor(s/3600)+'h'; return Math.floor(s/86400)+'d'; }
+function imgSrc(u){ if(!u)return ''; if(u.indexOf('ipfs://')===0)return 'https://ipfs.io/ipfs/'+u.slice(7); return u; }
+function altGateway(u){ if(u.indexOf('ipfs.io/ipfs/')>=0)return u.replace('ipfs.io/ipfs/','dweb.link/ipfs/'); if(u.indexOf('/ipfs/')>=0)return u.replace(/https?:\/\/[^/]+\/ipfs\//,'https://ipfs.io/ipfs/'); return ''; }
+function initials(s){ s=String(s||'').replace(/[^A-Za-z0-9]/g,'').slice(0,2).toUpperCase(); return esc(s||'◎'); }
+function avatar(d){ var src=imgSrc(d.img), ph='<div class="ph">'+initials(d.symbol)+'</div>'; if(!src)return ph;
+  return '<img src="'+esc(src)+'" loading="lazy" data-alt="'+esc(altGateway(src))+'" onerror="termImgErr(this)"/>'+'<div class="ph" style="display:none">'+initials(d.symbol)+'</div>'; }
+window.termImgErr=function(img){ var alt=img.getAttribute('data-alt'); if(alt&&img.src!==alt){ img.setAttribute('data-alt',''); img.src=alt; return; } img.style.display='none'; var ph=img.nextElementSibling; if(ph)ph.style.display='flex'; };
 function coinCard(d){
   var pad=FEEDPAD[d.ca], grad=isGrad(d), curve=isCurve(d);
   var right='<div class="cright"><span class="gb">'+(grad?'🎓':curve?'🔥':'•')+'</span><span class="ct">'+(grad?'LIVE':curve?gradPct(d)+'%':ageStr(d.created))+'</span></div>';
   var mini=curve?'<div class="cmini"><i style="width:'+gradPct(d)+'%"></i></div>':'';
-  return '<div class="coin" data-ca="'+d.ca+'">'+(d.img?'<img src="'+esc(d.img)+'"/>':'<div class="ph">🪙</div>')
+  return '<div class="coin" data-ca="'+d.ca+'">'+avatar(d)
     +'<div class="ci"><div class="cn">'+esc(d.symbol||'?')+(pad?' <span class="badge pad">PAD</span>':'')+'</div>'
     +'<div class="cp">$'+fmt(d.mc)+' · '+ageStr(d.created)+'</div>'
     +'<div class="cc '+((d.ch||0)>=0?'up':'down')+'">'+((d.ch||0)>=0?'+':'')+(d.ch||0).toFixed(0)+'% · $'+fmt(d.vol)+' vol</div>'+mini+'</div>'+right+'</div>';
@@ -275,7 +285,7 @@ async function load(){ var ca=$('ca').value.trim(); if(ca.length<32){ toast('pas
 function render(){
   var t=token;
   var html='<div class="backf" id="backFeed">‹ all coins</div><div class="card"><div class="thead">'
-    +(t.img?'<img src="'+esc(t.img)+'" alt=""/>':'<div style="width:46px;height:46px;border-radius:12px;background:var(--green-deep);display:flex;align-items:center;justify-content:center">🪙</div>')
+    +(imgSrc(t.img)?'<img src="'+esc(imgSrc(t.img))+'" alt="" data-alt="'+esc(altGateway(imgSrc(t.img)))+'" onerror="termImgErr(this)"/><div class="ph" style="display:none;width:46px;height:46px;border-radius:12px;background:var(--green-deep);align-items:center;justify-content:center;font-family:var(--fd);color:var(--green)">'+initials(t.symbol)+'</div>':'<div style="width:46px;height:46px;border-radius:12px;background:var(--green-deep);display:flex;align-items:center;justify-content:center;font-family:var(--fd);color:var(--green)">'+initials(t.symbol)+'</div>')
     +'<div><div class="nm">'+esc(t.name)+'</div><div class="sy">$'+esc(t.symbol)+' · '+sh(t.ca)+'</div></div>'
     +'<div class="px"><b>$'+(t.price?t.price.toPrecision(4):'—')+'</b><div class="ch '+(t.ch>=0?'up':'down')+'">'+(t.ch>=0?'+':'')+t.ch.toFixed(1)+'% 24h</div></div></div>'
     +'<div class="tstats"><div class="s"><b>$'+fmt(t.mc)+'</b><i>mcap</i></div><div class="s"><b>$'+fmt(t.liq)+'</b><i>liquidity</i></div><div class="s"><b>$'+fmt(t.vol)+'</b><i>vol 24h</i></div></div>'
