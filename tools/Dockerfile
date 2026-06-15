@@ -15,5 +15,5 @@ COPY . .
 # long-running worker — pick which one via the APP env var (Railway service):
 #   APP unset      -> newmints-listener.js (the firehose, default)
 #   APP=feeburn.js -> the buy-&-burn engine
-# Shell form so ${APP} expands at runtime.
-CMD node ${APP:-newmints-listener.js}
+# Shell form so ${APP} expands at runtime. Echoes the choice so the logs show it.
+CMD echo "▶ launching worker: ${APP:-newmints-listener.js}" && node ${APP:-newmints-listener.js}
