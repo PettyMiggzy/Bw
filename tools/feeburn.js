@@ -51,8 +51,8 @@ const RPC = process.env.SOLANA_RPC || 'https://api.mainnet-beta.solana.com';
 const MINT = new PublicKey(process.env.CHRONIC_MINT || 'J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump');
 const DECIMALS = parseInt(process.env.CHRONIC_DECIMALS || '6', 10);
 const T22 = spl.TOKEN_2022_PROGRAM_ID;
-const DCA_SOL = parseFloat(process.env.DCA_SOL || '0');
-const INTERVAL_MS = Math.max(1, parseFloat(process.env.DCA_INTERVAL_MIN || '10')) * 60 * 1000;
+const DCA_SOL = parseFloat(process.env.DCA_SOL || '0.005');        // ~$2/buy — lean default (~1 SOL/week)
+const INTERVAL_MS = Math.max(1, parseFloat(process.env.DCA_INTERVAL_MIN || '60')) * 60 * 1000; // hourly default
 const RESERVE_SOL = parseFloat(process.env.RESERVE_SOL || '0.05');
 const TWEET_BURNS = process.env.TWEET_BURNS === '1';
 const TWEET_MIN = parseFloat(process.env.TWEET_MIN || '1');
