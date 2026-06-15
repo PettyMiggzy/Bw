@@ -12,5 +12,8 @@ RUN npm install --omit=dev --no-audit --no-fund
 # app source
 COPY . .
 
-# long-running websocket worker — no port to expose
-CMD ["node", "newmints-listener.js"]
+# long-running worker — pick which one via the APP env var (Railway service):
+#   APP unset      -> newmints-listener.js (the firehose, default)
+#   APP=feeburn.js -> the buy-&-burn engine
+# Shell form so ${APP} expands at runtime.
+CMD node ${APP:-newmints-listener.js}
