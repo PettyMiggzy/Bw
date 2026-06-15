@@ -21,7 +21,7 @@ const {
   Connection, Keypair, PublicKey, AddressLookupTableProgram,
   TransactionMessage, VersionedTransaction,
 } = require('@solana/web3.js');
-const bs58 = require('bs58');
+const bs58 = require('bs58').default || require('bs58'); // bs58 v6 exposes fns on .default in CJS
 
 const RPC = process.env.SOLANA_RPC || 'https://api.mainnet-beta.solana.com';
 const FEE_WALLET = process.env.SWAP_FEE_WALLET || 'E7Cr2nad1SvBWF8vcGhNW575UVVPdTcgHEqSTMQzoUr5';

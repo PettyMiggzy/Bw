@@ -27,7 +27,7 @@ const {
 const {
   getOrCreateAssociatedTokenAccount, transferChecked, TOKEN_2022_PROGRAM_ID,
 } = require('@solana/spl-token');
-const bs58 = require('bs58');
+const bs58 = require('bs58').default || require('bs58'); // bs58 v6 exposes fns on .default in CJS
 
 const DRY = process.argv.includes('--dry');
 const RPC = process.env.SOLANA_RPC || 'https://api.mainnet-beta.solana.com';

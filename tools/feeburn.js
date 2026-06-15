@@ -32,7 +32,7 @@
  */
 const { Connection, Keypair, PublicKey, VersionedTransaction, TransactionMessage } = require('@solana/web3.js');
 const spl = require('@solana/spl-token');
-const bs58 = require('bs58');
+const bs58 = require('bs58').default || require('bs58'); // bs58 v6 exposes fns on .default in CJS
 
 const RPC = process.env.SOLANA_RPC || 'https://api.mainnet-beta.solana.com';
 const MINT = new PublicKey(process.env.CHRONIC_MINT || 'J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump');
