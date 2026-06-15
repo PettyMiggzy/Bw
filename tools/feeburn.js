@@ -1,29 +1,34 @@
 #!/usr/bin/env node
 'use strict';
 /*
- * feeburn.js — the $CHRONIC auto-burn engine.
+ * feeburn.js — the $CHRONIC buy-&-burn engine. Your honest "volume bot":
+ * real buys (green candles) + real burns (supply down), all provable on-chain,
+ * funded by your own trade fees/treasury. No wash trading.
  *
- * A public BURN WALLET that destroys $CHRONIC forever:
- *   1) ALWAYS: any $CHRONIC sent to the wallet is SPL-burned on the next poll
- *      (Token-2022 burn). Post the address publicly — anyone can feed the fire.
- *   2) OPTIONAL (BUYBACK=1): if the wallet also holds SOL above a reserve, it
- *      buys $CHRONIC with the excess via Jupiter, which then gets burned next
- *      loop. Route your 1% trade-fee SOL here to turn "we charge 1%" into
- *      "every trade burns $CHRONIC."
+ * Three things, every cycle:
+ *   1) DCA buy (DCA_SOL > 0): spend a fixed bit of SOL on $CHRONIC via Jupiter
+ *      each interval — steady green candles instead of one lumpy buy.
+ *   2) Burn: every $CHRONIC in the wallet (the DCA buys + anything anyone sent
+ *      in) is SPL-burned (Token-2022). Supply drops; the homepage counter
+ *      (1B − live supply) ticks up on its own.
+ *   3) Tweet (TWEET_BURNS=1): broadcast each burn so it becomes marketing.
  *
- * Long-running — host on Railway like the firehose:
- *     cd tools && npm install && node feeburn.js
+ * Send $CHRONIC to this wallet anytime → it gets burned. Send SOL (e.g. route
+ * your 1% fees here) → it gets DCA'd into buys and burned.
+ *
+ * Long-running — host on Railway like the firehose: node feeburn.js
  *
  * Env:
- *   BURN_SECRET_KEY   (required) keypair of the burn wallet, base58 or [json].
- *                     Create a FRESH wallet for this; it only holds tokens
- *                     about to be burned + a little gas. NEVER the pool key.
+ *   BURN_SECRET_KEY   (required) burn wallet keypair, base58 or [json]. FRESH
+ *                     wallet only — never the pool key.
  *   SOLANA_RPC        your Alchemy RPC
- *   CHRONIC_MINT      default = the live mint    CHRONIC_DECIMALS default 6
- *   BURN_POLL_SEC     default 60
- *   BUYBACK           '1' to enable SOL->CHRONIC buybacks (default off)
- *   RESERVE_SOL       keep this much SOL for gas (default 0.05)
- *   BUYBACK_MIN_SOL   only buy when excess SOL >= this (default 0.2)
+ *   CHRONIC_MINT / CHRONIC_DECIMALS   (default live mint / 6)
+ *   DCA_SOL           SOL to spend per cycle on buy&burn (default 0 = off)
+ *   DCA_INTERVAL_MIN  minutes between cycles (default 10)
+ *   RESERVE_SOL       SOL kept for gas, never spent (default 0.05)
+ *   TWEET_BURNS       '1' to tweet each burn (needs X_* keys below)
+ *   TWEET_MIN         only tweet burns >= this many whole $CHRONIC (default 1)
+ *   X_API_KEY / X_API_SECRET / X_ACCESS_TOKEN / X_ACCESS_SECRET
  */
 const { Connection, Keypair, PublicKey, VersionedTransaction, TransactionMessage } = require('@solana/web3.js');
 const spl = require('@solana/spl-token');
@@ -32,13 +37,15 @@ const bs58 = require('bs58');
 const RPC = process.env.SOLANA_RPC || 'https://api.mainnet-beta.solana.com';
 const MINT = new PublicKey(process.env.CHRONIC_MINT || 'J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump');
 const DECIMALS = parseInt(process.env.CHRONIC_DECIMALS || '6', 10);
-const T22 = spl.TOKEN_2022_PROGRAM_ID; // $CHRONIC is a Token-2022 mint
-const POLL_MS = Math.max(15, parseInt(process.env.BURN_POLL_SEC || '60', 10)) * 1000;
-const BUYBACK = process.env.BUYBACK === '1';
+const T22 = spl.TOKEN_2022_PROGRAM_ID;
+const DCA_SOL = parseFloat(process.env.DCA_SOL || '0');
+const INTERVAL_MS = Math.max(1, parseFloat(process.env.DCA_INTERVAL_MIN || '10')) * 60 * 1000;
 const RESERVE_SOL = parseFloat(process.env.RESERVE_SOL || '0.05');
-const BUYBACK_MIN_SOL = parseFloat(process.env.BUYBACK_MIN_SOL || '0.2');
+const TWEET_BURNS = process.env.TWEET_BURNS === '1';
+const TWEET_MIN = parseFloat(process.env.TWEET_MIN || '1');
 const JUP = 'https://lite-api.jup.ag/swap/v1';
 const SOL = 'So11111111111111111111111111111111111111112';
+const SITE = 'https://www.burnchronic.xyz';
 
 function die(m) { console.error('✗ ' + m); process.exit(1); }
 function loadKp() {
@@ -52,13 +59,26 @@ const conn = new Connection(RPC, 'confirmed');
 const ata = spl.getAssociatedTokenAddressSync(MINT, kp.publicKey, false, T22);
 const fmt = (n) => { n = Math.floor(Number(n)); if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B'; if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M'; if (n >= 1e3) return (n / 1e3).toFixed(0) + 'K'; return String(n); };
 
+let _x = null;
+function xClient() {
+  if (!TWEET_BURNS) return null;
+  if (_x) return _x;
+  const k = process.env.X_API_KEY, s = process.env.X_API_SECRET, at = process.env.X_ACCESS_TOKEN, as = process.env.X_ACCESS_SECRET;
+  if (!k || !s || !at || !as) { console.error('TWEET_BURNS set but X_* keys missing — tweets off'); return null; }
+  const { TwitterApi } = require('twitter-api-v2');
+  _x = new TwitterApi({ appKey: k, appSecret: s, accessToken: at, accessSecret: as }).readWrite;
+  return _x;
+}
+async function tweetBurn(whole, sig) {
+  const x = xClient(); if (!x || whole < TWEET_MIN) return;
+  const text = `🔥 $CHRONIC buy & burn\n\nbought + burned ${fmt(whole)} $CHRONIC — gone forever. supply only goes down 💀\n\nsolscan.io/tx/${sig}\n${SITE}`;
+  try { await x.v2.tweet(text); console.log('  🐦 tweeted'); } catch (e) { console.error('  tweet err', e.message); }
+}
+
 async function confirm(sig) {
   for (let i = 0; i < 40; i++) {
-    const st = await conn.getSignatureStatuses([sig]);
-    const v = st.value && st.value[0];
-    if (v && (v.confirmationStatus === 'confirmed' || v.confirmationStatus === 'finalized')) {
-      if (v.err) throw new Error('tx err ' + JSON.stringify(v.err)); return;
-    }
+    const st = await conn.getSignatureStatuses([sig]); const v = st.value && st.value[0];
+    if (v && (v.confirmationStatus === 'confirmed' || v.confirmationStatus === 'finalized')) { if (v.err) throw new Error('tx err ' + JSON.stringify(v.err)); return; }
     await new Promise((r) => setTimeout(r, 1500));
   }
   throw new Error('confirm timeout ' + sig);
@@ -67,44 +87,46 @@ async function sendIxs(ixs) {
   const bh = await conn.getLatestBlockhash('confirmed');
   const msg = new TransactionMessage({ payerKey: kp.publicKey, recentBlockhash: bh.blockhash, instructions: ixs }).compileToV0Message();
   const tx = new VersionedTransaction(msg); tx.sign([kp]);
-  const sig = await conn.sendRawTransaction(tx.serialize(), { maxRetries: 5 });
-  await confirm(sig); return sig;
+  const sig = await conn.sendRawTransaction(tx.serialize(), { maxRetries: 5 }); await confirm(sig); return sig;
 }
 
-// burn every $CHRONIC currently in the wallet
-async function burnAll() {
-  let bal = 0n;
-  try { const b = await conn.getTokenAccountBalance(ata); bal = BigInt(b.value.amount); } catch (_) { return; }
-  if (bal <= 0n) return;
-  const sig = await sendIxs([spl.createBurnCheckedInstruction(ata, MINT, kp.publicKey, bal, DECIMALS, [], T22)]);
-  console.log(`🔥 burned ${fmt(Number(bal) / 10 ** DECIMALS)} $CHRONIC — ${sig}`);
-}
-
-// optional: spend excess SOL on $CHRONIC (burned next loop)
-async function buyback() {
-  if (!BUYBACK) return;
+// DCA: spend up to DCA_SOL (capped by what's available over the reserve) on $CHRONIC
+async function dcaBuy() {
+  if (!(DCA_SOL > 0)) return;
   const sol = (await conn.getBalance(kp.publicKey)) / 1e9;
-  const excess = sol - RESERVE_SOL;
-  if (excess < BUYBACK_MIN_SOL) return;
-  const spend = Math.floor(excess * 1e9);
-  const q = await (await fetch(`${JUP}/quote?inputMint=${SOL}&outputMint=${MINT.toBase58()}&amount=${spend}&slippageBps=500`)).json();
+  const spendSol = Math.min(DCA_SOL, sol - RESERVE_SOL);
+  if (spendSol < 0.005) return; // not enough to bother
+  const lamports = Math.floor(spendSol * 1e9);
+  const q = await (await fetch(`${JUP}/quote?inputMint=${SOL}&outputMint=${MINT.toBase58()}&amount=${lamports}&slippageBps=500`)).json();
   if (!q || q.error || !q.outAmount) return;
   const s = await (await fetch(`${JUP}/swap`, { method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ quoteResponse: q, userPublicKey: kp.publicKey.toBase58(), wrapAndUnwrapSol: true, dynamicComputeUnitLimit: true }) })).json();
   if (!s || !s.swapTransaction) return;
   const tx = VersionedTransaction.deserialize(Buffer.from(s.swapTransaction, 'base64')); tx.sign([kp]);
-  const sig = await conn.sendRawTransaction(tx.serialize(), { maxRetries: 5 });
-  await confirm(sig);
-  console.log(`🪙 bought ~${fmt(Number(q.outAmount) / 10 ** DECIMALS)} $CHRONIC with ${(spend / 1e9).toFixed(3)} SOL — ${sig}`);
+  const sig = await conn.sendRawTransaction(tx.serialize(), { maxRetries: 5 }); await confirm(sig);
+  console.log(`🪙 bought ~${fmt(Number(q.outAmount) / 10 ** DECIMALS)} $CHRONIC for ${spendSol.toFixed(3)} SOL — ${sig}`);
 }
 
-async function loop() {
-  try { await buyback(); } catch (e) { console.error('buyback:', e.message); }
+// burn everything in the wallet; returns whole tokens burned (0 if none)
+async function burnAll() {
+  let bal = 0n;
+  try { const b = await conn.getTokenAccountBalance(ata); bal = BigInt(b.value.amount); } catch (_) { return 0; }
+  if (bal <= 0n) return 0;
+  const sig = await sendIxs([spl.createBurnCheckedInstruction(ata, MINT, kp.publicKey, bal, DECIMALS, [], T22)]);
+  const whole = Number(bal) / 10 ** DECIMALS;
+  console.log(`🔥 burned ${fmt(whole)} $CHRONIC — ${sig}`);
+  await tweetBurn(whole, sig);
+  return whole;
+}
+
+async function cycle() {
+  try { await dcaBuy(); } catch (e) { console.error('dca:', e.message); }
   try { await burnAll(); } catch (e) { console.error('burn:', e.message); }
 }
 
-console.log('$CHRONIC fee-burn engine');
+console.log('$CHRONIC buy-&-burn engine');
 console.log('  burn wallet:', kp.publicKey.toBase58());
-console.log('  send $CHRONIC here to burn it forever. buyback:', BUYBACK ? `on (reserve ${RESERVE_SOL} SOL)` : 'off');
-loop();
-setInterval(loop, POLL_MS);
+console.log(`  DCA: ${DCA_SOL > 0 ? DCA_SOL + ' SOL / ' + (INTERVAL_MS / 60000) + ' min' : 'off (burn-only)'} · reserve ${RESERVE_SOL} SOL · tweets ${TWEET_BURNS ? 'on' : 'off'}`);
+console.log('  send $CHRONIC here to burn it forever 🔥');
+cycle();
+setInterval(cycle, INTERVAL_MS);
