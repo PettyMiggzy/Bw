@@ -90,14 +90,25 @@ async function buildBuyWithFee(account, outputMint, lamports) {
   const bh = await G.solRpc('getLatestBlockhash', [{ commitment: 'confirmed' }]);
   const msg = new TransactionMessage({ payerKey: owner, recentBlockhash: bh.value.blockhash, instructions: ixs }).compileToV0Message(alts);
   const tx = new VersionedTransaction(msg);
-  return { transaction: Buffer.from(tx.serialize()).toString('base64'), outAmount: quote.outAmount, inAmount: lamports, fee: FEE_BPS };
+  const serialized = tx.serialize();
+  // If Jupiter gave us no lookup tables, the prepended SOL-fee instruction can
+  // push the tx past Solana's 1232-byte limit. Rather than ship a tx that fails
+  // on-chain, bail so the caller falls back to a compact (Jupiter-built) swap.
+  if (serialized.length > 1232) return null;
+  return { transaction: Buffer.from(serialized).toString('base64'), outAmount: quote.outAmount, inAmount: lamports, fee: FEE_BPS };
 }
 
 // plain or referral-fee Jupiter swap (used for sells + fallback)
 async function buildSwap(account, inputMint, outputMint, amount, withFee) {
   const qp = new URLSearchParams({ inputMint, outputMint, amount, slippageBps: String(SLIPPAGE_BPS) });
   let feeAccount = null;
-  if (withFee) { feeAccount = feeAccountFor(outputMint); if (feeAccount) qp.set('platformFeeBps', String(FEE_BPS)); }
+  if (withFee) {
+    // charge the fee in SOL whenever SOL is one side (buys via wSOL input,
+    // sells via SOL output) — keeps the fee currency consistent and compact.
+    const feeMint = (inputMint === SOL || outputMint === SOL) ? SOL : outputMint;
+    feeAccount = feeAccountFor(feeMint);
+    if (feeAccount) qp.set('platformFeeBps', String(FEE_BPS));
+  }
   const quote = await jget(`/quote?${qp.toString()}`);
   if (!quote || quote.error || !quote.outAmount) return { quote: null };
   const body = { quoteResponse: quote, userPublicKey: account, wrapAndUnwrapSol: true, dynamicComputeUnitLimit: true };
