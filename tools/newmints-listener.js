@@ -29,10 +29,10 @@
  *                                         the free-tier DB never fills up)
  */
 // Railway may have this file pinned as the service start command. If the service
-// is actually the burn engine (APP=feeburn.js), hand off to it and stop — so the
-// burn service runs feeburn even when the start command is locked to this file.
+// is actually a different worker (APP set to another file), hand off to it and
+// stop — so any worker runs even when the start command is locked to this file.
 // (CommonJS allows top-level return via the module wrapper.)
-if (process.env.APP === 'feeburn.js') { require('./feeburn.js'); return; }
+if (process.env.APP && process.env.APP !== 'newmints-listener.js') { require('./' + process.env.APP); return; }
 const WebSocket = require('ws');
 
 const SB_URL = process.env.SUPABASE_URL;
