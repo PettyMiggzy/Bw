@@ -62,7 +62,8 @@ module.exports = async (req, res) => {
     let transaction = null;
     try { const r = await S.buildBuyWithFee(account, G.MINT, lamports); if (r) transaction = r.transaction; } catch (_) { /* fall through */ }
     if (!transaction) {
-      const r = await S.buildSwap(account, SOL, G.MINT, lamports, false);
+      let r = await S.buildSwap(account, SOL, G.MINT, lamports, true); // fee in SOL; self-drops if the route can't fit it
+      if (!r.swap || !r.swap.swapTransaction) r = await S.buildSwap(account, SOL, G.MINT, lamports, false);
       if (!r.quote) return send(res, 400, { message: 'No route — try a different amount or later.' });
       if (!r.swap || !r.swap.swapTransaction) return send(res, 502, { message: 'Swap build failed — try again.' });
       transaction = r.swap.swapTransaction;

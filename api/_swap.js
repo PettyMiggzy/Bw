@@ -114,6 +114,14 @@ async function buildSwap(account, inputMint, outputMint, amount, withFee) {
   const body = { quoteResponse: quote, userPublicKey: account, wrapAndUnwrapSol: true, dynamicComputeUnitLimit: true };
   if (feeAccount) body.feeAccount = feeAccount;
   const swap = await jpost('/swap', body);
+  // Some routes (single pool, no ALTs) are already near Solana's 1232-byte
+  // limit; the fee instruction tips them over. Never ship a tx that won't land
+  // — if the fee'd tx is too big, rebuild without the fee so the trade works.
+  if (feeAccount && swap && swap.swapTransaction) {
+    let tooBig = false;
+    try { tooBig = Buffer.from(swap.swapTransaction, 'base64').length > 1232; } catch (_) {}
+    if (tooBig) return buildSwap(account, inputMint, outputMint, amount, false);
+  }
   return { quote, swap, feeApplied: !!feeAccount };
 }
 
