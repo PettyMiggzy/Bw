@@ -135,6 +135,7 @@ async function buildInsiders(token) {
 module.exports = async (req, res) => {
   res.setHeader('access-control-allow-origin', '*');
   if (req.method === 'OPTIONS') { res.status(204).end(); return; }
+  if (require('./_guard.js').blocked(req, res)) return;
   const address = L.lc((req.query && req.query.address) || '');
   if (!L.isAddress(address)) { res.status(400).json({ error: 'pass ?address=0x… (token contract)' }); return; }
   try {

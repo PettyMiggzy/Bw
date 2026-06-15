@@ -27,9 +27,10 @@ drop policy if exists chronic_nfts_read on chronic_nfts;
 create policy chronic_nfts_read on chronic_nfts
   for select using (hidden = false);
 
+-- No anon INSERT policy: inserts go through /api/nft, which verifies the mint
+-- on-chain (the Minted event) and writes with the service_role key (bypasses
+-- RLS). This blocks browsers from spamming/forging rows directly.
 drop policy if exists chronic_nfts_insert on chronic_nfts;
-create policy chronic_nfts_insert on chronic_nfts
-  for insert with check (true);   -- client records its own mint after the tx confirms
 
 -- Art + metadata live on IPFS (via /api/pin → Pinata). Supabase only indexes
 -- mints for a fast gallery feed; it is not the source of truth for the NFTs.

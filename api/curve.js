@@ -13,6 +13,7 @@ module.exports = async (req, res) => {
   res.setHeader('access-control-allow-origin', '*');
   res.setHeader('content-type', 'application/json');
   if (req.method === 'OPTIONS') { res.status(204).end(); return; }
+  if (require('./_guard.js').blocked(req, res)) return;
   const ca = (req.query.ca || '').toString().trim();
   if (!G.isPubkey(ca)) return res.status(400).json({ error: 'bad ca' });
 

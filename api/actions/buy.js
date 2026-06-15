@@ -7,11 +7,10 @@
  * Zero-dep: Jupiter builds the transaction, we just relay it.
  */
 const G = require('../_grow.js');
+const S = require('../_swap.js');
 
 const ICON = 'https://www.burnchronic.xyz/assets/og-chronic.jpg';
 const SOL = 'So11111111111111111111111111111111111111112';
-const JUP = 'https://lite-api.jup.ag/swap/v1';
-const SLIPPAGE_BPS = 500; // 5% — meme-coin liquidity
 const PRESETS = [0.1, 0.5, 1];
 
 function setHeaders(res) {
@@ -58,20 +57,19 @@ module.exports = async (req, res) => {
   if (!account || !G.isPubkey(account)) return send(res, 400, { message: 'Connect a Solana wallet.' });
 
   try {
-    const lamports = Math.round(sol * 1e9);
-    const qs = new URLSearchParams({ inputMint: SOL, outputMint: G.MINT, amount: String(lamports), slippageBps: String(SLIPPAGE_BPS) });
-    const quote = await (await fetch(`${JUP}/quote?${qs.toString()}`)).json();
-    if (!quote || quote.error || !quote.outAmount) return send(res, 400, { message: 'No route — try a different amount or later.' });
-
-    const swap = await (await fetch(`${JUP}/swap`, {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ quoteResponse: quote, userPublicKey: account, wrapAndUnwrapSol: true, dynamicComputeUnitLimit: true }),
-    })).json();
-    if (!swap || !swap.swapTransaction) return send(res, 502, { message: 'Swap build failed — try again.' });
-
+    const lamports = String(Math.round(sol * 1e9));
+    // 1% SOL fee (same as the terminal); fall back to a plain swap if it can't build
+    let transaction = null;
+    try { const r = await S.buildBuyWithFee(account, G.MINT, lamports); if (r) transaction = r.transaction; } catch (_) { /* fall through */ }
+    if (!transaction) {
+      const r = await S.buildSwap(account, SOL, G.MINT, lamports, false);
+      if (!r.quote) return send(res, 400, { message: 'No route — try a different amount or later.' });
+      if (!r.swap || !r.swap.swapTransaction) return send(res, 502, { message: 'Swap build failed — try again.' });
+      transaction = r.swap.swapTransaction;
+    }
     return send(res, 200, {
       type: 'transaction',
-      transaction: swap.swapTransaction,
+      transaction,
       message: `Buy $CHRONIC with ${sol} SOL — then burn it 🔥`,
     });
   } catch (e) {

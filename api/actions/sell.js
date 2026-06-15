@@ -6,11 +6,10 @@
  *   POST -> Jupiter quote + swap ($CHRONIC -> SOL); returns the swap transaction
  */
 const G = require('../_grow.js');
+const S = require('../_swap.js');
 
 const ICON = 'https://www.burnchronic.xyz/assets/og-chronic.jpg';
 const SOL = 'So11111111111111111111111111111111111111112';
-const JUP = 'https://lite-api.jup.ag/swap/v1';
-const SLIPPAGE_BPS = 500;
 const PRESETS = [100000, 500000, 1000000];
 
 function fmt(n) { n = Math.floor(Number(n) || 0); if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B'; if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M'; if (n >= 1e3) return (n / 1e3).toFixed(0) + 'K'; return String(n); }
@@ -59,19 +58,15 @@ module.exports = async (req, res) => {
 
   try {
     const baseUnits = (BigInt(amt) * (10n ** BigInt(G.DECIMALS))).toString();
-    const qs = new URLSearchParams({ inputMint: G.MINT, outputMint: SOL, amount: baseUnits, slippageBps: String(SLIPPAGE_BPS) });
-    const quote = await (await fetch(`${JUP}/quote?${qs.toString()}`)).json();
-    if (!quote || quote.error || !quote.outAmount) return send(res, 400, { message: 'No route — try a different amount or later.' });
-
-    const swap = await (await fetch(`${JUP}/swap`, {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ quoteResponse: quote, userPublicKey: account, wrapAndUnwrapSol: true, dynamicComputeUnitLimit: true }),
-    })).json();
-    if (!swap || !swap.swapTransaction) return send(res, 502, { message: 'Swap build failed — try again.' });
+    // referral fee on the SOL output (same as the terminal); fall back to fee-less
+    let r = await S.buildSwap(account, G.MINT, SOL, baseUnits, true);
+    if (!r.swap || !r.swap.swapTransaction) r = await S.buildSwap(account, G.MINT, SOL, baseUnits, false);
+    if (!r.quote) return send(res, 400, { message: 'No route — try a different amount or later.' });
+    if (!r.swap || !r.swap.swapTransaction) return send(res, 502, { message: 'Swap build failed — try again.' });
 
     return send(res, 200, {
       type: 'transaction',
-      transaction: swap.swapTransaction,
+      transaction: r.swap.swapTransaction,
       message: `Sell ${fmt(amt)} $CHRONIC for SOL`,
     });
   } catch (e) {

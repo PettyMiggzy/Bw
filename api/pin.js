@@ -10,14 +10,20 @@
 export const config = { api: { bodyParser: false } };
 
 const PIN_URL = "https://uploads.pinata.cloud/v3/files";
+const MAX_BYTES = 8 * 1024 * 1024; // 8 MB cap — protects the Pinata quota
+const OK_ORIGINS = ['burnchronic.xyz', 'localhost', 'vercel.app'];
 
 export default async function handler(req, res) {
   if (req.method !== "POST") { res.status(405).json({ error: "POST only" }); return; }
+  // origin guard: block other sites' browsers from spending our Pinata quota
+  const o = (req.headers && (req.headers.origin || req.headers.referer)) || '';
+  if (o && !OK_ORIGINS.some((d) => o.includes(d))) { res.status(403).json({ error: 'forbidden origin' }); return; }
   const JWT = process.env.PINATA_JWT;
   if (!JWT) { res.status(500).json({ error: "PINATA_JWT not configured" }); return; }
   try {
     const chunks = [];
-    for await (const c of req) chunks.push(c);
+    let total = 0;
+    for await (const c of req) { total += c.length; if (total > MAX_BYTES) { res.status(413).json({ error: "file too large (8 MB max)" }); return; } chunks.push(c); }
     const buf = Buffer.concat(chunks);
     if (!buf.length) { res.status(400).json({ error: "empty body" }); return; }
 

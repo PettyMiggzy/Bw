@@ -51,7 +51,9 @@ async function connect(){
   $('who').textContent=account.slice(0,6)+'…'+account.slice(-4);
   $('connectBtn').textContent='Connected';$('mintBtn').disabled=false;
 }
-async function sbInsert(row){return fetch(SB_URL+'/rest/v1/chronic_nfts',{method:'POST',headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(row)});}
+// record the mint via the server endpoint, which verifies the on-chain Minted
+// event and writes with the service key (anon can no longer insert directly).
+async function sbInsert(row){return fetch('https://www.burnchronic.xyz/api/nft',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(row)});}
 async function mintAll(){
   if(!signer){await connect();if(!signer)return;}
   $('mintBtn').disabled=true;
