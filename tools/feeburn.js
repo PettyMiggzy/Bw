@@ -32,7 +32,20 @@
  */
 const { Connection, Keypair, PublicKey, VersionedTransaction, TransactionMessage } = require('@solana/web3.js');
 const spl = require('@solana/spl-token');
-const bs58 = require('bs58').default || require('bs58'); // bs58 v6 exposes fns on .default in CJS
+// pure-JS base58 decode (no dependency — bs58 v6's CJS export shape is flaky)
+const _B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+function b58decode(str) {
+  const map = {}; for (let i = 0; i < _B58.length; i++) map[_B58[i]] = i;
+  let bytes = [0];
+  for (const ch of str) {
+    const val = map[ch]; if (val === undefined) throw new Error('bad base58 char');
+    let carry = val;
+    for (let j = 0; j < bytes.length; j++) { carry += bytes[j] * 58; bytes[j] = carry & 0xff; carry >>= 8; }
+    while (carry > 0) { bytes.push(carry & 0xff); carry >>= 8; }
+  }
+  for (let k = 0; k < str.length && str[k] === '1'; k++) bytes.push(0);
+  return Uint8Array.from(bytes.reverse());
+}
 
 const RPC = process.env.SOLANA_RPC || 'https://api.mainnet-beta.solana.com';
 const MINT = new PublicKey(process.env.CHRONIC_MINT || 'J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump');
@@ -52,7 +65,7 @@ function loadKp() {
   const r = process.env.BURN_SECRET_KEY;
   if (!r) die('BURN_SECRET_KEY required (base58 or JSON array)');
   const t = r.trim();
-  return Keypair.fromSecretKey(t.startsWith('[') ? Uint8Array.from(JSON.parse(t)) : bs58.decode(t));
+  return Keypair.fromSecretKey(t.startsWith('[') ? Uint8Array.from(JSON.parse(t)) : b58decode(t));
 }
 const kp = loadKp();
 const conn = new Connection(RPC, 'confirmed');
