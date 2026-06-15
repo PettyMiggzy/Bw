@@ -25,7 +25,7 @@ const {
   Connection, Keypair, PublicKey,
 } = require('@solana/web3.js');
 const {
-  getOrCreateAssociatedTokenAccount, transfer,
+  getOrCreateAssociatedTokenAccount, transferChecked, TOKEN_2022_PROGRAM_ID,
 } = require('@solana/spl-token');
 const bs58 = require('bs58');
 
@@ -104,14 +104,15 @@ async function sbRpc(fn, args) {
   // 4. send the on-chain payouts from the pool wallet
   const payer = loadKeypair();
   const conn = new Connection(RPC, 'confirmed');
-  const fromAta = await getOrCreateAssociatedTokenAccount(conn, payer, MINT, payer.publicKey);
+  // $CHRONIC is a Token-2022 mint — derive ATAs and transfer with that program.
+  const fromAta = await getOrCreateAssociatedTokenAccount(conn, payer, MINT, payer.publicKey, false, 'confirmed', undefined, TOKEN_2022_PROGRAM_ID);
 
   for (let i = 0; i < winners.length; i++) {
     const w = winners[i];
     const amt = BigInt(w.amount_base);
     if (amt === 0n) { w.sig = null; continue; }
-    const toAta = await getOrCreateAssociatedTokenAccount(conn, payer, MINT, new PublicKey(w.wallet));
-    const sig = await transfer(conn, payer, fromAta.address, toAta.address, payer, amt);
+    const toAta = await getOrCreateAssociatedTokenAccount(conn, payer, MINT, new PublicKey(w.wallet), false, 'confirmed', undefined, TOKEN_2022_PROGRAM_ID);
+    const sig = await transferChecked(conn, payer, fromAta.address, MINT, toAta.address, payer, amt, DECIMALS, [], undefined, TOKEN_2022_PROGRAM_ID);
     w.sig = sig;
     console.log(`   ✓ paid #${i + 1} — ${sig}`);
   }
