@@ -382,6 +382,17 @@ footer .trib a{color:var(--ember);text-decoration:underline}
 .hbnum{font-family:var(--font-display);font-size:clamp(32px,8vw,58px);color:var(--ember);line-height:1.05;margin:4px 0;text-shadow:0 0 26px rgba(255,61,31,.4)}
 .hbsub{color:var(--green);font-weight:700;font-size:14px}
 .hbcta{margin-top:10px;font-size:12px;color:var(--gold);letter-spacing:1px}
+/* community burn wallet */
+.burnwallet{margin-top:16px;background:linear-gradient(180deg,rgba(22,36,26,.85),rgba(12,18,12,.92));border:1px solid var(--line);border-radius:18px;padding:20px 18px;text-align:center}
+.bw-h{font-family:var(--font-display);color:var(--ember);font-size:15px;letter-spacing:.04em;margin-bottom:8px}
+.bw-sub{color:var(--dim);font-size:12px;line-height:1.55;max-width:480px;margin:0 auto 14px}.bw-sub b{color:var(--text)}
+.bw-addr{display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;background:rgba(7,10,7,.6);border:1px solid var(--line);border-radius:12px;padding:10px 12px;max-width:520px;margin:0 auto 12px}
+.bw-addr code{font-family:'Space Mono',monospace;font-size:12px;color:var(--green);word-break:break-all}
+.bw-addr button{font-family:'Space Mono',monospace;font-size:11px;background:var(--green);color:#04140a;border:0;border-radius:8px;padding:7px 13px;cursor:pointer;white-space:nowrap;font-weight:700}
+.bw-btn{display:inline-block;font-family:var(--font-display);font-size:12px;color:var(--gold);text-decoration:none;border:1px solid var(--gold);border-radius:12px;padding:10px 16px}
+.bw-feed{display:flex;flex-direction:column;gap:6px;margin:14px auto 0;max-width:480px}
+.bf-row{display:flex;align-items:center;gap:8px;justify-content:flex-start;font-size:12px;color:var(--text);text-decoration:none;background:rgba(255,106,43,.06);border:1px solid rgba(255,106,43,.25);border-radius:10px;padding:8px 11px}
+.bf-row b{color:var(--ember)}.bf-row span{margin-left:auto;color:var(--dim);font-size:10px}
 </style>
 </head>
 <body>
@@ -533,6 +544,13 @@ fetch('/api/grow?action=leaderboard').then(function(r){return r.json();}).then(f
       <span>Next <b style="color:var(--ember)">4:20</b> smoke-time in</span>
       <span class="clk" id="cdClk">—</span>
     </div>
+  </div>
+  <div class="burnwallet rv" id="burnWalletCard" style="display:none">
+    <div class="bw-h">🔥 Community Burn Wallet</div>
+    <p class="bw-sub">send $CHRONIC here — it gets <b>burned forever</b>, straight off the supply. anyone can feed the fire. we also route trade fees into auto buy-&-burns. 💀</p>
+    <div class="bw-addr"><code id="burnAddr">—</code><button type="button" id="copyBurn">copy</button></div>
+    <a class="bw-btn" id="burnScan" href="#" target="_blank" rel="noopener">📊 watch the burns live on Solscan ›</a>
+    <div class="bw-feed" id="burnFeed"></div>
   </div>
 </section>
 
@@ -766,8 +784,39 @@ document.querySelectorAll('.board-tabs .tab').forEach(t=>{
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.12});
 document.querySelectorAll('.rv').forEach(e=>io.observe(e));
 
+/* ===== community burn wallet (set BURN_WALLET to activate the panel) ===== */
+const BURN_WALLET='';
+async function renderBurnWallet(){
+  if(!BURN_WALLET) return; // hidden until the burn wallet address is set
+  const card=document.getElementById('burnWalletCard'); if(!card) return;
+  document.getElementById('burnAddr').textContent=BURN_WALLET;
+  document.getElementById('burnScan').href='https://solscan.io/account/'+BURN_WALLET;
+  const cp=document.getElementById('copyBurn');
+  cp.addEventListener('click',function(){ try{navigator.clipboard.writeText(BURN_WALLET);}catch(e){} this.textContent='copied ✓'; setTimeout(()=>this.textContent='copy',1300); });
+  card.style.display='';
+  // best-effort live burn feed
+  try{
+    const sigs=await solRpc('getSignaturesForAddress',[BURN_WALLET,{limit:8}]);
+    let rows='';
+    for(const s of (sigs||[])){
+      const tx=await solRpc('getTransaction',[s.signature,{encoding:'jsonParsed',maxSupportedTransactionVersion:0,commitment:'confirmed'}]);
+      if(!tx||(tx.meta&&tx.meta.err)) continue;
+      let burned=0n;
+      const scan=ixs=>{ for(const ix of ixs||[]){ const p=ix.parsed; if((ix.program==='spl-token'||ix.program==='spl-token-2022')&&p&&(p.type==='burn'||p.type==='burnChecked')){ const info=p.info||{}; const amt=info.tokenAmount?BigInt(info.tokenAmount.amount):(info.amount?BigInt(info.amount):0n); burned+=amt; } } };
+      scan(tx.transaction.message.instructions); (tx.meta&&tx.meta.innerInstructions||[]).forEach(g=>scan(g.instructions));
+      if(burned<=0n) continue;
+      const whole=Number(burned)/1e6;
+      const ago=s.blockTime?Math.max(0,Math.floor(Date.now()/1000-s.blockTime)):0;
+      const t=ago<60?ago+'s':ago<3600?Math.floor(ago/60)+'m':ago<86400?Math.floor(ago/3600)+'h':Math.floor(ago/86400)+'d';
+      rows+='<a class="bf-row" href="https://solscan.io/tx/'+s.signature+'" target="_blank" rel="noopener">🔥 <b>'+fmt(whole)+'</b> $CHRONIC <span>'+t+' ago</span></a>';
+    }
+    if(rows) document.getElementById('burnFeed').innerHTML=rows;
+  }catch(e){}
+}
+
 /* ===== boot live data ===== */
 if(TOKEN){refreshBurn();refreshPrice();setInterval(refreshBurn,25000);setInterval(refreshPrice,30000);}
+renderBurnWallet();
 /* ===================== SMOKE SESSIONS MAP ===================== */
 function showToast(m){ if(typeof toast==='function') toast(m); }
 const SUPABASE_URL='https://cuqhqcmrgpdjlhyqztnc.supabase.co';
