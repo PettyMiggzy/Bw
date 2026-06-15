@@ -513,7 +513,7 @@ async function refreshSeason(){
       LIVE.board.push({who:shortW(LIVE.wallet),addr:'you',xp:LIVE.xp,you:true});
   }
 }
-async function refreshLive(){ await refreshState(); LIVE.balance=await fetchBalance(); await refreshSeason(); renderAll(); }
+async function refreshLive(){ try{ await refreshState(); }catch(e){} try{ LIVE.balance=await fetchBalance(); }catch(e){} try{ await refreshSeason(); }catch(e){} renderAll(); }
 async function refreshPublic(){ try{ var lb=await apiGet('leaderboard',{limit:25}); if(lb&&!lb.error){
   PUB.poolWhole=lb.poolWhole||0; if(lb.endsAt) PUB.endsAt=new Date(lb.endsAt).getTime(); PUB.lastWinners=lb.lastWinners||null;
   PUB.board=(lb.board||[]).map(function(r){ return {who:shortW(r.wallet),addr:'',xp:r.xp,you:false}; }); } }catch(e){} }
@@ -549,6 +549,7 @@ async function connectLive(){
     LIVE.token=lg.token; LIVE.wallet=wallet; MODE='live';
     // session kept in memory only — never persisted, so the wallet never auto-connects on reload
     $('veil').classList.remove('on');
+    renderAll();                 // reflect connected state instantly — don't wait on data fetch
     toast('connected — go burn 🔥');
     await refreshLive();
   }catch(e){ toast((e&&/reject/i.test(e.message))?'cancelled':'connect failed',true); }
