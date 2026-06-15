@@ -10,7 +10,8 @@
     "settle:dry": "node settle-season.js --dry",
     "post": "node poster.js",
     "post:dry": "node poster.js --dry",
-    "newmints": "node newmints-listener.js"
+    "newmints": "node newmints-listener.js",
+    "create-alt": "node create-alt.js"
   },
   "dependencies": {
     "@solana/web3.js": "^1.95.3",

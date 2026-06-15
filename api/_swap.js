@@ -19,6 +19,9 @@ const FEE_BPS = parseInt(process.env.SWAP_FEE_BPS || '100', 10);
 const FEE_WALLET = process.env.SWAP_FEE_WALLET || 'E7Cr2nad1SvBWF8vcGhNW575UVVPdTcgHEqSTMQzoUr5';
 const REFERRAL = process.env.SWAP_REFERRAL_ACCOUNT || '4HgJt8K66Nwu6wb8QCj8scojhmtDETCrAHJWZngHXjSE';
 const REFERRAL_PROGRAM = 'REFER4ZgmyYx9c6He5XfaTMiGfdLwRnkV4RPp9t9iF3';
+// optional ALT of common accounts (tools/create-alt.js) so the SOL-fee buy fits
+// under the 1232-byte limit on tight, ALT-less routes.
+const SWAP_ALT = process.env.SWAP_ALT || '';
 
 async function jget(path) { return (await fetch(`${JUP}${path}`)).json(); }
 async function jpost(path, body) { return (await fetch(`${JUP}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })).json(); }
@@ -77,7 +80,8 @@ async function buildBuyWithFee(account, outputMint, lamports) {
     ...(si.cleanupInstruction ? [de(si.cleanupInstruction)] : []),
   ];
   let alts = [];
-  const addrs = si.addressLookupTableAddresses || [];
+  const addrs = (si.addressLookupTableAddresses || []).slice();
+  if (SWAP_ALT && addrs.indexOf(SWAP_ALT) < 0) addrs.push(SWAP_ALT); // our shared ALT shrinks the fee'd tx
   if (addrs.length) {
     const infos = await G.solRpc('getMultipleAccounts', [addrs, { encoding: 'base64' }]);
     (infos.value || []).forEach((acc, i) => {
