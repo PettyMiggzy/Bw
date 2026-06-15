@@ -11,7 +11,8 @@
     "post": "node poster.js",
     "post:dry": "node poster.js --dry",
     "newmints": "node newmints-listener.js",
-    "create-alt": "node create-alt.js"
+    "create-alt": "node create-alt.js",
+    "feeburn": "node feeburn.js"
   },
   "dependencies": {
     "@solana/web3.js": "^1.95.3",
