@@ -483,8 +483,8 @@ async function buyOnChain(costWhole,kind,item){
     var ixT=c.spl.createTransferCheckedInstruction(fromAta,mint,poolAta,owner,poolAmt,CFG.decimals);
     var tx=new c.w3.Transaction().add(ixC,ixB,ixT); tx.feePayer=owner;
     var bh=await conn(c.w3).getLatestBlockhash(); tx.recentBlockhash=bh.blockhash;
-    var signed=await prov.signTransaction(tx);
-    var sig=await conn(c.w3).sendRawTransaction(signed.serialize());
+    var sig; if(prov.signAndSendTransaction){ var s=await prov.signAndSendTransaction(tx); sig=s.signature||s; }
+    else { var signed=await prov.signTransaction(tx); sig=await conn(c.w3).sendRawTransaction(signed.serialize()); }
     toast('burning on-chain… ⛓');
     await confirmSig(c,sig);
     var res=await apiPost('buy',{sig:sig,kind:kind,item:item});
@@ -739,7 +739,8 @@ async function payMarket(seller,priceWhole){ var c=await chain();
   ix.push(c.spl.createTransferCheckedInstruction(fromAta,mint,sellerAta,owner,toSeller,CFG.decimals));
   var tx=new c.w3.Transaction(); tx.add.apply(tx,ix); tx.feePayer=owner;
   var bh=await conn(c.w3).getLatestBlockhash(); tx.recentBlockhash=bh.blockhash;
-  var signed=await getProvider().signTransaction(tx); var sig=await conn(c.w3).sendRawTransaction(signed.serialize());
+  var prov=getProvider(), sig; if(prov.signAndSendTransaction){ var s=await prov.signAndSendTransaction(tx); sig=s.signature||s; }
+  else { var signed=await prov.signTransaction(tx); sig=await conn(c.w3).sendRawTransaction(signed.serialize()); }
   await confirmSig(c,sig); return sig; }
 async function buyListing(id,seller,priceWhole){ if(MODE!=='live'){ toast('connect to buy',true); return; } if(!CFG.ready){ toast('on-chain not live yet',true); return; }
   var r=await apiPost('market_reserve',{id:id}); if(r.error){ toast(r.error==='reserved'?'someone’s buying it…':r.error,true); return; }

@@ -125,7 +125,8 @@ async function launch(){
     btn.textContent='approve in wallet 🚀';
     var raw=Uint8Array.from(atob(cr.transaction),function(c){return c.charCodeAt(0);});
     var tx=w3.VersionedTransaction.deserialize(raw); tx.sign([mintKp]);
-    var p=provider(); var signed=await p.signTransaction(tx); var sig=await conn(w3).sendRawTransaction(signed.serialize());
+    var p=provider(); var sig; if(p.signAndSendTransaction){ var s=await p.signAndSendTransaction(tx); sig=s.signature||s; }
+    else { var signed=await p.signTransaction(tx); sig=await conn(w3).sendRawTransaction(signed.serialize()); }
     btn.textContent='launching… ⛓';
     for(var i=0;i<30;i++){ try{ var st=await conn(w3).getSignatureStatuses([sig]); var v=st&&st.value&&st.value[0]; if(v&&(v.confirmationStatus==='confirmed'||v.confirmationStatus==='finalized')){ if(v.err)throw new Error('failed'); break; } }catch(e){ if(/failed/.test(e.message))throw e; } await new Promise(function(r){setTimeout(r,1500);}); }
     success(mint,symbol);
