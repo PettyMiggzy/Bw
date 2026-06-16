@@ -11,6 +11,9 @@
  *
  * No burn. NOTHING is distributed until the order's cost is set aside first —
  * so you're never out of pocket on the charge. The 60/40 is on PROFIT only.
+ * The holder 40% accrues in a rewards wallet; holders claim their pro-rata
+ * share WEEKLY on the site and pay their own gas (the rewards wallet never
+ * spends gas — it just co-signs each claimant's payout). Built later.
  *
  * How we know the cost (so we know your charge up front): each product carries a
  * server-side wholesale `cost` (what SmokeDrop bills you), set when you load the
