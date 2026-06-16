@@ -128,6 +128,11 @@ h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:
 .socrow{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
 .soc{font-size:10px;font-family:var(--fm);color:var(--green);text-decoration:none;background:rgba(7,10,7,.5);border:1px solid var(--line);border-radius:9px;padding:6px 10px}
 .soc:hover{border-color:var(--green-dim)}
+.hline{margin-top:10px;font-size:11px;border-radius:11px;padding:9px 11px;border:1px solid var(--line);background:rgba(7,10,7,.4)}
+.hline b{font-family:var(--fd)}
+.hline.good{border-color:var(--green-dim)}.hline.good b{color:var(--green)}
+.hline.mid{border-color:var(--gold)}.hline.mid b{color:var(--gold)}
+.hline.bad{border-color:var(--ember)}.hline.bad b{color:var(--ember)}
 .coin .cright{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:0 0 auto}
 .coin .cright .gb{font-size:14px;line-height:1}
 .coin .cright .ct{font-size:7px;color:var(--dim);font-family:var(--fd);letter-spacing:.04em}
@@ -310,6 +315,7 @@ function render(){
     +'<div><div class="nm">'+esc(t.name)+'</div><div class="sy">$'+esc(t.symbol)+' · '+sh(t.ca)+' <span class="dexbadge" id="dexPaid"></span>'+(t.boosts>0?' <span class="dexbadge boost">🚀 x'+t.boosts+'</span>':'')+'</div></div>'
     +'<div class="px"><b>$'+(t.price?t.price.toPrecision(4):'—')+'</b><div class="ch '+(t.ch>=0?'up':'down')+'">'+(t.ch>=0?'+':'')+t.ch.toFixed(1)+'% 24h</div></div></div>'
     +'<div class="tstats"><div class="s"><b>$'+fmt(t.mc)+'</b><i>mcap</i></div><div class="s"><b>$'+fmt(t.liq)+'</b><i>liquidity</i></div><div class="s"><b>$'+fmt(t.vol)+'</b><i>vol 24h</i></div></div>'
+    +'<div id="holdersLine"></div>'
     +'<div id="curveBar"></div>'+(soc?'<div class="socrow">'+soc+'</div>':'')+'</div>';
   // chart
   if(t.pair){ html+='<div class="card" style="padding:0;overflow:hidden"><div class="chartwrap"><iframe src="https://dexscreener.com/solana/'+t.pair+'?embed=1&theme=dark&trades=0&info=0"></iframe></div></div>'; }
@@ -318,7 +324,7 @@ function render(){
   // bundle
   html+='<div class="card"><div class="h2">🔍 Bundle Check<button class="scanbtn" id="scanBtn">SCAN</button></div><div id="bundleOut"><div class="muted">tap SCAN to check holders, snipers &amp; funding clusters</div></div></div>';
   $('out').innerHTML=html;
-  renderTrade(); loadCurve(); loadDexPaid();
+  renderTrade(); loadCurve(); loadDexPaid(); loadHolders();
   $('scanBtn').addEventListener('click',scan);
   var bf=$('backFeed'); if(bf)bf.addEventListener('click',function(){ history.replaceState(null,'','/terminal'); $('ca').value=''; showFeed(); });
 }
@@ -327,6 +333,15 @@ async function loadCurve(){ var el=$('curveBar'); if(!el)return;
     if(!c.onCurve){ el.innerHTML=''; return; }
     if(c.complete){ el.innerHTML='<div class="cbar"><div class="grad">🎓 graduated — trading on the open market</div></div>'; return; }
     el.innerHTML='<div class="cbar"><div class="cbarlbl">🔥 bonding curve <b>'+c.progress+'%</b>'+(c.solRaised?' · '+c.solRaised+' SOL raised':'')+'</div><div class="ctrack"><i style="width:'+c.progress+'%"></i></div></div>';
+  }catch(e){ el.innerHTML=''; } }
+
+/* quick top-10 holder concentration (curve/LP excluded) — at-a-glance rug check */
+async function loadHolders(){ var el=$('holdersLine'); if(!el)return;
+  try{ var h=await (await fetch('/api/holders?ca='+encodeURIComponent(token.ca))).json();
+    if(h.error||h.top10Pct==null){ el.innerHTML=''; return; }
+    var t10=h.top10Pct, lv=t10<20?'good':(t10<35?'mid':'bad');
+    el.className='hline '+lv;
+    el.innerHTML='👥 top 10 hold <b>'+t10.toFixed(1)+'%</b> · biggest '+(h.largestPct||0).toFixed(1)+'%'+(h.lpExcluded?' <span style="color:var(--dim)">· curve/LP excluded</span>':'');
   }catch(e){ el.innerHTML=''; } }
 
 /* DexScreener "paid" status — did the team pay to verify/enhance their DS page (orders API) */
