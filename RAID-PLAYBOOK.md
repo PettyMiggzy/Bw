@@ -23,6 +23,37 @@
 
 ---
 
+## 🧠 WHAT ACTUALLY WORKS (proven by BONK, WIF & every coin that made it)
+*This is the strategy. The posts above are the ammo. Read this first.*
+
+1. **Micro-callers beat big KOLs.** Target Solana callers/meme accounts with **10k–100k followers** — higher engagement, often free/cheap for early coins, and their audiences actually ape. Don't waste time chasing huge influencers. DM 5–10 micro-callers a day, pitch the **PRODUCT** (we have a real terminal + launchpad — a story, not dog coin #4000). Let them *try the terminal*.
+
+2. **Build the CHARACTER, not just the chart.** BONK = the dog. $CHRONIC = **the skeleton who smoked himself to the bone and never put it out.** Post *in character* — lore, the burn cult, the skeleton's "i'm not even that high" energy. People follow a personality, not a ticker.
+
+3. **Engagement VELOCITY is the signal traders watch.** Callers use tools like **TweetScout / LunarCrush** to spot coins about to run. They reward **steady, organic** engagement (real likes/RTs/replies, daily) — and ignore one-off bot spikes. So: **consistent daily raids from real people > one giant burst.** Show up every single day.
+
+4. **X = discovery, TG = conversion.** Use X to get *reach* (reply-raids on big accounts), funnel everyone into TG where the community + bots keep them. A live, funny chat converts a visitor into a holder.
+
+5. **Gamify it — referral/raid contests.** Top raiders & referrers win $CHRONIC. We already have the GROW game + XP — tie raids to rewards. A leaderboard of raiders = free, addictive engagement.
+
+6. **Reward the loyal — airdrop active raiders / NFT holders.** Builds ownership + word-of-mouth. People shill what they own a piece of.
+
+7. **Show up. Host Spaces. Reply to everyone.** Founders/teams who are *present* build trust fast. An AMA or a daily "gm degens" keeps the heartbeat going.
+
+**The one-line formula:** *character + a real product + relentless daily organic engagement → callers notice → buyers come → it runs.* You have the product. Now bring the character + the daily grind.
+
+### 📨 Micro-caller DM (send to small Solana callers — copy/paste)
+```
+yo — running $CHRONIC, Solana, 3K mc. not another dog coin: we've got a full
+trench terminal (bundle check + buy/sell any CA) + a launchpad where devs keep
+50% of fees + an on-chain auto buy-&-burn. Real product, microcap.
+
+would love for you to try the terminal (burnchronic.xyz/terminal) and call it
+if you rock with it. happy to work something out. 🔥
+```
+
+---
+
 ## 📣 MAIN POSTS — copy / paste / send (rotate these)
 
 **1.**
