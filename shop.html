@@ -460,7 +460,8 @@ async function checkPerks(){
     var px=await chronicPrice();var cashTok=px?(netUsd()*CASHBACK_PCT/100)/px:0;
     var next=DISCOUNT_TIERS.slice().reverse().filter(function(t){return holderBal<t.min;})[0];
     var body='you hold <b>'+fmt(holderBal)+' $CHRONIC</b><br>';
-    body+=discountPct?('🎁 <b style="color:var(--green)">'+discountPct+'% holder discount applied</b><br>'):('no discount tier yet'+(next?(' — hold <b>'+fmt(next.min)+'</b> for '+next.pct+'% off':'')+'<br>'):'<br>');
+    if(discountPct){body+='🎁 <b style="color:var(--green)">'+discountPct+'% holder discount applied</b><br>';}
+    else{body+='no discount tier yet'+(next?(' — hold <b>'+fmt(next.min)+'</b> for '+next.pct+'% off'):'')+'<br>';}
     body+='🪙 earn ≈ <b>'+fmt(cashTok)+' $CHRONIC</b> cashback'+(px?'':' (price n/a)');
     if(!discountPct&&!holderBal)body+='<br><a href="https://www.burnchronic.xyz/buy" style="color:var(--green)">get $CHRONIC →</a>';
     $('perksBody').innerHTML=body;btn.style.display='none';
