@@ -6,7 +6,7 @@
  * own pages and server-to-server calls (no Origin). Same lenient model as
  * api/solrpc.js. Underscore-prefixed => not routed.
  */
-const OK = ['burnchronic.xyz', 'localhost', 'vercel.app'];
+const OK = ['burnchronic.xyz', 'burnchronic.store', 'localhost', 'vercel.app'];
 
 // Returns true (and writes a 403) when the request's Origin/Referer is present
 // but not on the allowlist. No Origin (curl / server-to-server) is allowed.

@@ -14,7 +14,7 @@ const ALLOW = new Set([
   'gettokenaccountbalance', 'gettokenaccountsbyowner', 'gettokensupply',
   'getminimumbalanceforrentexemption', 'getepochinfo', 'getslot',
 ]);
-const OK = ['burnchronic.xyz', 'localhost', 'vercel.app'];
+const OK = ['burnchronic.xyz', 'burnchronic.store', 'localhost', 'vercel.app'];
 
 module.exports = async (req, res) => {
   res.setHeader('access-control-allow-origin', '*');

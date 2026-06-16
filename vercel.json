@@ -1,7 +1,9 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/flex", "destination": "/api/flex" }
+    { "source": "/flex", "destination": "/api/flex" },
+    { "source": "/", "has": [{ "type": "host", "value": "burnchronic.store" }], "destination": "/shop" },
+    { "source": "/", "has": [{ "type": "host", "value": "www.burnchronic.store" }], "destination": "/shop" }
   ],
   "headers": [
     {
