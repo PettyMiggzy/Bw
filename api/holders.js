@@ -8,6 +8,8 @@
 const G = require('./_grow.js');
 
 const PUMP = '6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P';
+const CHRONIC = process.env.CHRONIC_MINT || 'J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump';
+const CHRONIC_DEV = process.env.CHRONIC_DEV_WALLET || 'E7Cr2nad1SvBWF8vcGhNW575UVVPdTcgHEqSTMQzoUr5';
 const SYS = '11111111111111111111111111111111';
 const POOL_PROGRAMS = new Set([
   PUMP,
@@ -61,9 +63,18 @@ module.exports = async (req, res) => {
     const top20 = real.reduce((s, h) => s + h.amt, 0n);
     const largest = real.length ? real[0].amt : 0n;
 
+    // resolve the project's dev/creator wallet (CHRONIC, or a pad-launched token)
+    let DEV = (ca === CHRONIC) ? CHRONIC_DEV : null;
+    if (!DEV && G.sbEnabled()) {
+      try { const rows = await G.sbSelect(`grow_launches?mint=eq.${encodeURIComponent(ca)}&select=dev_wallet`); if (rows && rows[0] && G.isPubkey(rows[0].dev_wallet)) DEV = rows[0].dev_wallet; } catch (_) {}
+    }
+    let devPct = 0, devIsBiggest = false;
+    if (DEV) { const d = real.find((h) => h.owner === DEV); if (d) { devPct = pct(d.amt, supply); devIsBiggest = !!(real.length && real[0].owner === DEV); } }
+
     return res.status(200).json({
       top10Pct: pct(top10, supply), top20Pct: pct(top20, supply), largestPct: pct(largest, supply),
       lpExcluded: accts.length - real.length, sampled: accts.length,
+      dev: DEV || null, devPct, devIsBiggest,
     });
   } catch (e) { return res.status(200).json({ error: String((e && e.message) || e) }); }
 };

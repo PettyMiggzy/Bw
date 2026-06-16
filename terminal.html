@@ -341,7 +341,9 @@ async function loadHolders(){ var el=$('holdersLine'); if(!el)return;
     if(h.error||h.top10Pct==null){ el.innerHTML=''; return; }
     var t10=h.top10Pct, lv=t10<20?'good':(t10<35?'mid':'bad');
     el.className='hline '+lv;
-    el.innerHTML='👥 top 10 hold <b>'+t10.toFixed(1)+'%</b> · biggest '+(h.largestPct||0).toFixed(1)+'%'+(h.lpExcluded?' <span style="color:var(--dim)">· curve/LP excluded</span>':'');
+    var bigStr=(h.largestPct||0).toFixed(1)+'%'+(h.devIsBiggest?' <span style="color:var(--green)">(dev ✓)</span>':'');
+    var devStr=(h.devPct>0&&!h.devIsBiggest)?' · 🛠️ dev '+h.devPct.toFixed(1)+'%':'';
+    el.innerHTML='👥 top 10 hold <b>'+t10.toFixed(1)+'%</b> · biggest '+bigStr+devStr+(h.lpExcluded?' <span style="color:var(--dim)">· curve/LP excluded</span>':'');
   }catch(e){ el.innerHTML=''; } }
 
 /* DexScreener "paid" status — did the team pay to verify/enhance their DS page (orders API) */
