@@ -161,6 +161,9 @@ h1{font-family:var(--fh);font-size:clamp(28px,8vw,48px);text-align:center;color:
 .dfoot{border-top:1px solid var(--line);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
 .tot{display:flex;justify-content:space-between;font-family:var(--fd);font-size:14px}.tot .g{color:var(--green)}
 .sol{display:flex;justify-content:space-between;font-size:11px;color:var(--dim)}
+.paytabs{display:flex;gap:8px}
+.ptab{flex:1;font-family:var(--fd);font-size:12px;padding:10px;border-radius:10px;cursor:pointer;background:rgba(7,10,7,.5);border:1px solid var(--line);color:var(--dim)}
+.ptab.on{background:linear-gradient(90deg,var(--green-deep),var(--panel));color:var(--green);border-color:var(--green-dim)}
 .cta{font-family:var(--fd);font-size:14px;background:linear-gradient(90deg,var(--ember),var(--ember2));color:#fff;border:0;border-radius:12px;padding:14px;cursor:pointer;width:100%}
 .cta:disabled{opacity:.5}
 .field{display:flex;flex-direction:column;gap:4px;margin-bottom:9px}
@@ -204,7 +207,7 @@ h1{font-family:var(--fh);font-size:clamp(28px,8vw,48px);text-align:center;color:
 
   <div class="trust">
     <div><b>🚚 Fast ship</b>discreet, plain-package delivery</div>
-    <div><b>◎ Pay in SOL</b>no card, no bank, instant</div>
+    <div><b>◎ SOL or ＄ USDC</b>no card, no bank, instant</div>
     <div><b>🌿 Holders eat</b>40% of every order drips to holders</div>
   </div>
 
@@ -402,52 +405,91 @@ function renderCheckout(){
     '<label class="chk"><input type="checkbox" id="f_age"/> <span>I confirm I\'m 21+ and these accessories are for legal use. Crypto payments are final.</span></label>';
   $('backCart').onclick=function(){checkoutMode=false;renderDrawer();};
   $('dfoot').innerHTML=
+    '<div class="paytabs"><button class="ptab" data-m="SOL">◎ SOL</button><button class="ptab" data-m="USDC">＄ USDC</button></div>'+
     '<div class="tot"><span>Total</span><span class="g">$'+usd.toFixed(2)+'</span></div>'+
-    '<div class="sol" id="solLine2">≈ … SOL</div>'+
-    '<button class="cta" id="payBtn">◎ Pay with Phantom</button>';
-  updateSolLine(usd,'solLine2');
+    '<div class="sol" id="solLine2">≈ … </div>'+
+    '<button class="cta" id="payBtn">Pay</button>';
+  Array.prototype.forEach.call($('dfoot').querySelectorAll('.ptab'),function(b){b.onclick=function(){payMethod=b.getAttribute('data-m');paintPayTabs();updatePayLine(usd);};});
+  paintPayTabs();updatePayLine(usd);
   $('payBtn').onclick=pay;
 }
+function paintPayTabs(){var f=$('dfoot');if(!f)return;Array.prototype.forEach.call(f.querySelectorAll('.ptab'),function(b){b.className='ptab'+(b.getAttribute('data-m')===payMethod?' on':'');});var pb=$('payBtn');if(pb)pb.textContent=payMethod==='USDC'?'＄ Pay with USDC':'◎ Pay with SOL';}
+function updatePayLine(usd){var el=$('solLine2');if(!el)return;if(payMethod==='USDC'){el.textContent='= '+usd.toFixed(2)+' USDC  ·  ＄1 each, no price swings';}else{updateSolLine(usd,'solLine2');}}
 
 /* ─── pay (single-signer SOL transfer — per the HARD RULE) ─── */
 function provider(){var p=(window.phantom&&window.phantom.solana)||window.solana;return(p&&p.isPhantom)?p:null;}
 function isMobile(){var u=navigator.userAgent||'';return /android|iphone|ipad|ipod/i.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1);}
 var _w3;async function web3(){if(!_w3)_w3=await import('https://esm.sh/@solana/web3.js@1.95.3');return _w3;}
+var _spl;async function splLib(){if(!_spl)_spl=await import('https://esm.sh/@solana/spl-token@0.4.9?deps=@solana/web3.js@1.95.3');return _spl;}
 function conn(w3){return new w3.Connection(location.origin+'/api/solrpc','confirmed');}
+var USDC_MINT='EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+var payMethod='SOL';
 
 function ship(){
   return {name:($('f_name').value||'').trim(),email:($('f_email').value||'').trim(),addr:($('f_addr').value||'').trim(),
     city:($('f_city').value||'').trim(),state:($('f_state').value||'').trim(),zip:($('f_zip').value||'').trim(),country:($('f_country').value||'US').trim()};
 }
 
+function confirmSig(c,sig,btn){
+  btn.textContent='confirming… ⛓';
+  return (async function(){
+    for(var i=0;i<30;i++){try{var st=await c.getSignatureStatuses([sig]);var v=st&&st.value&&st.value[0];if(v&&(v.confirmationStatus==='confirmed'||v.confirmationStatus==='finalized')){if(v.err)throw new Error('payment failed');return;}}catch(e){if(/payment failed/.test(e.message))throw e;}await new Promise(function(r){setTimeout(r,1500);});}
+  })();
+}
+async function recordAndDone(sig,sol,usd,s){
+  var items=Object.keys(cart).map(function(id){var pr=prodFor(id);var sz=sizeOf(id);return{id:baseId(id),size:sz,name:pr.name+(sz?' ('+sz+')':''),price:pr.price,qty:cart[id]};});
+  var ref='';try{ref=localStorage.getItem('chronic_ref')||'';}catch(e){}
+  try{await fetch('/api/order',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({tx:sig,items:items,ship:s,totalSol:sol,totalUsd:usd,ref:ref})});}catch(e){}
+  cart={};syncCart();orderDone(sig);
+}
+// SOL: single SystemProgram transfer (per the HARD RULE: simulate -> signAndSend)
+async function paySol(s,p,btn){
+  btn.textContent='getting SOL price…';
+  var usd=cartUsd();var px=await solPrice();
+  if(!px){toast('couldn\'t fetch SOL price, try again',true);return;}
+  var sol=usd/px;var lamports=Math.round(sol*1e9);
+  var w3=await web3();var c=conn(w3);
+  var resp=await p.connect();var buyer=new w3.PublicKey(resp.publicKey.toString());
+  btn.textContent='building order…';
+  var tx=new w3.Transaction().add(w3.SystemProgram.transfer({fromPubkey:buyer,toPubkey:new w3.PublicKey(SHOP_WALLET),lamports:lamports}));
+  tx.feePayer=buyer;tx.recentBlockhash=(await c.getLatestBlockhash('confirmed')).blockhash;
+  var sim=await chronicSimulate(c,tx);
+  if(!sim.ok){toast('payment would fail — check your SOL balance',true);return;}
+  btn.textContent='approve in wallet ◎';
+  var sig=await chronicSignAndSend(p,tx,c);
+  await confirmSig(c,sig,btn);
+  await recordAndDone(sig,sol,usd,s);
+}
+// USDC: SPL transferChecked (idempotent recipient ATA). 1 USDC ≈ $1, no price feed.
+async function payUsdc(s,p,btn){
+  var usd=cartUsd();var amount=Math.round(usd*1e6);
+  var w3=await web3();var spl=await splLib();var c=conn(w3);
+  var resp=await p.connect();var buyer=new w3.PublicKey(resp.publicKey.toString());
+  btn.textContent='building order…';
+  var mint=new w3.PublicKey(USDC_MINT);var shop=new w3.PublicKey(SHOP_WALLET);var TP=spl.TOKEN_PROGRAM_ID;
+  var fromAta=spl.getAssociatedTokenAddressSync(mint,buyer,false,TP);
+  var toAta=spl.getAssociatedTokenAddressSync(mint,shop,false,TP);
+  var tx=new w3.Transaction();
+  tx.add(spl.createAssociatedTokenAccountIdempotentInstruction(buyer,toAta,shop,mint,TP));
+  tx.add(spl.createTransferCheckedInstruction(fromAta,mint,toAta,buyer,amount,6,[],TP));
+  tx.feePayer=buyer;tx.recentBlockhash=(await c.getLatestBlockhash('confirmed')).blockhash;
+  var sim=await chronicSimulate(c,tx);
+  if(!sim.ok){toast('payment would fail — do you have enough USDC?',true);return;}
+  btn.textContent='approve in wallet ＄';
+  var sig=await chronicSignAndSend(p,tx,c);
+  await confirmSig(c,sig,btn);
+  await recordAndDone(sig,0,usd,s);
+}
 async function pay(){
   var s=ship();
   if(!s.name||!s.addr||!s.city||!s.zip){toast('fill in your shipping address',true);return;}
   if(!$('f_age').checked){toast('confirm you\'re 21+ to order',true);return;}
   var p=provider();
   if(!p){if(isMobile()){var t=encodeURIComponent(location.href);location.href='https://phantom.app/ul/browse/'+t+'?ref='+encodeURIComponent('https://www.burnchronic.xyz');return;}toast('Phantom not found — install it',true);return;}
-  var btn=$('payBtn');btn.disabled=true;var lab=btn.textContent;btn.textContent='getting SOL price…';
-  try{
-    var usd=cartUsd();var px=await solPrice();
-    if(!px){toast('couldn\'t fetch SOL price, try again',true);btn.disabled=false;btn.textContent=lab;return;}
-    var sol=usd/px;var lamports=Math.round(sol*1e9);
-    var w3=await web3();var c=conn(w3);
-    var resp=await p.connect();var buyer=new w3.PublicKey(resp.publicKey.toString());
-    btn.textContent='building order…';
-    var tx=new w3.Transaction().add(w3.SystemProgram.transfer({fromPubkey:buyer,toPubkey:new w3.PublicKey(SHOP_WALLET),lamports:lamports}));
-    tx.feePayer=buyer;
-    var bh=await c.getLatestBlockhash('confirmed');tx.recentBlockhash=bh.blockhash;
-    var sim=await chronicSimulate(c,tx);
-    if(!sim.ok){toast('payment would fail — check your SOL balance',true);btn.disabled=false;btn.textContent=lab;return;}
-    btn.textContent='approve in wallet ◎';
-    var sig=await chronicSignAndSend(p,tx,c);
-    btn.textContent='confirming… ⛓';
-    for(var i=0;i<30;i++){try{var st=await c.getSignatureStatuses([sig]);var v=st&&st.value&&st.value[0];if(v&&(v.confirmationStatus==='confirmed'||v.confirmationStatus==='finalized')){if(v.err)throw new Error('payment failed');break;}}catch(e){if(/payment failed/.test(e.message))throw e;}await new Promise(function(r){setTimeout(r,1500);});}
-    var items=Object.keys(cart).map(function(id){var pr=prodFor(id);var sz=sizeOf(id);return{id:baseId(id),size:sz,name:pr.name+(sz?' ('+sz+')':''),price:pr.price,qty:cart[id]};});
-    var ref='';try{ref=localStorage.getItem('chronic_ref')||'';}catch(e){}
-    try{await fetch('/api/order',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({tx:sig,items:items,ship:s,totalSol:sol,totalUsd:usd,ref:ref})});}catch(e){}
-    cart={};syncCart();orderDone(sig);
-  }catch(e){toast(/reject|cancel/i.test((e&&e.message)||'')?'cancelled':'payment failed: '+((e&&e.message)||e),true);btn.disabled=false;btn.textContent=lab;}
+  var btn=$('payBtn');btn.disabled=true;var lab=btn.textContent;
+  try{ if(payMethod==='USDC')await payUsdc(s,p,btn); else await paySol(s,p,btn); }
+  catch(e){toast(/reject|cancel/i.test((e&&e.message)||'')?'cancelled':'payment failed: '+((e&&e.message)||e),true);}
+  finally{ if($('payBtn')){btn.disabled=false;btn.textContent=lab;} }
 }
 
 function orderDone(sig){
