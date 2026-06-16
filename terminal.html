@@ -124,6 +124,10 @@ h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:
 .dexbadge.paid{background:var(--green-dim);color:#04140a}
 .dexbadge.pend{border:1px solid var(--gold);color:var(--gold)}
 .dexbadge.unpaid{border:1px solid var(--line);color:var(--dim)}
+.dexbadge.boost{background:linear-gradient(90deg,var(--purple),#7a3cff);color:#fff}
+.socrow{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.soc{font-size:10px;font-family:var(--fm);color:var(--green);text-decoration:none;background:rgba(7,10,7,.5);border:1px solid var(--line);border-radius:9px;padding:6px 10px}
+.soc:hover{border-color:var(--green-dim)}
 .coin .cright{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:0 0 auto}
 .coin .cright .gb{font-size:14px;line-height:1}
 .coin .cright .ct{font-size:7px;color:var(--dim);font-family:var(--fd);letter-spacing:.04em}
@@ -289,7 +293,8 @@ async function load(){ var ca=$('ca').value.trim(); if(ca.length<32){ toast('pas
     try{ var s=await rpc('getTokenSupply',[ca]); decimals=s.value.decimals; }catch(e){ decimals=6; }
     token={ ca:ca, name:p?p.baseToken.name:'Unknown', symbol:p?p.baseToken.symbol:'?', price:p?Number(p.priceUsd):0,
       ch:p&&p.priceChange?Number(p.priceChange.h24||0):0, mc:p?(p.marketCap||p.fdv||0):0, liq:p&&p.liquidity?p.liquidity.usd:0,
-      vol:p&&p.volume?p.volume.h24:0, pair:p?p.pairAddress:null, img:p&&p.info?p.info.imageUrl:'' };
+      vol:p&&p.volume?p.volume.h24:0, pair:p?p.pairAddress:null, img:p&&p.info?p.info.imageUrl:'',
+      boosts:(p&&p.boosts&&p.boosts.active)||0, socials:(p&&p.info&&p.info.socials)||[], websites:(p&&p.info&&p.info.websites)||[] };
     render(); if(wallet)loadBalance();
   }catch(e){ $('out').innerHTML='<div class="muted">couldn’t load that token — check the CA</div>'; }
   $('go').disabled=false;
@@ -297,12 +302,15 @@ async function load(){ var ca=$('ca').value.trim(); if(ca.length<32){ toast('pas
 
 function render(){
   var t=token;
+  var soc='';
+  (t.websites||[]).forEach(function(w){ if(w&&w.url) soc+='<a class="soc" href="'+esc(w.url)+'" target="_blank" rel="noopener">🌐 '+esc(w.label||'site')+'</a>'; });
+  (t.socials||[]).forEach(function(s){ if(!s||!s.url)return; var ic=s.type==='twitter'?'𝕏':(s.type==='telegram'?'✈️':(s.type==='discord'?'💬':'🔗')); soc+='<a class="soc" href="'+esc(s.url)+'" target="_blank" rel="noopener">'+ic+' '+esc(s.type||'link')+'</a>'; });
   var html='<div class="backf" id="backFeed">‹ all coins</div><div class="card"><div class="thead">'
     +(imgSrc(t.img)?'<img src="'+esc(imgSrc(t.img))+'" alt="" data-alt="'+esc(altGateway(imgSrc(t.img)))+'" onerror="termImgErr(this)"/><div class="ph" style="display:none;width:46px;height:46px;border-radius:12px;background:var(--green-deep);align-items:center;justify-content:center;font-family:var(--fd);color:var(--green)">'+initials(t.symbol)+'</div>':'<div style="width:46px;height:46px;border-radius:12px;background:var(--green-deep);display:flex;align-items:center;justify-content:center;font-family:var(--fd);color:var(--green)">'+initials(t.symbol)+'</div>')
-    +'<div><div class="nm">'+esc(t.name)+'</div><div class="sy">$'+esc(t.symbol)+' · '+sh(t.ca)+' <span class="dexbadge" id="dexPaid"></span></div></div>'
+    +'<div><div class="nm">'+esc(t.name)+'</div><div class="sy">$'+esc(t.symbol)+' · '+sh(t.ca)+' <span class="dexbadge" id="dexPaid"></span>'+(t.boosts>0?' <span class="dexbadge boost">🚀 x'+t.boosts+'</span>':'')+'</div></div>'
     +'<div class="px"><b>$'+(t.price?t.price.toPrecision(4):'—')+'</b><div class="ch '+(t.ch>=0?'up':'down')+'">'+(t.ch>=0?'+':'')+t.ch.toFixed(1)+'% 24h</div></div></div>'
     +'<div class="tstats"><div class="s"><b>$'+fmt(t.mc)+'</b><i>mcap</i></div><div class="s"><b>$'+fmt(t.liq)+'</b><i>liquidity</i></div><div class="s"><b>$'+fmt(t.vol)+'</b><i>vol 24h</i></div></div>'
-    +'<div id="curveBar"></div></div>';
+    +'<div id="curveBar"></div>'+(soc?'<div class="socrow">'+soc+'</div>':'')+'</div>';
   // chart
   if(t.pair){ html+='<div class="card" style="padding:0;overflow:hidden"><div class="chartwrap"><iframe src="https://dexscreener.com/solana/'+t.pair+'?embed=1&theme=dark&trades=0&info=0"></iframe></div></div>'; }
   // trade
