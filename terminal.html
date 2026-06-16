@@ -263,8 +263,19 @@ function gridHtml(f){
   if(!list.length) return '<div class="muted">'+(f==='graduating'?'nothing on the curve right now':f==='graduated'?'no graduated coins in feed':nActive?'no coins match your filters':'nothing here — paste a CA above')+'</div>';
   return '<div class="fresult">'+list.length+' coin'+(list.length===1?'':'s')+'</div><div class="coingrid">'+list.map(coinCard).join('')+'</div>';
 }
-function paintGrid(){ var g=$('feedGrid'); if(g){ g.innerHTML=gridHtml(FEEDFILTER); wireCoins(); } }
+function paintGrid(){ var g=$('feedGrid'); if(g){ g.innerHTML=gridHtml(FEEDFILTER); wireCoins(); hydrateImages(); } }
 function wireCoins(){ document.querySelectorAll('.coin').forEach(function(el){ el.addEventListener('click',function(){ $('ca').value=this.dataset.ca; window.scrollTo(0,0); load(); }); }); }
+/* backfill PFPs from on-chain metadata for cards with no image (DexScreener only has it if the team paid) */
+function hydrateImages(){
+  var need=Array.prototype.slice.call(document.querySelectorAll('.coin')).filter(function(c){ return !c.querySelector('img'); });
+  var i=0;
+  function next(){ if(i>=need.length)return; var c=need[i++]; var ca=c.getAttribute('data-ca'); if(!ca){ next(); return; }
+    fetch('/api/tokenimg?ca='+encodeURIComponent(ca)).then(function(r){return r.json();}).then(function(j){
+      if(j&&j.image){ var ph=c.querySelector('.ph'); if(ph){ var img=document.createElement('img'); img.loading='lazy'; img.src=proxyImg(imgSrc(j.image)); img.onerror=function(){ this.remove(); ph.style.display='flex'; }; ph.style.display='none'; c.insertBefore(img,ph); } }
+    }).catch(function(){}).finally(next);
+  }
+  for(var k=0;k<3;k++) next(); // limited concurrency
+}
 function renderFeed(f){ FEEDFILTER=f; if(!FEEDCOINS){ showFeed(); return; }
   var skey=FSORT||defSort(f);
   var nActive=(FILTERS.minMc?1:0)+(FILTERS.minVol?1:0)+(FILTERS.minLiq?1:0)+(FILTERS.maxAge?1:0);
@@ -286,7 +297,7 @@ function renderFeed(f){ FEEDFILTER=f; if(!FEEDCOINS){ showFeed(); return; }
   var dbnc; function applyF(){ clearTimeout(dbnc); dbnc=setTimeout(function(){ FILTERS.minMc=Number($('fMc').value)||0; FILTERS.minVol=Number($('fVol').value)||0; FILTERS.minLiq=Number($('fLiq').value)||0; FILTERS.maxAge=Number($('fAge').value)||0; var t=$('fToggle'); var n=(FILTERS.minMc?1:0)+(FILTERS.minVol?1:0)+(FILTERS.minLiq?1:0)+(FILTERS.maxAge?1:0); if(t){t.classList.toggle('on',!!n);t.innerHTML='⚙ Filters'+(n?' <b>'+n+'</b>':'');} paintGrid(); },450); }
   ['fMc','fVol','fLiq','fAge'].forEach(function(id){ var e=$(id); if(e)e.addEventListener('input',applyF); });
   var fc=$('fClear'); if(fc)fc.addEventListener('click',function(){ FILTERS={minMc:0,minVol:0,minLiq:0,maxAge:0}; renderFeed(FEEDFILTER); });
-  wireCoins();
+  wireCoins(); hydrateImages();
 }
 
 /* load token */
@@ -301,6 +312,7 @@ async function load(){ var ca=$('ca').value.trim(); if(ca.length<32){ toast('pas
       ch:p&&p.priceChange?Number(p.priceChange.h24||0):0, mc:p?(p.marketCap||p.fdv||0):0, liq:p&&p.liquidity?p.liquidity.usd:0,
       vol:p&&p.volume?p.volume.h24:0, pair:p?p.pairAddress:null, img:p&&p.info?p.info.imageUrl:'',
       boosts:(p&&p.boosts&&p.boosts.active)||0, socials:(p&&p.info&&p.info.socials)||[], websites:(p&&p.info&&p.info.websites)||[] };
+    if(!token.img){ try{ var ji=await (await fetch('/api/tokenimg?ca='+encodeURIComponent(ca))).json(); if(ji&&ji.image)token.img=ji.image; }catch(e){} }
     render(); if(wallet)loadBalance();
   }catch(e){ $('out').innerHTML='<div class="muted">couldn’t load that token — check the CA</div>'; }
   $('go').disabled=false;
