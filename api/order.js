@@ -38,6 +38,35 @@ async function tgAlert(row) {
   } catch (_) {}
 }
 
+const esc = (s) => String(s == null ? '' : s).replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
+
+// send the customer an order confirmation via Resend (best-effort; no-op until RESEND_API_KEY is set)
+async function emailConfirm(row) {
+  const key = process.env.RESEND_API_KEY;
+  const from = process.env.ORDER_FROM_EMAIL || 'Burn Chronic <team@burnchronic.xyz>';
+  const to = row.ship && row.ship.email;
+  if (!key || !to || !/.+@.+\..+/.test(to)) return;
+  const items = row.items.map((i) => `<li>${i.qty}× ${esc(i.name)} — $${i.price}</li>`).join('');
+  const cashback = row.cashback_chronic ? `<p style="color:#f5cf57">🪙 You earned ≈ <b>${row.cashback_chronic} $CHRONIC</b> cashback — it drops to your wallet.</p>` : '';
+  const discount = row.discount_pct ? `<p style="color:#52ff8f">🎁 ${row.discount_pct}% holder discount applied.</p>` : '';
+  const html = `<div style="font-family:system-ui,Arial,sans-serif;max-width:520px;margin:0 auto;background:#0b130d;color:#e9ffe9;padding:26px;border-radius:14px;border:1px solid rgba(82,255,143,.18)">
+    <h2 style="color:#52ff8f;margin:0 0 6px">🌿 Order confirmed — holders eat.</h2>
+    <p>Thanks ${esc(row.ship.name || '')} — we got your order and it ships discreetly soon.</p>
+    <ul style="line-height:1.7">${items}</ul>
+    <p style="font-size:16px"><b>Total: $${row.total_usd}</b></p>
+    ${discount}${cashback}
+    <p><a href="https://burnchronic.store/track?tx=${esc(row.tx)}" style="display:inline-block;background:#52ff8f;color:#04140a;text-decoration:none;font-weight:700;padding:11px 18px;border-radius:10px">📦 Track your order →</a></p>
+    <p style="color:#84a78d;font-size:12px;margin-top:18px">40% of your order just dripped to $CHRONIC holders. 🌿<br>Questions? Just reply to this email.</p>
+  </div>`;
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ from, to: [to], reply_to: 'team@burnchronic.xyz', subject: `Order confirmed — Burn Chronic (${row.id})`, html }),
+    });
+  } catch (_) {}
+}
+
 module.exports = async (req, res) => {
   res.setHeader('content-type', 'application/json');
   if (blocked(req, res)) return;
@@ -96,6 +125,7 @@ module.exports = async (req, res) => {
 
   try { if (G.sbEnabled()) await G.sbUpsert('grow_orders', row, 'id'); } catch (_) {}
   await tgAlert(row);
+  await emailConfirm(row);
 
   res.statusCode = 200;
   res.end(JSON.stringify({ ok: true, id }));
