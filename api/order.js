@@ -52,7 +52,7 @@ module.exports = async (req, res) => {
       const rows = await G.sbSelect(`grow_orders?tx=eq.${encodeURIComponent(tx)}&select=id,status,created_at,items,total_usd`);
       if (!rows || !rows.length) { res.statusCode = 404; res.end(JSON.stringify({ error: 'order not found' })); return; }
       res.statusCode = 200; res.end(JSON.stringify(rows[0])); return;
-    } catch (e) { res.statusCode = 500; res.end(JSON.stringify({ error: 'lookup failed' })); return; }
+    } catch (e) { res.statusCode = 404; res.end(JSON.stringify({ error: 'order not found' })); return; }
   }
 
   if (req.method !== 'POST') { res.statusCode = 405; res.end(JSON.stringify({ error: 'POST or GET' })); return; }
