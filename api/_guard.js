@@ -1,7 +1,7 @@
 'use strict';
 /*
  * Tiny origin guard for read-only proxy endpoints that spend metered upstream
- * quota (Alchemy / Etherscan / Pinata). Blocks browser requests coming from
+ * quota (Alchemy / Pinata). Blocks browser requests coming from
  * other websites (they carry an Origin/Referer header) while still allowing our
  * own pages and server-to-server calls (no Origin). Same lenient model as
  * api/solrpc.js. Underscore-prefixed => not routed.
