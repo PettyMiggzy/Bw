@@ -126,6 +126,24 @@ h1{font-family:var(--fh);font-size:clamp(28px,8vw,48px);text-align:center;color:
 .faq summary::after{content:"+";float:right;color:var(--dim)}
 .faq details[open] summary::after{content:"–"}
 .faq details p{padding-bottom:12px;margin:0}
+/* stars + product modal + reviews */
+.stars{color:var(--gold);letter-spacing:1px}
+.pmodal{position:fixed;inset:0;z-index:40;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.66);backdrop-filter:blur(3px)}
+.pmodal.show{display:flex}
+.pinner{background:linear-gradient(180deg,#0b130d,#070a07);border:1px solid var(--line);border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:90vh;overflow:auto;padding:16px 16px 28px}
+@media(min-width:560px){.pmodal{align-items:center}.pinner{border-radius:18px}}
+.phead{display:flex;gap:12px;align-items:center;margin-bottom:8px}
+.phead .pe{font-size:46px;line-height:1}
+.phead .ph3{font-family:var(--fd);font-size:16px;line-height:1.2}
+.pclose{margin-left:auto;align-self:flex-start;background:none;border:0;color:var(--dim);font-size:24px;cursor:pointer}
+.rv{border-top:1px solid var(--line);padding:9px 0;font-size:12px;line-height:1.5}
+.rv .rvh{display:flex;justify-content:space-between;color:var(--dim);font-size:10px;margin-bottom:2px}
+.rform{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.rform input,.rform textarea{width:100%;background:rgba(7,10,7,.6);border:1px solid var(--line);border-radius:9px;color:var(--text);font-family:var(--fm);font-size:12px;padding:9px;margin-top:6px}
+.rform textarea{resize:vertical;min-height:54px}
+.rstars{font-size:24px;letter-spacing:4px;color:var(--dim);margin-top:6px;user-select:none}
+.rstars b{cursor:pointer}.rstars b.on{color:var(--gold)}
+.muted{color:var(--dim);font-size:12px}
 /* cart drawer */
 .scrim{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:.2s}
 .scrim.show{opacity:1;pointer-events:auto}
@@ -222,6 +240,8 @@ h1{font-family:var(--fh);font-size:clamp(28px,8vw,48px);text-align:center;color:
   <div class="dfoot" id="dfoot"></div>
 </div>
 
+<div class="pmodal" id="pmodal"></div>
+
 <div class="age" id="age" style="display:none">
   <div class="box">
     <div class="sk">💀</div>
@@ -241,6 +261,9 @@ h1{font-family:var(--fh);font-size:clamp(28px,8vw,48px);text-align:center;color:
 var $=function(i){return document.getElementById(i);};
 var _th;function toast(m,bad){var t=$('toast');t.textContent=m;t.className='toast show'+(bad?' bad':'');clearTimeout(_th);_th=setTimeout(function(){t.className='toast';},2200);}
 function copy(txt,msg){try{navigator.clipboard.writeText(txt);}catch(e){}toast(msg||'copied ✓');}
+function esc(s){return String(s==null?'':s).replace(/[<>&"]/g,function(c){return{'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];});}
+var RATINGS={};
+function starStr(avg){var f=Math.round(avg||0);var s='';for(var i=1;i<=5;i++)s+=(i<=f?'★':'☆');return s;}
 // capture an inbound referral (?ref=) so it rides along with the order
 try{var _r=new URLSearchParams(location.search).get('ref');if(_r)localStorage.setItem('chronic_ref',_r.slice(0,80));}catch(e){}
 
@@ -304,11 +327,13 @@ function renderGrid(){
   PRODUCTS.filter(function(p){return activeCat==='All'||p.cat===activeCat;}).forEach(function(p){
     var d=document.createElement('div');d.className='card';
     var szSel=p.sizes?'<select class="szsel" aria-label="size for '+p.name+'">'+p.sizes.map(function(s){return '<option>'+s+'</option>';}).join('')+'</select>':'';
+    var rt=RATINGS[p.id];var stars=rt&&rt.count?'<div class="stars" style="font-size:11px;margin-top:2px">'+starStr(rt.avg)+' <span style="color:var(--dim)">('+rt.count+')</span></div>':'';
     d.innerHTML='<div class="thumb" role="img" aria-label="'+p.name+'">'+(p.tag?'<span class="tag">'+p.tag+'</span>':'')+p.emoji+'</div>'+
-      '<div class="info"><h3 class="nm">'+p.name+'</h3><div class="bl">'+p.blurb+'</div>'+szSel+
+      '<div class="info"><h3 class="nm">'+p.name+'</h3><div class="bl">'+p.blurb+'</div>'+stars+szSel+
       '<div class="pr"><span class="p">$'+p.price+'</span><button class="add" aria-label="Add '+p.name+' to cart">+ add</button></div></div>';
-    var sel=d.querySelector('.szsel');
-    d.querySelector('.add').onclick=function(){addToCart(p.id,sel?sel.value:'');};
+    var sel=d.querySelector('.szsel');if(sel)sel.onclick=function(e){e.stopPropagation();};
+    d.querySelector('.add').onclick=function(e){e.stopPropagation();addToCart(p.id,sel?sel.value:'');};
+    d.style.cursor='pointer';d.onclick=function(){openProduct(p.id);};
     g.appendChild(d);
   });
 }
@@ -444,15 +469,62 @@ function orderDone(sig){
 // inject Product structured data (rich results: name, price, availability)
 function injectProductLD(){
   var items=PRODUCTS.map(function(p,i){
-    return {"@type":"ListItem","position":i+1,"item":{
-      "@type":"Product","name":p.name,"description":p.blurb,"category":p.cat,
+    var it={"@type":"Product","name":p.name,"description":p.blurb,"category":p.cat,
       "brand":{"@type":"Brand","name":"CHRONIC"},
       "offers":{"@type":"Offer","priceCurrency":"USD","price":String(p.price),
-        "availability":"https://schema.org/InStock","url":"https://burnchronic.store/shop"}}};
+        "availability":"https://schema.org/InStock","url":"https://burnchronic.store/shop"}};
+    if(RATINGS[p.id]&&RATINGS[p.id].count){it.aggregateRating={"@type":"AggregateRating","ratingValue":String(RATINGS[p.id].avg),"reviewCount":String(RATINGS[p.id].count)};}
+    return {"@type":"ListItem","position":i+1,"item":it};
   });
   var ld={"@context":"https://schema.org","@type":"ItemList","name":"CHRONIC Smoke Shop","numberOfItems":PRODUCTS.length,"itemListElement":items};
   var s=document.createElement('script');s.type='application/ld+json';s.text=JSON.stringify(ld);document.head.appendChild(s);
 }
+/* ─── product detail + reviews ─── */
+var curProduct=null,curRating=0;
+function openProduct(id){
+  var p=prodFor(id);if(!p)return;curProduct=id;curRating=0;
+  var szSel=p.sizes?'<select class="szsel" id="pmSize" style="margin:8px 0">'+p.sizes.map(function(s){return '<option>'+s+'</option>';}).join('')+'</select>':'';
+  var m=$('pmodal');
+  m.innerHTML='<div class="pinner">'+
+    '<div class="phead"><div class="pe">'+p.emoji+'</div><div><div class="ph3">'+esc(p.name)+'</div><div class="stars" id="pmAvg" style="font-size:12px">…</div></div><button class="pclose" id="pmClose" aria-label="close">×</button></div>'+
+    '<div class="bl" style="font-size:12px;color:var(--dim);line-height:1.55">'+esc(p.blurb)+'</div>'+szSel+
+    '<div class="pr" style="margin:12px 0;align-items:center"><span class="p" style="font-family:var(--fd);color:var(--green);font-size:20px">$'+p.price+'</span><button class="cta" id="pmAdd" style="width:auto;padding:11px 16px;margin-left:auto">+ add to cart</button></div>'+
+    '<div id="pmReviews"><div class="muted">loading reviews…</div></div>'+
+    '<div class="rform"><div style="font-family:var(--fd);font-size:11px;color:var(--gold)">WRITE A REVIEW</div>'+
+      '<div class="rstars" id="pmStars"><b data-v="1">★</b><b data-v="2">★</b><b data-v="3">★</b><b data-v="4">★</b><b data-v="5">★</b></div>'+
+      '<input id="pmName" placeholder="name (optional)" maxlength="40"/>'+
+      '<textarea id="pmBody" placeholder="how\'s the gear?" maxlength="600"></textarea>'+
+      '<button class="cta" id="pmSubmit" style="margin-top:8px">post review</button></div>'+
+    '</div>';
+  m.classList.add('show');
+  $('pmClose').onclick=closeProduct;
+  m.onclick=function(e){if(e.target===m)closeProduct();};
+  var sz=$('pmSize');
+  $('pmAdd').onclick=function(){addToCart(id,sz?sz.value:'');closeProduct();};
+  Array.prototype.forEach.call($('pmStars').querySelectorAll('b'),function(b){b.onclick=function(){curRating=+b.getAttribute('data-v');paintStars();};});
+  $('pmSubmit').onclick=submitReview;
+  loadReviews(id);
+}
+function paintStars(){var sc=$('pmStars');if(!sc)return;Array.prototype.forEach.call(sc.querySelectorAll('b'),function(b){b.className=(+b.getAttribute('data-v')<=curRating)?'on':'';});}
+function closeProduct(){var m=$('pmodal');m.classList.remove('show');m.innerHTML='';}
+async function loadReviews(id){
+  try{var r=await fetch('/api/review?product='+encodeURIComponent(id));var d=await r.json();
+    var a=$('pmAvg');if(a)a.innerHTML=d.count?(starStr(d.avg)+' <span style="color:var(--dim)">'+d.avg+' ('+d.count+')</span>'):'<span style="color:var(--dim)">no reviews yet — be first 🌿</span>';
+    var box=$('pmReviews');if(box)box.innerHTML=d.count?d.reviews.map(function(rv){return '<div class="rv"><div class="rvh"><span>'+esc(rv.name||'anon')+'</span><span>'+new Date(rv.created_at).toLocaleDateString()+'</span></div><div class="stars">'+starStr(rv.rating)+'</div>'+(rv.body?'<div style="margin-top:3px">'+esc(rv.body)+'</div>':'')+'</div>';}).join(''):'';
+  }catch(e){}
+}
+async function submitReview(){
+  if(!curRating){toast('pick a star rating',true);return;}
+  var btn=$('pmSubmit');btn.disabled=true;btn.textContent='posting…';
+  try{
+    await fetch('/api/review',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({product:curProduct,rating:curRating,name:($('pmName').value||'').trim(),body:($('pmBody').value||'').trim()})});
+    toast('review posted 🌿');curRating=0;paintStars();if($('pmBody'))$('pmBody').value='';if($('pmName'))$('pmName').value='';
+    loadReviews(curProduct);refreshRatings();
+  }catch(e){toast('could not post, try again',true);}
+  btn.disabled=false;btn.textContent='post review';
+}
+async function refreshRatings(){try{var r=await fetch('/api/review?summary=1');RATINGS=(await r.json()).summary||{};renderGrid();}catch(e){}}
+
 function wireRefer(){
   var btn=$('refBtn');if(!btn)return;
   btn.onclick=async function(){
@@ -461,7 +533,11 @@ function wireRefer(){
     try{var resp=await p.connect();var w=resp.publicKey.toString();var link='https://burnchronic.store/shop?ref='+w;$('refLink').value=link;copy(link,'referral link copied 🔗');}catch(e){}
   };
 }
-function boot(){renderCats();renderGrid();wireRefer();try{injectProductLD();}catch(e){}}
+async function boot(){
+  renderCats();renderGrid();wireRefer();
+  try{var r=await fetch('/api/review?summary=1');RATINGS=(await r.json()).summary||{};renderGrid();}catch(e){}
+  try{injectProductLD();}catch(e){}
+}
 </script>
 </body>
 </html>
