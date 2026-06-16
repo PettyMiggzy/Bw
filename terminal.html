@@ -55,6 +55,14 @@ h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:
 .ftab.on{background:linear-gradient(90deg,var(--green-dim),var(--green));color:#04140a;border-color:transparent}
 .coingrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:6px}
 @media(min-width:560px){.coingrid{grid-template-columns:repeat(3,1fr)}}
+/* desktop: stop looking like a phone — widen the board, center the detail view */
+@media(min-width:860px){
+  .wrap{max-width:1060px}
+  .search,.card,.padcta,.foot{max-width:720px;margin-left:auto;margin-right:auto}
+  .coingrid{grid-template-columns:repeat(4,1fr)}
+  .chartwrap{height:460px}
+}
+@media(min-width:1200px){.coingrid{grid-template-columns:repeat(5,1fr)}}
 .coin{display:flex;align-items:center;gap:9px;padding:10px;border-radius:13px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(16,26,18,.85),rgba(10,15,11,.9));cursor:pointer;transition:transform .12s,border-color .2s}
 .coin:active{transform:scale(.97)}.coin:hover{border-color:var(--green-dim)}
 .coin img,.coin .ph{width:38px;height:38px;border-radius:10px;object-fit:cover;background:#0a0f0b;flex:0 0 38px;display:flex;align-items:center;justify-content:center;font-size:18px}
