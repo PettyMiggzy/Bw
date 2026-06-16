@@ -161,6 +161,11 @@ h1{font-family:var(--fh);font-size:clamp(28px,8vw,48px);text-align:center;color:
 .dfoot{border-top:1px solid var(--line);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
 .tot{display:flex;justify-content:space-between;font-family:var(--fd);font-size:14px}.tot .g{color:var(--green)}
 .sol{display:flex;justify-content:space-between;font-size:11px;color:var(--dim)}
+.perksbox{background:linear-gradient(180deg,rgba(20,32,16,.92),rgba(10,15,11,.92));border:1px solid rgba(245,207,87,.34);border-radius:13px;padding:13px;margin-bottom:14px}
+.perksbox .pl{font-family:var(--fd);font-size:11px;color:var(--gold);letter-spacing:.05em;margin-bottom:6px}
+.perksbox .pbody{font-size:12px;color:var(--dim);line-height:1.6}.perksbox .pbody b{color:var(--text)}
+.perksbox .pbtn{margin-top:10px;width:100%;font-family:var(--fd);font-size:11px;background:linear-gradient(90deg,var(--gold),#e0a92e);color:#231a02;border:0;border-radius:9px;padding:10px;cursor:pointer}
+.perksbox .pbtn:disabled{opacity:.6}
 .paytabs{display:flex;gap:8px}
 .ptab{flex:1;font-family:var(--fd);font-size:12px;padding:10px;border-radius:10px;cursor:pointer;background:rgba(7,10,7,.5);border:1px solid var(--line);color:var(--dim)}
 .ptab.on{background:linear-gradient(90deg,var(--green-deep),var(--panel));color:var(--green);border-color:var(--green-dim)}
@@ -209,6 +214,7 @@ h1{font-family:var(--fh);font-size:clamp(28px,8vw,48px);text-align:center;color:
     <div><b>🚚 Fast ship</b>discreet, plain-package delivery</div>
     <div><b>◎ SOL or ＄ USDC</b>no card, no bank, instant</div>
     <div><b>🌿 Holders eat</b>40% of every order drips to holders</div>
+    <div><b>🎁 Holder perks</b>up to 15% off + $CHRONIC cashback</div>
   </div>
 
   <div class="refer" style="border-color:rgba(168,92,255,.4)">
@@ -287,6 +293,15 @@ try{var _r=new URLSearchParams(location.search).get('ref');if(_r)localStorage.se
    rewards. No burn. Holders claim their share WEEKLY on the site (they pay
    their own gas; the rewards wallet never spends gas). */
 var SHOP_WALLET='E7Cr2nad1SvBWF8vcGhNW575UVVPdTcgHEqSTMQzoUr5';
+
+/* $CHRONIC token utility — verified on-chain at checkout.
+   Hold $CHRONIC -> discount tier (descending). Every order -> cashback in $CHRONIC. */
+var CHRONIC_MINT='J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump';
+var DISCOUNT_TIERS=[{min:1000000,pct:15},{min:250000,pct:10},{min:50000,pct:5}];
+var CASHBACK_PCT=3;            // % of order value paid back in $CHRONIC
+var discountPct=0,holderBal=0,lastCashback=0;
+function tierFor(bal){for(var i=0;i<DISCOUNT_TIERS.length;i++){if(bal>=DISCOUNT_TIERS[i].min)return DISCOUNT_TIERS[i].pct;}return 0;}
+function fmt(n){return Math.round(n).toLocaleString('en-US');}
 
 /* Starter catalog — swap names/prices/emoji for your live SmokeDrop SKUs.
    {id,cat,name,price,emoji,blurb,tag?,sizes?} price is USD retail.
@@ -401,6 +416,9 @@ function renderCheckout(){
   var usd=cartUsd();
   $('ditems').innerHTML=
     '<button class="back" id="backCart">‹ back to cart</button>'+
+    '<div class="perksbox" id="perksBox"><div class="pl">🎁 $CHRONIC holder perks</div>'+
+      '<div class="pbody" id="perksBody">hold $CHRONIC for up to <b>15% off</b> + earn <b>'+CASHBACK_PCT+'% cashback</b> in $CHRONIC on every order.</div>'+
+      '<button class="pbtn" id="perksBtn">connect &amp; check my perks</button></div>'+
     '<div class="field"><label>Full name</label><input id="f_name" autocomplete="name" placeholder="Sk. Eleton"/></div>'+
     '<div class="field"><label>Email (order updates)</label><input id="f_email" type="email" autocomplete="email" placeholder="you@email.com"/></div>'+
     '<div class="field"><label>Street address</label><input id="f_addr" autocomplete="street-address" placeholder="420 Burn St, Apt 7"/></div>'+
@@ -410,17 +428,45 @@ function renderCheckout(){
     '<div class="field"><label>Country</label><input id="f_country" value="US"/></div></div>'+
     '<label class="chk"><input type="checkbox" id="f_age"/> <span>I confirm I\'m 21+ and these accessories are for legal use. Crypto payments are final.</span></label>';
   $('backCart').onclick=function(){checkoutMode=false;renderDrawer();};
+  $('perksBtn').onclick=checkPerks;
   $('dfoot').innerHTML=
     '<div class="paytabs"><button class="ptab" data-m="SOL">◎ SOL</button><button class="ptab" data-m="USDC">＄ USDC</button></div>'+
-    '<div class="tot"><span>Total</span><span class="g">$'+usd.toFixed(2)+'</span></div>'+
+    '<div class="tot"><span>Total</span><span class="g" id="totVal">$'+usd.toFixed(2)+'</span></div>'+
     '<div class="sol" id="solLine2">≈ … </div>'+
     '<button class="cta" id="payBtn">Pay</button>';
-  Array.prototype.forEach.call($('dfoot').querySelectorAll('.ptab'),function(b){b.onclick=function(){payMethod=b.getAttribute('data-m');paintPayTabs();updatePayLine(usd);};});
-  paintPayTabs();updatePayLine(usd);
+  Array.prototype.forEach.call($('dfoot').querySelectorAll('.ptab'),function(b){b.onclick=function(){payMethod=b.getAttribute('data-m');paintPayTabs();refreshTotals();};});
+  paintPayTabs();refreshTotals();
   $('payBtn').onclick=pay;
 }
 function paintPayTabs(){var f=$('dfoot');if(!f)return;Array.prototype.forEach.call(f.querySelectorAll('.ptab'),function(b){b.className='ptab'+(b.getAttribute('data-m')===payMethod?' on':'');});var pb=$('payBtn');if(pb)pb.textContent=payMethod==='USDC'?'＄ Pay with USDC':'◎ Pay with SOL';}
+function netUsd(){return cartUsd()*(1-discountPct/100);}
+function refreshTotals(){var g=cartUsd(),n=netUsd();var tv=$('totVal');if(tv)tv.innerHTML=discountPct?('<s style="color:var(--dim);font-weight:400">$'+g.toFixed(2)+'</s> $'+n.toFixed(2)):('$'+g.toFixed(2));updatePayLine(n);}
 function updatePayLine(usd){var el=$('solLine2');if(!el)return;if(payMethod==='USDC'){el.textContent='= '+usd.toFixed(2)+' USDC  ·  ＄1 each, no price swings';}else{updateSolLine(usd,'solLine2');}}
+/* ─── $CHRONIC holder perks (on-chain balance check) ─── */
+var _cpx=0;
+async function chronicPrice(){if(_cpx)return _cpx;try{var r=await fetch('https://lite-api.jup.ag/price/v2?ids='+CHRONIC_MINT);var j=await r.json();var p=j&&j.data&&j.data[CHRONIC_MINT]&&Number(j.data[CHRONIC_MINT].price);if(p>0){_cpx=p;return p;}}catch(e){}return 0;}
+async function chronicBalance(buyer){
+  try{var w3=await web3();var c=conn(w3);var res=await c.getParsedTokenAccountsByOwner(buyer,{mint:new w3.PublicKey(CHRONIC_MINT)});
+    var bal=0;(res.value||[]).forEach(function(a){try{bal+=Number(a.account.data.parsed.info.tokenAmount.uiAmount||0);}catch(e){}});return bal;
+  }catch(e){return 0;}
+}
+async function checkPerks(){
+  var p=provider();
+  if(!p){if(isMobile()){var t=encodeURIComponent(location.href);location.href='https://phantom.app/ul/browse/'+t+'?ref='+encodeURIComponent('https://www.burnchronic.xyz');return;}toast('connect Phantom to check perks',true);return;}
+  var btn=$('perksBtn');btn.disabled=true;btn.textContent='reading wallet…';
+  try{
+    var w3=await web3();var resp=await p.connect();var buyer=new w3.PublicKey(resp.publicKey.toString());
+    holderBal=await chronicBalance(buyer);discountPct=tierFor(holderBal);
+    var px=await chronicPrice();var cashTok=px?(netUsd()*CASHBACK_PCT/100)/px:0;
+    var next=DISCOUNT_TIERS.slice().reverse().filter(function(t){return holderBal<t.min;})[0];
+    var body='you hold <b>'+fmt(holderBal)+' $CHRONIC</b><br>';
+    body+=discountPct?('🎁 <b style="color:var(--green)">'+discountPct+'% holder discount applied</b><br>'):('no discount tier yet'+(next?(' — hold <b>'+fmt(next.min)+'</b> for '+next.pct+'% off':'')+'<br>'):'<br>');
+    body+='🪙 earn ≈ <b>'+fmt(cashTok)+' $CHRONIC</b> cashback'+(px?'':' (price n/a)');
+    if(!discountPct&&!holderBal)body+='<br><a href="https://www.burnchronic.xyz/buy" style="color:var(--green)">get $CHRONIC →</a>';
+    $('perksBody').innerHTML=body;btn.style.display='none';
+    refreshTotals();
+  }catch(e){toast('could not read balance, try again',true);btn.disabled=false;btn.textContent='connect & check my perks';}
+}
 
 /* ─── pay (single-signer SOL transfer — per the HARD RULE) ─── */
 function provider(){var p=(window.phantom&&window.phantom.solana)||window.solana;return(p&&p.isPhantom)?p:null;}
@@ -445,13 +491,14 @@ function confirmSig(c,sig,btn){
 async function recordAndDone(sig,sol,usd,s){
   var items=Object.keys(cart).map(function(id){var pr=prodFor(id);var sz=sizeOf(id);return{id:baseId(id),size:sz,name:pr.name+(sz?' ('+sz+')':''),price:pr.price,qty:cart[id]};});
   var ref='';try{ref=localStorage.getItem('chronic_ref')||'';}catch(e){}
-  try{await fetch('/api/order',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({tx:sig,items:items,ship:s,totalSol:sol,totalUsd:usd,ref:ref})});}catch(e){}
-  cart={};syncCart();orderDone(sig);
+  var gross=cartUsd();var px=await chronicPrice();var cashback=px?Math.round((usd*CASHBACK_PCT/100)/px):0;
+  try{await fetch('/api/order',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({tx:sig,items:items,ship:s,totalSol:sol,totalUsd:usd,grossUsd:gross,discountPct:discountPct,cashback:cashback,holderBal:Math.round(holderBal),ref:ref})});}catch(e){}
+  cart={};discountPct=0;holderBal=0;syncCart();orderDone(sig,cashback);
 }
 // SOL: single SystemProgram transfer (per the HARD RULE: simulate -> signAndSend)
 async function paySol(s,p,btn){
   btn.textContent='getting SOL price…';
-  var usd=cartUsd();var px=await solPrice();
+  var usd=netUsd();var px=await solPrice();
   if(!px){toast('couldn\'t fetch SOL price, try again',true);return;}
   var sol=usd/px;var lamports=Math.round(sol*1e9);
   var w3=await web3();var c=conn(w3);
@@ -468,7 +515,7 @@ async function paySol(s,p,btn){
 }
 // USDC: SPL transferChecked (idempotent recipient ATA). 1 USDC ≈ $1, no price feed.
 async function payUsdc(s,p,btn){
-  var usd=cartUsd();var amount=Math.round(usd*1e6);
+  var usd=netUsd();var amount=Math.round(usd*1e6);
   var w3=await web3();var spl=await splLib();var c=conn(w3);
   var resp=await p.connect();var buyer=new w3.PublicKey(resp.publicKey.toString());
   btn.textContent='building order…';
@@ -498,10 +545,11 @@ async function pay(){
   finally{ if($('payBtn')){btn.disabled=false;btn.textContent=lab;} }
 }
 
-function orderDone(sig){
+function orderDone(sig,cashback){
   checkoutMode=false;
+  var cb=cashback?'<div class="note" style="margin-top:10px;color:var(--gold)">🪙 you earned ≈ <b>'+fmt(cashback)+' $CHRONIC</b> cashback — it drops to your wallet.</div>':'';
   $('ditems').innerHTML='<div class="ok"><div class="big">🌿</div><h3>order in. holders eat.</h3>'+
-    '<div class="note">we got it — your gear ships discreetly soon. confirmation\'s on its way to your email.<br><br>40% of your order just dripped to $CHRONIC holders. 🌿</div>'+
+    '<div class="note">we got it — your gear ships discreetly soon. confirmation\'s on its way to your email.<br><br>40% of your order just dripped to $CHRONIC holders. 🌿</div>'+cb+
     '<div class="note" style="margin-top:12px"><a href="/track?tx='+sig+'">📦 track order →</a> &nbsp;·&nbsp; <a href="https://solscan.io/tx/'+sig+'" target="_blank" rel="noopener">view payment ↗</a></div></div>';
   $('dfoot').innerHTML='<button class="cta" id="keepShop" style="background:linear-gradient(90deg,var(--green-dim),var(--green));color:#04140a">keep shopping</button>';
   $('keepShop').onclick=closeDrawer;

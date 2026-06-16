@@ -9,7 +9,11 @@ create table if not exists public.grow_orders (
   ship        jsonb not null,            -- {name,email,addr,city,state,zip,country}
   ref         text,                      -- referral code/wallet that sent the customer (nullable)
   total_sol   numeric default 0,
-  total_usd   numeric default 0,
+  total_usd   numeric default 0,         -- net charged (after holder discount)
+  gross_usd   numeric default 0,         -- pre-discount cart total
+  discount_pct      numeric default 0,   -- $CHRONIC holder discount applied
+  cashback_chronic  numeric default 0,   -- $CHRONIC owed to the buyer (paid out by worker)
+  holder_bal        numeric default 0,   -- buyer's $CHRONIC balance at checkout
   status      text default 'new',        -- new | ordered | shipped | done | refunded
   created_at  timestamptz default now()
 );
@@ -17,8 +21,12 @@ create table if not exists public.grow_orders (
 create index if not exists grow_orders_created_idx on public.grow_orders (created_at desc);
 create index if not exists grow_orders_status_idx  on public.grow_orders (status);
 
--- if the table already existed, add the referral column safely:
+-- if the table already existed, add the newer columns safely:
 alter table public.grow_orders add column if not exists ref text;
+alter table public.grow_orders add column if not exists gross_usd numeric default 0;
+alter table public.grow_orders add column if not exists discount_pct numeric default 0;
+alter table public.grow_orders add column if not exists cashback_chronic numeric default 0;  -- $CHRONIC owed to buyer
+alter table public.grow_orders add column if not exists holder_bal numeric default 0;
 
 alter table public.grow_orders enable row level security;
 -- No policies => anon/auth clients get nothing. The service key (used by

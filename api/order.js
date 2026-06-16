@@ -29,7 +29,7 @@ async function tgAlert(row) {
   const tok = process.env.TG_BOT_TOKEN, chat = process.env.TG_ORDER_CHAT;
   if (!tok || !chat) return;
   const items = row.items.map((i) => `• ${i.qty}× ${i.name}`).join('\n');
-  const text = `🛒 NEW ORDER  ${row.id}\n${items}\n\n💵 $${row.total_usd}  (${row.total_sol} SOL)\n📦 ${row.ship.name} — ${row.ship.city}, ${row.ship.state} ${row.ship.zip} ${row.ship.country}\n${row.ship.email ? '✉️ ' + row.ship.email + '\n' : ''}${row.ref ? '🔗 ref: ' + row.ref + '\n' : ''}🔎 https://solscan.io/tx/${row.tx}`;
+  const text = `🛒 NEW ORDER  ${row.id}\n${items}\n\n💵 $${row.total_usd}  (${row.total_sol} SOL)\n${row.discount_pct ? '🎁 ' + row.discount_pct + '% holder discount\n' : ''}${row.cashback_chronic ? '🪙 cashback owed: ' + row.cashback_chronic + ' $CHRONIC\n' : ''}📦 ${row.ship.name} — ${row.ship.city}, ${row.ship.state} ${row.ship.zip} ${row.ship.country}\n${row.ship.email ? '✉️ ' + row.ship.email + '\n' : ''}${row.ref ? '🔗 ref: ' + row.ref + '\n' : ''}🔎 https://solscan.io/tx/${row.tx}`;
   try {
     await fetch(`https://api.telegram.org/bot${tok}/sendMessage`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
@@ -83,7 +83,11 @@ module.exports = async (req, res) => {
     id, tx, items, ship,
     ref: S(b.ref, 80).trim() || null,
     total_sol: Number(b.totalSol) || 0,
-    total_usd: Number(b.totalUsd) || 0,
+    total_usd: Number(b.totalUsd) || 0,       // net charged (after holder discount)
+    gross_usd: Number(b.grossUsd) || Number(b.totalUsd) || 0,
+    discount_pct: Number(b.discountPct) || 0,
+    cashback_chronic: Number(b.cashback) || 0, // $CHRONIC owed to buyer (paid out by worker)
+    holder_bal: Number(b.holderBal) || 0,
     status: 'new',
     created_at: new Date().toISOString(),
   };
