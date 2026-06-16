@@ -1,9 +1,11 @@
 {
   "cleanUrls": true,
+  "redirects": [
+    { "source": "/", "has": [{ "type": "host", "value": "burnchronic.store" }], "destination": "/shop", "permanent": false },
+    { "source": "/", "has": [{ "type": "host", "value": "www.burnchronic.store" }], "destination": "/shop", "permanent": false }
+  ],
   "rewrites": [
-    { "source": "/flex", "destination": "/api/flex" },
-    { "source": "/", "has": [{ "type": "host", "value": "burnchronic.store" }], "destination": "/shop" },
-    { "source": "/", "has": [{ "type": "host", "value": "www.burnchronic.store" }], "destination": "/shop" }
+    { "source": "/flex", "destination": "/api/flex" }
   ],
   "headers": [
     {
