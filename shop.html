@@ -144,10 +144,13 @@ var $=function(i){return document.getElementById(i);};
 var _th;function toast(m,bad){var t=$('toast');t.textContent=m;t.className='toast show'+(bad?' bad':'');clearTimeout(_th);_th=setTimeout(function(){t.className='toast';},2200);}
 
 /* ─── config (edit these) ─────────────────────────────────────────────
-   SHOP_WALLET receives the SOL. Use your ops wallet: it covers the supplier
-   cost (SmokeDrop / MHGP), pays the team + running costs, and a CUT of the
-   margin feeds the buy-&-burn. The shop is a revenue engine, not a 100% burn —
-   only promise the burn cut you can actually sustain. */
+   SHOP_WALLET receives the SOL.
+   PHASE 1 (now): all order payments go straight to the DEV wallet. You pay the
+   supplier (SmokeDrop / MHGP) and the team from it, and send SOL to the burn
+   manually, as much as you choose.
+   PHASE 2 (later): point this at a dedicated FULFILLMENT wallet. A worker
+   (tools/fulfill.js) auto-sells enough SOL to cover the supplier cost of each
+   order, then forwards the rest (profit) to the dev wallet. */
 var SHOP_WALLET='E7Cr2nad1SvBWF8vcGhNW575UVVPdTcgHEqSTMQzoUr5';
 
 /* Starter catalog — swap names/prices/emoji for your live SmokeDrop SKUs.
