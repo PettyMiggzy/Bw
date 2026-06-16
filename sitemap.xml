@@ -11,4 +11,10 @@
       <image:title>CHRONIC Smoke Shop</image:title>
     </image:image>
   </url>
+  <url>
+    <loc>https://burnchronic.store/merchpad</loc>
+    <lastmod>2026-06-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>

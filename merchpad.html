@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>🏭 Merch Pad — launch your project's merch, pay in crypto · CHRONIC</title>
+<meta name="description" content="Launch a branded merch store for your crypto project with zero inventory and zero upfront cost. Print-on-demand, crypto checkout, we handle the tech — you earn on every sale." />
+<meta name="keywords" content="crypto merch, web3 merch, print on demand crypto, memecoin merch store, launch merch, merch as a service, pay with crypto merch" />
+<meta name="robots" content="index, follow, max-image-preview:large" />
+<meta name="theme-color" content="#070a07" />
+<link rel="canonical" href="https://burnchronic.store/merchpad" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="CHRONIC Merch Pad" />
+<meta property="og:url" content="https://burnchronic.store/merchpad" />
+<meta property="og:title" content="🏭 Merch Pad — launch your project's merch, pay in crypto" />
+<meta property="og:description" content="Zero inventory, zero upfront. Print-on-demand merch store + crypto checkout for your project. You earn on every sale." />
+<meta property="og:image" content="https://www.burnchronic.xyz/assets/og-chronic.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="@chronicinmysol" />
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=4" />
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+:root{--void:#070a07;--panel:#101a12;--green:#52ff8f;--green-dim:#2bd96a;--green-deep:#0c3d22;--ember:#ff6a2b;--ember2:#ff3d1f;--gold:#f5cf57;--purple:#a85cff;--text:#e9ffe9;--dim:#84a78d;--line:rgba(82,255,143,.16);--fd:'Bungee',sans-serif;--fh:'Bungee Shade',sans-serif;--fm:'Space Mono',monospace;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--void);color:var(--text);font-family:var(--fm);min-height:100vh;background-image:radial-gradient(120% 55% at 50% -10%,rgba(168,92,255,.13),transparent 60%),radial-gradient(80% 50% at 100% 14%,rgba(82,255,143,.1),transparent 55%)}
+a{color:inherit}
+.bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;backdrop-filter:blur(12px);background:linear-gradient(180deg,rgba(7,10,7,.94),rgba(7,10,7,.45));border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:9px;font-family:var(--fd);color:var(--gold);font-size:15px;text-decoration:none}
+.brand img{width:26px;height:26px;border-radius:7px}
+.bar a.nav{color:var(--dim);font-size:12px;text-decoration:none}
+.wrap{max-width:680px;margin:0 auto;padding:24px 16px 90px}
+h1{font-family:var(--fh);font-size:clamp(30px,9vw,52px);text-align:center;color:var(--purple);text-shadow:0 0 28px rgba(168,92,255,.45),3px 3px 0 #2a1147;margin-bottom:6px}
+.sub{text-align:center;color:var(--dim);font-size:12px;letter-spacing:.05em;margin-bottom:18px;line-height:1.6}
+.sub b{color:var(--gold)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}
+.steps .s{background:linear-gradient(180deg,rgba(16,26,18,.9),rgba(10,15,11,.92));border:1px solid var(--line);border-radius:14px;padding:14px 10px;text-align:center}
+.steps .s .e{font-size:30px}.steps .s b{display:block;font-family:var(--fd);color:var(--green);font-size:12px;margin:6px 0 4px}.steps .s span{font-size:10px;color:var(--dim);line-height:1.5}
+.sec{font-family:var(--fd);font-size:13px;letter-spacing:.08em;color:var(--gold);text-transform:uppercase;margin:22px 0 10px}
+.card{background:linear-gradient(180deg,rgba(16,26,18,.9),rgba(10,15,11,.92));border:1px solid var(--line);border-radius:16px;padding:16px}
+.perks{list-style:none;display:grid;gap:9px}
+.perks li{font-size:12.5px;line-height:1.5;color:var(--text);padding-left:24px;position:relative}
+.perks li::before{content:"🌿";position:absolute;left:0}
+.perks li b{color:var(--gold)}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:11px}
+.field label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.field input,.field textarea{background:rgba(7,10,7,.6);border:1px solid var(--line);border-radius:9px;color:var(--text);font-family:var(--fm);font-size:13px;padding:11px}
+.field input:focus,.field textarea:focus{outline:0;border-color:var(--green-dim)}
+.field textarea{resize:vertical;min-height:64px}
+.cta{font-family:var(--fd);font-size:14px;background:linear-gradient(90deg,var(--purple),#7d3fd6);color:#fff;border:0;border-radius:12px;padding:14px;cursor:pointer;width:100%}
+.cta:disabled{opacity:.5}
+.ok{text-align:center;padding:24px 6px}.ok .big{font-size:48px}.ok h3{font-family:var(--fd);color:var(--green);margin:8px 0}.ok .note{font-size:12px;color:var(--dim);line-height:1.6}
+.foot{text-align:center;margin-top:20px;font-size:11px;color:var(--dim)}.foot a{color:var(--green);text-decoration:none}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);z-index:40;opacity:0;background:var(--green);color:#04140a;font-family:var(--fd);font-size:12px;padding:11px 18px;border-radius:30px;transition:.25s;pointer-events:none;text-align:center;max-width:92vw}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.toast.bad{background:var(--ember2);color:#fff}
+</style>
+</head>
+<body>
+<div class="bar">
+  <a class="brand" href="/shop"><img src="/assets/logo-chronic.png" alt="CHRONIC"/>MERCH PAD</a>
+  <a class="nav" href="/shop">‹ shop</a>
+</div>
+<div class="wrap">
+  <h1>MERCH PAD</h1>
+  <div class="sub">launch your project's merch store — <b>zero inventory, zero upfront.</b><br>print-on-demand + crypto checkout. you earn on every sale. 🏭</div>
+
+  <div class="steps">
+    <div class="s"><div class="e">🎨</div><b>1. Send art</b><span>your logo + what you want on it</span></div>
+    <div class="s"><div class="e">🛒</div><b>2. We build it</b><span>a branded store, crypto checkout</span></div>
+    <div class="s"><div class="e">🪙</div><b>3. You earn</b><span>cut of every sale, paid in crypto</span></div>
+  </div>
+
+  <div class="sec">Why Merch Pad</div>
+  <div class="card">
+    <ul class="perks">
+      <li><b>No inventory, no upfront cost.</b> Print-on-demand — items only get made when someone orders. You risk nothing.</li>
+      <li><b>Crypto checkout built in.</b> Your community pays in SOL or USDC. No card processor, no bank, no "merch category" bans.</li>
+      <li><b>We handle the tech.</b> Store, payments, fulfillment routing — done. You just bring the art and the audience.</li>
+      <li><b>You keep a cut of every sale</b>, paid straight to your wallet. Passive merch revenue for your project.</li>
+      <li><b>Discreet, worldwide shipping</b> handled for you. Tees, hoodies, hats, stickers, mugs, more.</li>
+    </ul>
+  </div>
+
+  <div class="sec">Request your store</div>
+  <div class="card" id="formCard">
+    <div class="field"><label>Project / brand name *</label><input id="m_project" maxlength="80" placeholder="$YOURCOIN"/></div>
+    <div class="field"><label>Your name</label><input id="m_name" maxlength="80" placeholder="who are you?"/></div>
+    <div class="field"><label>Contact (email / Telegram / X) *</label><input id="m_contact" maxlength="160" placeholder="@you or you@email.com"/></div>
+    <div class="field"><label>Payout wallet (SOL, optional)</label><input id="m_wallet" maxlength="80" placeholder="where you want your cut"/></div>
+    <div class="field"><label>Logo / art link (optional)</label><input id="m_art" maxlength="300" placeholder="drive / imgur / ipfs link"/></div>
+    <div class="field"><label>What do you want?</label><textarea id="m_details" maxlength="1000" placeholder="tees + hoodies, drop your vibe, any ideas…"></textarea></div>
+    <button class="cta" id="m_submit">🏭 Request my merch store</button>
+  </div>
+
+  <div class="foot">🛒 <a href="/shop">shop</a> · 🚀 <a href="https://www.burnchronic.xyz/launch">token launchpad</a> · 📧 <a href="mailto:team@burnchronic.xyz">team@burnchronic.xyz</a></div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+var $=function(i){return document.getElementById(i);};
+var _th;function toast(m,bad){var t=$('toast');t.textContent=m;t.className='toast show'+(bad?' bad':'');clearTimeout(_th);_th=setTimeout(function(){t.className='toast';},2400);}
+$('m_submit').onclick=async function(){
+  var project=($('m_project').value||'').trim(),contact=($('m_contact').value||'').trim();
+  if(!project){toast('add your project name',true);return;}
+  if(!contact){toast('add a contact so we can reach you',true);return;}
+  var btn=$('m_submit');btn.disabled=true;var lab=btn.textContent;btn.textContent='sending…';
+  try{
+    var r=await fetch('/api/merchpad',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
+      project:project,contactName:($('m_name').value||'').trim(),contact:contact,
+      wallet:($('m_wallet').value||'').trim(),artUrl:($('m_art').value||'').trim(),details:($('m_details').value||'').trim()
+    })});
+    var d=await r.json();
+    if(!r.ok){toast(d.error||'something broke, try again',true);btn.disabled=false;btn.textContent=lab;return;}
+    $('formCard').innerHTML='<div class="ok"><div class="big">🏭</div><h3>request in 🌿</h3><div class="note">we got it — the skeleton will reach out at <b style="color:var(--green)">'+contact.replace(/[<>&]/g,'')+'</b> to set up your store. talk soon.</div></div>';
+  }catch(e){toast('network hiccup, try again',true);btn.disabled=false;btn.textContent=lab;}
+};
+</script>
+</body>
+</html>
