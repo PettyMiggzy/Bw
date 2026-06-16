@@ -79,8 +79,10 @@ module.exports = async (req, res) => {
   }
 
   const id = tx.slice(0, 16);
+  const buyerWallet = S(b.buyer, 50).trim();
   const row = {
     id, tx, items, ship,
+    buyer_wallet: /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(buyerWallet) ? buyerWallet : null,
     ref: S(b.ref, 80).trim() || null,
     total_sol: Number(b.totalSol) || 0,
     total_usd: Number(b.totalUsd) || 0,       // net charged (after holder discount)

@@ -8,6 +8,8 @@
     "start": "node newmints-listener.js",
     "settle": "node settle-season.js",
     "settle:dry": "node settle-season.js --dry",
+    "cashback": "node cashback.js",
+    "cashback:dry": "node cashback.js --dry",
     "post": "node poster.js",
     "post:dry": "node poster.js --dry",
     "newmints": "node newmints-listener.js",

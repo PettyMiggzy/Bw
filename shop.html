@@ -489,11 +489,11 @@ function confirmSig(c,sig,btn){
     for(var i=0;i<30;i++){try{var st=await c.getSignatureStatuses([sig]);var v=st&&st.value&&st.value[0];if(v&&(v.confirmationStatus==='confirmed'||v.confirmationStatus==='finalized')){if(v.err)throw new Error('payment failed');return;}}catch(e){if(/payment failed/.test(e.message))throw e;}await new Promise(function(r){setTimeout(r,1500);});}
   })();
 }
-async function recordAndDone(sig,sol,usd,s){
+async function recordAndDone(sig,sol,usd,s,buyerWallet){
   var items=Object.keys(cart).map(function(id){var pr=prodFor(id);var sz=sizeOf(id);return{id:baseId(id),size:sz,name:pr.name+(sz?' ('+sz+')':''),price:pr.price,qty:cart[id]};});
   var ref='';try{ref=localStorage.getItem('chronic_ref')||'';}catch(e){}
   var gross=cartUsd();var px=await chronicPrice();var cashback=px?Math.round((usd*CASHBACK_PCT/100)/px):0;
-  try{await fetch('/api/order',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({tx:sig,items:items,ship:s,totalSol:sol,totalUsd:usd,grossUsd:gross,discountPct:discountPct,cashback:cashback,holderBal:Math.round(holderBal),ref:ref})});}catch(e){}
+  try{await fetch('/api/order',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({tx:sig,items:items,ship:s,buyer:buyerWallet||'',totalSol:sol,totalUsd:usd,grossUsd:gross,discountPct:discountPct,cashback:cashback,holderBal:Math.round(holderBal),ref:ref})});}catch(e){}
   cart={};discountPct=0;holderBal=0;syncCart();orderDone(sig,cashback);
 }
 // SOL: single SystemProgram transfer (per the HARD RULE: simulate -> signAndSend)
@@ -512,7 +512,7 @@ async function paySol(s,p,btn){
   btn.textContent='approve in wallet ◎';
   var sig=await chronicSignAndSend(p,tx,c);
   await confirmSig(c,sig,btn);
-  await recordAndDone(sig,sol,usd,s);
+  await recordAndDone(sig,sol,usd,s,buyer.toString());
 }
 // USDC: SPL transferChecked (idempotent recipient ATA). 1 USDC ≈ $1, no price feed.
 async function payUsdc(s,p,btn){
@@ -532,7 +532,7 @@ async function payUsdc(s,p,btn){
   btn.textContent='approve in wallet ＄';
   var sig=await chronicSignAndSend(p,tx,c);
   await confirmSig(c,sig,btn);
-  await recordAndDone(sig,0,usd,s);
+  await recordAndDone(sig,0,usd,s,buyer.toString());
 }
 async function pay(){
   var s=ship();
