@@ -103,6 +103,7 @@ h1{font-family:var(--fh);font-size:clamp(28px,8vw,48px);text-align:center;color:
 .pr{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:2px}
 .pr .p{font-family:var(--fd);color:var(--green);font-size:14px}
 .add{font-family:var(--fd);font-size:10px;background:var(--green);color:#04140a;border:0;border-radius:9px;padding:8px 11px;cursor:pointer}
+.szsel{width:100%;background:rgba(7,10,7,.6);border:1px solid var(--line);border-radius:8px;color:var(--text);font-family:var(--fm);font-size:11px;padding:6px 8px;margin-top:2px}
 .note{font-size:11px;color:var(--dim);line-height:1.6}
 .trust{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0 4px}
 .trust div{background:rgba(7,10,7,.5);border:1px solid var(--line);border-radius:11px;padding:11px 8px;text-align:center;font-size:10px;color:var(--dim)}
@@ -241,7 +242,8 @@ var _th;function toast(m,bad){var t=$('toast');t.textContent=m;t.className='toas
 var SHOP_WALLET='E7Cr2nad1SvBWF8vcGhNW575UVVPdTcgHEqSTMQzoUr5';
 
 /* Starter catalog — swap names/prices/emoji for your live SmokeDrop SKUs.
-   {id,cat,name,price,emoji,blurb,tag?} price is USD retail. */
+   {id,cat,name,price,emoji,blurb,tag?,sizes?} price is USD retail.
+   Merch = print-on-demand (Printful/Printify): no inventory, printed per order. */
 var PRODUCTS=[
   {id:'grind-4p',cat:'Grinders',name:'4-Piece Metal Grinder',price:24,emoji:'⚙️',blurb:'Aircraft-grade aluminum, kief catcher + scraper.'},
   {id:'grind-chr',cat:'Grinders',name:'$CHRONIC Skull Grinder',price:34,emoji:'💀',blurb:'Branded 4-piece. the skeleton grinds with you.',tag:'BRANDED'},
@@ -258,16 +260,23 @@ var PRODUCTS=[
   {id:'torch-clip',cat:'Lighters',name:'$CHRONIC Clipper Lighter',price:5,emoji:'🟩',blurb:'Refillable, built-in poker. branded.',tag:'BRANDED'},
   {id:'clean-kit',cat:'Stash',name:'Glass Cleaning Kit',price:13,emoji:'🧽',blurb:'Caps, brushes + solution. fresh rips only.'},
   {id:'ashtray-chr',cat:'Trays',name:'$CHRONIC Ashtray',price:15,emoji:'🪦',blurb:'Heavy silicone, skeleton mold, no tip-overs.',tag:'BRANDED'},
-  {id:'glass-bub',cat:'Glass',name:'Silicone Bubbler',price:22,emoji:'🫧',blurb:'Unbreakable, glass bowl, easy to clean.'}
+  {id:'glass-bub',cat:'Glass',name:'Silicone Bubbler',price:22,emoji:'🫧',blurb:'Unbreakable, glass bowl, easy to clean.'},
+  {id:'tee-skull',cat:'Merch',name:'$CHRONIC Skeleton Tee',price:28,emoji:'👕',blurb:'Soft cotton tee, the skeleton front & center.',tag:'BRANDED',sizes:['S','M','L','XL','2XL']},
+  {id:'hoodie-skull',cat:'Merch',name:'$CHRONIC Hoodie',price:48,emoji:'🧥',blurb:'Heavyweight hoodie, embroidered skeleton.',tag:'BRANDED',sizes:['S','M','L','XL','2XL']},
+  {id:'hat-dad',cat:'Merch',name:'$CHRONIC Dad Hat',price:26,emoji:'🧢',blurb:'Low-profile cap, stitched logo. one size.',tag:'BRANDED'},
+  {id:'beanie',cat:'Merch',name:'$CHRONIC Beanie',price:24,emoji:'🎩',blurb:'Cuffed knit beanie for the cold trenches.',tag:'BRANDED'},
+  {id:'stickers',cat:'Merch',name:'Sticker Pack (5)',price:8,emoji:'🩹',blurb:'Five die-cut skeleton stickers. slap em everywhere.',tag:'BRANDED'}
 ];
 
-var CATS=['All','Grinders','Glass','Trays','Papers','Stash','Lighters'];
+var CATS=['All','Merch','Grinders','Glass','Trays','Papers','Stash','Lighters'];
 var activeCat='All';
 var cart={}; // id -> qty
 
 /* ─── render catalog ─── */
-function emojiFor(id){var p=PRODUCTS.filter(function(x){return x.id===id;})[0];return p?p.emoji:'🛒';}
-function prodFor(id){return PRODUCTS.filter(function(x){return x.id===id;})[0];}
+function baseId(k){return String(k).split('__')[0];}
+function sizeOf(k){return String(k).split('__')[1]||'';}
+function emojiFor(id){var p=prodFor(id);return p?p.emoji:'🛒';}
+function prodFor(id){var b=baseId(id);return PRODUCTS.filter(function(x){return x.id===b;})[0];}
 function renderCats(){
   $('cats').innerHTML='';
   CATS.forEach(function(c){
@@ -279,18 +288,20 @@ function renderGrid(){
   var g=$('grid');g.innerHTML='';
   PRODUCTS.filter(function(p){return activeCat==='All'||p.cat===activeCat;}).forEach(function(p){
     var d=document.createElement('div');d.className='card';
+    var szSel=p.sizes?'<select class="szsel" aria-label="size for '+p.name+'">'+p.sizes.map(function(s){return '<option>'+s+'</option>';}).join('')+'</select>':'';
     d.innerHTML='<div class="thumb" role="img" aria-label="'+p.name+'">'+(p.tag?'<span class="tag">'+p.tag+'</span>':'')+p.emoji+'</div>'+
-      '<div class="info"><h3 class="nm">'+p.name+'</h3><div class="bl">'+p.blurb+'</div>'+
+      '<div class="info"><h3 class="nm">'+p.name+'</h3><div class="bl">'+p.blurb+'</div>'+szSel+
       '<div class="pr"><span class="p">$'+p.price+'</span><button class="add" aria-label="Add '+p.name+' to cart">+ add</button></div></div>';
-    d.querySelector('.add').onclick=function(){addToCart(p.id);};
+    var sel=d.querySelector('.szsel');
+    d.querySelector('.add').onclick=function(){addToCart(p.id,sel?sel.value:'');};
     g.appendChild(d);
   });
 }
 
-/* ─── cart ─── */
+/* ─── cart (keys are id, or id__SIZE for sized merch) ─── */
 function cartCount(){var n=0;for(var k in cart)n+=cart[k];return n;}
 function cartUsd(){var t=0;for(var k in cart){var p=prodFor(k);if(p)t+=p.price*cart[k];}return t;}
-function addToCart(id){cart[id]=(cart[id]||0)+1;syncCart();toast('added ✓');openDrawer();}
+function addToCart(id,size){var key=size?(id+'__'+size):id;cart[key]=(cart[key]||0)+1;syncCart();toast('added ✓');openDrawer();}
 function setQty(id,n){if(n<=0)delete cart[id];else cart[id]=n;syncCart();}
 function syncCart(){
   var n=cartCount();$('cartN').textContent=n;$('cartN').style.display=n?'flex':'none';
@@ -308,9 +319,9 @@ function renderDrawer(){
   if(!keys.length){items.innerHTML='<div class="empty">your cart\'s empty 🦴<br>go grab some gear</div>';foot.innerHTML='';return;}
   items.innerHTML='';
   keys.forEach(function(id){
-    var p=prodFor(id);if(!p)return;var q=cart[id];
+    var p=prodFor(id);if(!p)return;var q=cart[id];var sz=sizeOf(id);
     var row=document.createElement('div');row.className='li';
-    row.innerHTML='<div class="e">'+p.emoji+'</div><div class="x"><div class="n">'+p.name+'</div><div class="s">$'+p.price+' each</div></div>'+
+    row.innerHTML='<div class="e">'+p.emoji+'</div><div class="x"><div class="n">'+p.name+(sz?' · '+sz:'')+'</div><div class="s">$'+p.price+' each</div></div>'+
       '<div class="qty"><button>−</button><b>'+q+'</b><button>+</button></div>';
     var btns=row.querySelectorAll('.qty button');
     btns[0].onclick=function(){setQty(id,q-1);};btns[1].onclick=function(){setQty(id,q+1);};
@@ -392,7 +403,7 @@ async function pay(){
     var sig=await chronicSignAndSend(p,tx,c);
     btn.textContent='confirming… ⛓';
     for(var i=0;i<30;i++){try{var st=await c.getSignatureStatuses([sig]);var v=st&&st.value&&st.value[0];if(v&&(v.confirmationStatus==='confirmed'||v.confirmationStatus==='finalized')){if(v.err)throw new Error('payment failed');break;}}catch(e){if(/payment failed/.test(e.message))throw e;}await new Promise(function(r){setTimeout(r,1500);});}
-    var items=Object.keys(cart).map(function(id){var pr=prodFor(id);return{id:id,name:pr.name,price:pr.price,qty:cart[id]};});
+    var items=Object.keys(cart).map(function(id){var pr=prodFor(id);var sz=sizeOf(id);return{id:baseId(id),size:sz,name:pr.name+(sz?' ('+sz+')':''),price:pr.price,qty:cart[id]};});
     try{await fetch('/api/order',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({tx:sig,items:items,ship:s,totalSol:sol,totalUsd:usd})});}catch(e){}
     cart={};syncCart();orderDone(sig);
   }catch(e){toast(/reject|cancel/i.test((e&&e.message)||'')?'cancelled':'payment failed: '+((e&&e.message)||e),true);btn.disabled=false;btn.textContent=lab;}
