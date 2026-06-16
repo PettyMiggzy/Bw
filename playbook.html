@@ -39,6 +39,7 @@ h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:
 .btn.x{background:#111;border:1px solid var(--line);color:var(--text)}
 .note{font-size:11px;color:var(--dim);line-height:1.6;margin-bottom:8px}
 .foot{text-align:center;margin-top:18px;font-size:11px;color:var(--dim)}.foot a{color:var(--green);text-decoration:none}
+.chip{font-family:var(--fm);font-size:10px;background:rgba(7,10,7,.6);border:1px solid var(--line);color:var(--green);border-radius:20px;padding:6px 11px;cursor:pointer}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);z-index:40;opacity:0;background:var(--green);color:#04140a;font-family:var(--fd);font-size:12px;padding:11px 18px;border-radius:30px;transition:.25s;pointer-events:none;text-align:center;max-width:92vw}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
@@ -75,6 +76,17 @@ h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:
       <li><b>Lead with the terminal + pad.</b> Every post. It's the flex no other microcap has.</li>
       <li><b>Reward raiders.</b> Top raiders win $CHRONIC. People shill what they own.</li>
     </ol>
+  </div>
+
+  <div class="sec">💀 Talk like the skeleton (the voice)</div>
+  <div class="card strat">
+    <div class="note" style="margin-bottom:10px">Everyone posting in ONE voice = it feels like a movement, not noise. BONK = the dog. <b style="color:var(--gold)">$CHRONIC = the skeleton who smoked himself to the bone and never put it out.</b> Calm, dry, burnt, confident. Lowercase. Never desperate.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;line-height:1.5">
+      <div><div style="color:var(--ember);font-family:var(--fd);font-size:10px;margin-bottom:5px">❌ DON'T</div>🚀🚀 100X DONT MISS OUT<br/>"pls buy we're undervalued"<br/>"big things coming fam!! 🔥🔥🔥"<br/>10 hashtags / emoji spam<br/>promise price</div>
+      <div><div style="color:var(--green);font-family:var(--fd);font-size:10px;margin-bottom:5px">✅ DO</div>"we built a terminal. we're 3k mc. ok. 💀"<br/>lead with the product<br/>post daily, in character<br/>punch up: "cute chart. does it have a terminal?"<br/>burn-cult energy</div>
+    </div>
+    <div class="note" style="margin-top:10px;margin-bottom:6px"><b style="color:var(--gold)">Signature lines</b> (tap to copy — sprinkle these):</div>
+    <div id="phrases" class="row"></div>
   </div>
 
   <div class="sec">📣 Main posts — tap copy</div>
@@ -131,6 +143,9 @@ function postCard(text,withTweet){
   if(withTweet){var a=document.createElement('a');a.className='btn x';a.target='_blank';a.rel='noopener';a.href='https://twitter.com/intent/tweet?text='+encodeURIComponent(text);a.textContent='🐦 Tweet';row.appendChild(a);}
   d.appendChild(row);return d;
 }
+var PHRASES=["burn it, don't hoard it 🔥","supply only goes down 💀","the smoke never clears","the last head standing","you're not late, you're first","feed the fire 🌿","the skeleton built this while high","i'm not even that high 💀"];
+PHRASES.forEach(function(p){var b=document.createElement('button');b.className='chip';b.textContent=p;b.onclick=function(){copy(p,'line copied 💀');};$('phrases').appendChild(b);});
+
 POSTS.forEach(function(t){$('posts').appendChild(postCard(t,true));});
 REPLIES.forEach(function(t){$('replies').appendChild(postCard(t,false));});
 $('callerdm').appendChild(postCard(CALLER,false));
