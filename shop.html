@@ -4,10 +4,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>🛒 Shop · $CHRONIC</title>
-<meta name="description" content="The $CHRONIC smoke shop — grinders, glass, rolling trays, papers & stash gear. Pay in SOL, profits feed the on-chain burn. 21+." />
+<meta name="description" content="The $CHRONIC smoke shop — grinders, glass, rolling trays, papers & stash gear. Pay in SOL, a cut of every order feeds the on-chain burn. 21+." />
 <link rel="canonical" href="https://www.burnchronic.xyz/shop" />
 <meta property="og:title" content="🛒 $CHRONIC Smoke Shop" />
-<meta property="og:description" content="Grinders, glass, trays, papers & stash — pay in SOL, profits feed the burn. 🔥" />
+<meta property="og:description" content="Grinders, glass, trays, papers & stash — pay in SOL, a cut of every order feeds the burn. 🔥" />
 <meta property="og:image" content="https://www.burnchronic.xyz/assets/og-chronic.jpg" />
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=4" />
@@ -102,7 +102,7 @@ h1{font-family:var(--fh);font-size:clamp(28px,8vw,48px);text-align:center;color:
 <div class="wrap">
   <h1>THE SMOKE SHOP</h1>
   <div class="sub">grinders · glass · trays · papers · stash</div>
-  <div class="pitch">Real gear, shipped to your door. <b>Pay in SOL</b> — every order's profit feeds the on-chain <b>buy-&-burn</b>. you cop, supply drops. 🔥</div>
+  <div class="pitch">Real gear, shipped to your door. <b>Pay in SOL</b> — a cut of every order feeds the on-chain <b>buy-&-burn</b>. you cop, supply drops. 🔥</div>
 
   <div class="cats" id="cats"></div>
   <div class="grid" id="grid"></div>
@@ -110,7 +110,7 @@ h1{font-family:var(--fh);font-size:clamp(28px,8vw,48px);text-align:center;color:
   <div class="trust">
     <div><b>🚚 Fast ship</b>discreet, plain-package delivery</div>
     <div><b>◎ Pay in SOL</b>no card, no bank, instant</div>
-    <div><b>🔥 Funds the burn</b>profit feeds the buy-&-burn</div>
+    <div><b>🔥 Feeds the burn</b>a cut of every order buys &amp; burns</div>
   </div>
 
   <div class="foot">🖥️ <a href="/terminal">terminal</a> · 🦍 <a href="/playbook">raid kit</a> · 🔥 <a href="/burn">burn</a> · 📧 <a href="mailto:admin@burnchronic.xyz">contact</a> · <a href="/">home</a></div>
@@ -144,8 +144,10 @@ var $=function(i){return document.getElementById(i);};
 var _th;function toast(m,bad){var t=$('toast');t.textContent=m;t.className='toast show'+(bad?' bad':'');clearTimeout(_th);_th=setTimeout(function(){t.className='toast';},2200);}
 
 /* ─── config (edit these) ─────────────────────────────────────────────
-   SHOP_WALLET receives the SOL. Use your ops wallet — pay the dropship
-   supplier (SmokeDrop / MHGP) from it and feed the rest to the buy-&-burn. */
+   SHOP_WALLET receives the SOL. Use your ops wallet: it covers the supplier
+   cost (SmokeDrop / MHGP), pays the team + running costs, and a CUT of the
+   margin feeds the buy-&-burn. The shop is a revenue engine, not a 100% burn —
+   only promise the burn cut you can actually sustain. */
 var SHOP_WALLET='E7Cr2nad1SvBWF8vcGhNW575UVVPdTcgHEqSTMQzoUr5';
 
 /* Starter catalog — swap names/prices/emoji for your live SmokeDrop SKUs.
@@ -309,7 +311,7 @@ async function pay(){
 function orderDone(sig){
   checkoutMode=false;
   $('ditems').innerHTML='<div class="ok"><div class="big">🔥</div><h3>order in. supply drops.</h3>'+
-    '<div class="note">we got it — your gear ships discreetly soon. confirmation\'s on its way to your email.<br><br>your profit just fed the burn. 💀</div>'+
+    '<div class="note">we got it — your gear ships discreetly soon. confirmation\'s on its way to your email.<br><br>a cut of your order just fed the burn. 💀</div>'+
     '<div class="note" style="margin-top:12px"><a href="https://solscan.io/tx/'+sig+'" target="_blank" rel="noopener">view payment ↗</a></div></div>';
   $('dfoot').innerHTML='<button class="cta" id="keepShop" style="background:linear-gradient(90deg,var(--green-dim),var(--green));color:#04140a">keep shopping</button>';
   $('keepShop').onclick=closeDrawer;
