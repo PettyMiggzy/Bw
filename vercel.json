@@ -30,7 +30,7 @@
       ]
     },
     {
-      "source": "/(terminal|launch|buy|sell|burn|raid|grow|bundle|nfts|chronic|claim|generator)",
+      "source": "/(terminal|launch|buy|sell|burn|raid|grow|bundle|nfts|chronic|claim|generator|ape)",
       "headers": [
         { "key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate" }
       ]

@@ -13,6 +13,15 @@ const cache = new Map(); // ca -> { image, t }
 const TTL = 6 * 3600 * 1000;       // cache a found image for 6h
 const NEG_TTL = 2 * 60 * 1000;     // retry a miss after 2 min (don't cache timeouts long)
 
+// persistent cache in Supabase (survives cold starts, shared across instances)
+async function sbGet(ca) {
+  try { if (!G.sbEnabled()) return undefined; const rows = await G.sbSelect(`grow_tokenimg?mint=eq.${encodeURIComponent(ca)}&select=image`); if (rows && rows.length) return rows[0].image || null; } catch (_) {}
+  return undefined;
+}
+async function sbPut(ca, image) {
+  try { if (G.sbEnabled() && image) await G.sbUpsert('grow_tokenimg', { mint: ca, image, updated_at: new Date().toISOString() }, 'mint'); } catch (_) {}
+}
+
 async function fetchJson(uri) {
   const tries = [uri];
   if (uri.indexOf('ipfs.io/ipfs/') >= 0) tries.push(uri.replace('ipfs.io/ipfs/', 'dweb.link/ipfs/'));
@@ -58,11 +67,16 @@ module.exports = async (req, res) => {
   const c = cache.get(ca);
   if (c && Date.now() - c.t < (c.image ? TTL : NEG_TTL)) return res.status(200).json({ image: c.image || null, cached: true });
 
+  // persistent cache (only positive hits are stored)
+  const db = await sbGet(ca);
+  if (db) { cache.set(ca, { image: db, t: Date.now() }); return res.status(200).json({ image: db, cached: 'db' }); }
+
   try {
     const uri = await resolveUri(ca);
     let image = null;
     if (uri) { const j = await fetchJson(uri); if (j) image = j.image || (j.properties && j.properties.image) || null; }
     cache.set(ca, { image, t: Date.now() });
+    if (image) sbPut(ca, image);
     return res.status(200).json({ image: image || null });
   } catch (e) { return res.status(200).json({ image: null, error: String((e && e.message) || e) }); }
 };
