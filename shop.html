@@ -145,11 +145,13 @@ var _th;function toast(m,bad){var t=$('toast');t.textContent=m;t.className='toas
 
 /* ─── config (edit these) ─────────────────────────────────────────────
    SHOP_WALLET receives the SOL.
-   PHASE 1 (now): all order payments go straight to the DEV wallet. You pay the
-   supplier (SmokeDrop / MHGP) + team from it, and drip to holders manually.
-   PHASE 2 (later): point this at a dedicated FULFILLMENT wallet. A worker
-   (tools/fulfill.js) splits each order: 60% → dev, 40% → the holder-rewards
-   wallet that drips back to $CHRONIC holders. No burn. */
+   PHASE 1 (now): all order payments go straight to the DEV wallet. You fulfill
+   the order (pay SmokeDrop / MHGP), and only the leftover PROFIT is yours/the
+   holders' — split + drip however you choose, by hand.
+   PHASE 2 (later): a dedicated FULFILLMENT wallet holds each order's SOL. NOTHING
+   is distributed until the order is complete (supplier paid). Then a worker
+   (tools/fulfill.js) splits only the NET PROFIT: 60% → dev, 40% → holder
+   rewards. No burn. */
 var SHOP_WALLET='E7Cr2nad1SvBWF8vcGhNW575UVVPdTcgHEqSTMQzoUr5';
 
 /* Starter catalog — swap names/prices/emoji for your live SmokeDrop SKUs.

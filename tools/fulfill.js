@@ -6,16 +6,18 @@
  *
  *   order SOL lands in the fulfillment wallet
  *        │
- *        ├─ 60% → DEV wallet     (you: covers supplier cost + team)
- *        └─ 40% → HOLDER wallet  (drips back to $CHRONIC holders)
+ *        ├─ supplier COST → parked as USDC   (the $ to pay SmokeDrop's card charge)
+ *        └─ NET PROFIT → 60% DEV  +  40% HOLDER rewards
  *
- * No burn. The dev cut pays SmokeDrop (they bill your card in USD, so the
- * off-ramp + ordering stays a quick manual step) and the team; the holder cut
- * accrues in a rewards wallet that drips to holders (see the drip worker).
+ * No burn. NOTHING is distributed until the order's cost is set aside first —
+ * so you're never out of pocket on the charge. The 60/40 is on PROFIT only.
  *
- * Optional: set COST_RATIO > 0 to first park that share as USDC (locks the
- * dollars you owe the supplier against a SOL dip) BEFORE the 60/40 split. Off by
- * default — pure 60/40 like you asked.
+ * How we know the cost (so we know your charge up front): each product carries a
+ * server-side wholesale `cost` (what SmokeDrop bills you), set when you load the
+ * catalog and recorded with the order at checkout. The worker parks that cost as
+ * USDC (you off-ramp it to pay the card), then splits only the leftover profit.
+ * Until per-order costs are wired, COST_RATIO approximates the cost share off the
+ * top; set it to your real cost-of-goods ratio.
  *
  * Long-running — host on the droplet/Railway like feeburn: node fulfill.js
  *
