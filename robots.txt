@@ -1,0 +1,8 @@
+# CHRONIC — burnchronic.store / burnchronic.xyz
+User-agent: *
+Allow: /
+
+# No crawl of API endpoints (no SEO value, saves quota)
+Disallow: /api/
+
+Sitemap: https://burnchronic.store/sitemap.xml
