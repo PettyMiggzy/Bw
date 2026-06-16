@@ -110,6 +110,12 @@ h1{font-family:var(--fh);font-size:clamp(28px,8vw,48px);text-align:center;color:
 .trust div b{display:block;color:var(--gold);font-family:var(--fd);font-size:11px;margin-bottom:3px}
 .foot{text-align:center;margin-top:20px;font-size:11px;color:var(--dim)}.foot a{color:var(--green);text-decoration:none}
 .legal{text-align:center;font-size:10px;color:var(--dim);margin-top:14px;line-height:1.6;opacity:.8}
+.refer{max-width:620px;margin:18px auto 0;background:linear-gradient(180deg,rgba(16,26,18,.9),rgba(10,15,11,.92));border:1px solid var(--line);border-radius:14px;padding:16px}
+.rlab{font-family:var(--fd);font-size:12px;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;margin-bottom:6px}
+.refer p{font-size:12px;color:var(--dim);line-height:1.6;margin-bottom:10px}.refer p b{color:var(--text)}
+.rrow{display:flex;gap:8px}
+.rrow input{flex:1;min-width:0;background:rgba(7,10,7,.6);border:1px solid var(--line);border-radius:9px;color:var(--green);font-family:var(--fm);font-size:11px;padding:10px}
+.rrow button{font-family:var(--fd);font-size:11px;background:var(--green);color:#04140a;border:0;border-radius:9px;padding:10px 13px;cursor:pointer;white-space:nowrap}
 .seo{margin:26px auto 0;max-width:760px}
 .seo h2{font-family:var(--fd);font-size:14px;letter-spacing:.04em;color:var(--gold);margin:18px 0 8px;text-transform:uppercase}
 .seo p{font-size:12.5px;line-height:1.7;color:var(--dim);margin-bottom:10px}
@@ -184,6 +190,12 @@ h1{font-family:var(--fh);font-size:clamp(28px,8vw,48px);text-align:center;color:
     <div><b>🌿 Holders eat</b>40% of every order drips to holders</div>
   </div>
 
+  <div class="refer">
+    <div class="rlab">🔗 Refer &amp; earn</div>
+    <p>Share your link — when a friend cops, you stack <b>store credit in $CHRONIC</b>. 🌿</p>
+    <div class="rrow"><input id="refLink" readonly placeholder="tap → generate your link" /><button id="refBtn">get my link</button></div>
+  </div>
+
   <section class="seo">
     <h2>The online smoke shop that takes crypto 🌿</h2>
     <p>CHRONIC Smoke Shop is a fully online <strong>head shop</strong> built for the crypto era. Browse <strong>grinders</strong>, thick <strong>glass pipes</strong>, <strong>bongs and dab rigs</strong>, <strong>rolling papers and cones</strong>, <strong>rolling trays</strong>, <strong>smell-proof stash jars and bags</strong>, torches and cleaning kits — then check out in <strong>Solana (SOL)</strong> in a couple taps. No card, no bank, no signup. Everything ships <strong>discreetly</strong> in plain packaging, straight to your door.</p>
@@ -199,7 +211,7 @@ h1{font-family:var(--fh);font-size:clamp(28px,8vw,48px);text-align:center;color:
     </div>
   </section>
 
-  <div class="foot">🛒 <a href="https://burnchronic.store/shop">shop</a> · 🖥️ <a href="https://www.burnchronic.xyz/terminal">terminal</a> · 🦍 <a href="https://www.burnchronic.xyz/playbook">raid kit</a> · 🔥 <a href="https://www.burnchronic.xyz/burn">burn</a> · 📧 <a href="mailto:team@burnchronic.xyz">contact</a></div>
+  <div class="foot">🛒 <a href="https://burnchronic.store/shop">shop</a> · 📦 <a href="/track">track order</a> · 🖥️ <a href="https://www.burnchronic.xyz/terminal">terminal</a> · 🦍 <a href="https://www.burnchronic.xyz/playbook">raid kit</a> · 📧 <a href="mailto:team@burnchronic.xyz">contact</a></div>
   <div class="legal">21+ only. Accessories are sold for legal/tobacco use only and are not intended for use with any controlled substance. Nothing here is sold to minors. By ordering you confirm you are of legal age in your jurisdiction. Crypto payments are final; see our return policy or email team@burnchronic.xyz.</div>
 </div>
 
@@ -228,6 +240,9 @@ h1{font-family:var(--fh);font-size:clamp(28px,8vw,48px);text-align:center;color:
 <script>
 var $=function(i){return document.getElementById(i);};
 var _th;function toast(m,bad){var t=$('toast');t.textContent=m;t.className='toast show'+(bad?' bad':'');clearTimeout(_th);_th=setTimeout(function(){t.className='toast';},2200);}
+function copy(txt,msg){try{navigator.clipboard.writeText(txt);}catch(e){}toast(msg||'copied ✓');}
+// capture an inbound referral (?ref=) so it rides along with the order
+try{var _r=new URLSearchParams(location.search).get('ref');if(_r)localStorage.setItem('chronic_ref',_r.slice(0,80));}catch(e){}
 
 /* ─── config (edit these) ─────────────────────────────────────────────
    SHOP_WALLET receives the SOL.
@@ -404,7 +419,8 @@ async function pay(){
     btn.textContent='confirming… ⛓';
     for(var i=0;i<30;i++){try{var st=await c.getSignatureStatuses([sig]);var v=st&&st.value&&st.value[0];if(v&&(v.confirmationStatus==='confirmed'||v.confirmationStatus==='finalized')){if(v.err)throw new Error('payment failed');break;}}catch(e){if(/payment failed/.test(e.message))throw e;}await new Promise(function(r){setTimeout(r,1500);});}
     var items=Object.keys(cart).map(function(id){var pr=prodFor(id);var sz=sizeOf(id);return{id:baseId(id),size:sz,name:pr.name+(sz?' ('+sz+')':''),price:pr.price,qty:cart[id]};});
-    try{await fetch('/api/order',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({tx:sig,items:items,ship:s,totalSol:sol,totalUsd:usd})});}catch(e){}
+    var ref='';try{ref=localStorage.getItem('chronic_ref')||'';}catch(e){}
+    try{await fetch('/api/order',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({tx:sig,items:items,ship:s,totalSol:sol,totalUsd:usd,ref:ref})});}catch(e){}
     cart={};syncCart();orderDone(sig);
   }catch(e){toast(/reject|cancel/i.test((e&&e.message)||'')?'cancelled':'payment failed: '+((e&&e.message)||e),true);btn.disabled=false;btn.textContent=lab;}
 }
@@ -413,7 +429,7 @@ function orderDone(sig){
   checkoutMode=false;
   $('ditems').innerHTML='<div class="ok"><div class="big">🌿</div><h3>order in. holders eat.</h3>'+
     '<div class="note">we got it — your gear ships discreetly soon. confirmation\'s on its way to your email.<br><br>40% of your order just dripped to $CHRONIC holders. 🌿</div>'+
-    '<div class="note" style="margin-top:12px"><a href="https://solscan.io/tx/'+sig+'" target="_blank" rel="noopener">view payment ↗</a></div></div>';
+    '<div class="note" style="margin-top:12px"><a href="/track?tx='+sig+'">📦 track order →</a> &nbsp;·&nbsp; <a href="https://solscan.io/tx/'+sig+'" target="_blank" rel="noopener">view payment ↗</a></div></div>';
   $('dfoot').innerHTML='<button class="cta" id="keepShop" style="background:linear-gradient(90deg,var(--green-dim),var(--green));color:#04140a">keep shopping</button>';
   $('keepShop').onclick=closeDrawer;
 }
@@ -437,7 +453,15 @@ function injectProductLD(){
   var ld={"@context":"https://schema.org","@type":"ItemList","name":"CHRONIC Smoke Shop","numberOfItems":PRODUCTS.length,"itemListElement":items};
   var s=document.createElement('script');s.type='application/ld+json';s.text=JSON.stringify(ld);document.head.appendChild(s);
 }
-function boot(){renderCats();renderGrid();try{injectProductLD();}catch(e){}}
+function wireRefer(){
+  var btn=$('refBtn');if(!btn)return;
+  btn.onclick=async function(){
+    var p=provider();
+    if(!p){if(isMobile()){var t=encodeURIComponent('https://burnchronic.store/shop');location.href='https://phantom.app/ul/browse/'+t+'?ref='+encodeURIComponent('https://www.burnchronic.xyz');return;}toast('connect Phantom to get your link',true);return;}
+    try{var resp=await p.connect();var w=resp.publicKey.toString();var link='https://burnchronic.store/shop?ref='+w;$('refLink').value=link;copy(link,'referral link copied 🔗');}catch(e){}
+  };
+}
+function boot(){renderCats();renderGrid();wireRefer();try{injectProductLD();}catch(e){}}
 </script>
 </body>
 </html>
