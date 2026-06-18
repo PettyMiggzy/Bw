@@ -55,6 +55,19 @@ async function resolveUri(ca) {
   return null;
 }
 
+// pump.fun launches (~90% of new coins) expose the image directly via their API —
+// instant + reliable, even for brand-new mints whose on-chain metadata isn't readable yet.
+async function pumpImage(ca) {
+  try {
+    const ctl = AbortSignal.timeout ? AbortSignal.timeout(5000) : undefined;
+    const r = await fetch('https://frontend-api-v3.pump.fun/coins/' + encodeURIComponent(ca), {
+      signal: ctl, headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' },
+    });
+    if (r.ok) { const j = await r.json(); if (j && j.image_uri) return j.image_uri; }
+  } catch (_) {}
+  return null;
+}
+
 module.exports = async (req, res) => {
   res.setHeader('access-control-allow-origin', '*');
   res.setHeader('content-type', 'application/json');
@@ -72,9 +85,11 @@ module.exports = async (req, res) => {
   if (db) { cache.set(ca, { image: db, t: Date.now() }); return res.status(200).json({ image: db, cached: 'db' }); }
 
   try {
-    const uri = await resolveUri(ca);
-    let image = null;
-    if (uri) { const j = await fetchJson(uri); if (j) image = j.image || (j.properties && j.properties.image) || null; }
+    let image = await pumpImage(ca);          // fast path: pump.fun API (most launches)
+    if (!image) {                              // fallback: on-chain metadata -> IPFS json
+      const uri = await resolveUri(ca);
+      if (uri) { const j = await fetchJson(uri); if (j) image = j.image || (j.properties && j.properties.image) || null; }
+    }
     cache.set(ca, { image, t: Date.now() });
     if (image) sbPut(ca, image);
     return res.status(200).json({ image: image || null });
