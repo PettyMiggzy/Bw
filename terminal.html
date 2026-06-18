@@ -63,6 +63,12 @@ h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:
   .chartwrap{height:460px}
 }
 @media(min-width:1200px){.coingrid{grid-template-columns:repeat(5,1fr)}}
+/* desktop: chart + trade panel side-by-side (real terminal layout, not a phone column) */
+@media(min-width:860px){
+  .detailcols{display:flex;align-items:flex-start;gap:16px;max-width:920px;margin:0 auto}
+  .detailcols>.card{max-width:none;margin:0;flex:1}
+  .detailcols>.chartcard{flex:1.5}
+}
 .coin{display:flex;align-items:center;gap:9px;padding:10px;border-radius:13px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(16,26,18,.85),rgba(10,15,11,.9));cursor:pointer;transition:transform .12s,border-color .2s}
 .coin:active{transform:scale(.97)}.coin:hover{border-color:var(--green-dim)}
 .coin img,.coin .ph{width:38px;height:38px;border-radius:10px;object-fit:cover;background:#0a0f0b;flex:0 0 38px;display:flex;align-items:center;justify-content:center;font-size:18px}
@@ -330,10 +336,12 @@ function render(){
     +'<div class="tstats"><div class="s"><b>$'+fmt(t.mc)+'</b><i>mcap</i></div><div class="s"><b>$'+fmt(t.liq)+'</b><i>liquidity</i></div><div class="s"><b>$'+fmt(t.vol)+'</b><i>vol 24h</i></div></div>'
     +'<div id="holdersLine"></div>'
     +'<div id="curveBar"></div>'+(soc?'<div class="socrow">'+soc+'</div>':'')+'</div>';
-  // chart
-  if(t.pair){ html+='<div class="card" style="padding:0;overflow:hidden"><div class="chartwrap"><iframe src="https://dexscreener.com/solana/'+t.pair+'?embed=1&theme=dark&trades=0&info=0"></iframe></div></div>'; }
+  // chart + trade side-by-side on desktop, stacked on mobile
+  html+='<div class="detailcols">';
+  if(t.pair){ html+='<div class="card chartcard" style="padding:0;overflow:hidden"><div class="chartwrap"><iframe src="https://dexscreener.com/solana/'+t.pair+'?embed=1&theme=dark&trades=0&info=0"></iframe></div></div>'; }
   // trade
   html+='<div class="card" id="tradeCard"></div>';
+  html+='</div>';
   // bundle
   html+='<div class="card"><div class="h2">🔍 Bundle Check<button class="scanbtn" id="scanBtn">SCAN</button></div><div id="bundleOut"><div class="muted">tap SCAN to check holders, snipers &amp; funding clusters</div></div></div>';
   $('out').innerHTML=html;
