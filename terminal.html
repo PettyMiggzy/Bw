@@ -318,7 +318,7 @@ function hydrateImages(){
       if(j&&j.image){ var ph=c.querySelector('.ph'); if(ph){ var img=document.createElement('img'); img.loading='lazy'; img.src=proxyImg(imgSrc(j.image)); img.onerror=function(){ this.remove(); ph.style.display='flex'; }; ph.style.display='none'; c.insertBefore(img,ph); } }
     }).catch(function(){}).finally(next);
   }
-  for(var k=0;k<3;k++) next(); // limited concurrency
+  for(var k=0;k<8;k++) next(); // limited concurrency (8 parallel image backfills)
 }
 function renderFeed(f){ FEEDFILTER=f; if(!FEEDCOINS){ showFeed(); return; }
   var skey=FSORT||defSort(f);
