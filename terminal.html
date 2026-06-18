@@ -57,17 +57,21 @@ h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:
 @media(min-width:560px){.coingrid{grid-template-columns:repeat(3,1fr)}}
 /* desktop: stop looking like a phone — widen the board, center the detail view */
 @media(min-width:860px){
-  .wrap{max-width:1100px}
+  .wrap{max-width:1320px}
   .search,.card,.padcta,.foot{max-width:920px;margin-left:auto;margin-right:auto}
   .coingrid{grid-template-columns:repeat(4,1fr)}
   .chartwrap{height:460px}
 }
 @media(min-width:1200px){.coingrid{grid-template-columns:repeat(5,1fr)}}
-/* desktop: chart + trade panel side-by-side (real terminal layout, not a phone column) */
-@media(min-width:860px){
-  .detailcols{display:flex;align-items:flex-start;gap:16px;max-width:920px;margin:0 auto}
-  .detailcols>.card{max-width:none;margin:0;flex:1}
-  .detailcols>.chartcard{flex:1.5}
+/* Photon-style detail: header bar on top, big chart left, sticky buy/curve sidebar right */
+.detail{display:flex;flex-direction:column;gap:14px}
+.detailgrid{display:flex;flex-direction:column;gap:14px}
+.dg-main,.dg-side{display:flex;flex-direction:column;gap:14px;min-width:0}
+.detail .card,.detail .thead-card{max-width:none;margin:0}
+@media(min-width:900px){
+  .detailgrid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:16px;align-items:start}
+  .dg-side{position:sticky;top:14px}
+  .detail .chartwrap{height:540px}
 }
 .coin{display:flex;align-items:center;gap:9px;padding:10px;border-radius:13px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(16,26,18,.85),rgba(10,15,11,.9));cursor:pointer;transition:transform .12s,border-color .2s}
 .coin:active{transform:scale(.97)}.coin:hover{border-color:var(--green-dim)}
@@ -329,21 +333,24 @@ function render(){
   var soc='';
   (t.websites||[]).forEach(function(w){ if(w&&w.url) soc+='<a class="soc" href="'+esc(w.url)+'" target="_blank" rel="noopener">🌐 '+esc(w.label||'site')+'</a>'; });
   (t.socials||[]).forEach(function(s){ if(!s||!s.url)return; var ic=s.type==='twitter'?'𝕏':(s.type==='telegram'?'✈️':(s.type==='discord'?'💬':'🔗')); soc+='<a class="soc" href="'+esc(s.url)+'" target="_blank" rel="noopener">'+ic+' '+esc(s.type||'link')+'</a>'; });
-  var html='<div class="backf" id="backFeed">‹ all coins</div><div class="card"><div class="thead">'
+  var html='<div class="detail"><div class="backf" id="backFeed">‹ all coins</div><div class="card thead-card"><div class="thead">'
     +(imgSrc(t.img)?'<img src="'+esc(proxyImg(imgSrc(t.img),96))+'" alt="" data-alt="'+esc(imgSrc(t.img))+'" onerror="termImgErr(this)"/><div class="ph" style="display:none;width:46px;height:46px;border-radius:12px;background:var(--green-deep);align-items:center;justify-content:center;font-family:var(--fd);color:var(--green)">'+initials(t.symbol)+'</div>':'<div style="width:46px;height:46px;border-radius:12px;background:var(--green-deep);display:flex;align-items:center;justify-content:center;font-family:var(--fd);color:var(--green)">'+initials(t.symbol)+'</div>')
     +'<div><div class="nm">'+esc(t.name)+'</div><div class="sy">$'+esc(t.symbol)+' · '+sh(t.ca)+' <span class="dexbadge" id="dexPaid"></span>'+(t.boosts>0?' <span class="dexbadge boost">🚀 x'+t.boosts+'</span>':'')+'</div></div>'
     +'<div class="px"><b>$'+(t.price?t.price.toPrecision(4):'—')+'</b><div class="ch '+(t.ch>=0?'up':'down')+'">'+(t.ch>=0?'+':'')+t.ch.toFixed(1)+'% 24h</div></div></div>'
     +'<div class="tstats"><div class="s"><b>$'+fmt(t.mc)+'</b><i>mcap</i></div><div class="s"><b>$'+fmt(t.liq)+'</b><i>liquidity</i></div><div class="s"><b>$'+fmt(t.vol)+'</b><i>vol 24h</i></div></div>'
     +'<div id="holdersLine"></div>'
-    +'<div id="curveBar"></div>'+(soc?'<div class="socrow">'+soc+'</div>':'')+'</div>';
-  // chart + trade side-by-side on desktop, stacked on mobile
-  html+='<div class="detailcols">';
+    +(soc?'<div class="socrow">'+soc+'</div>':'')+'</div>';
+  // desktop: big chart left, sticky buy/curve sidebar right
+  html+='<div class="detailgrid"><div class="dg-main">';
   if(t.pair){ html+='<div class="card chartcard" style="padding:0;overflow:hidden"><div class="chartwrap"><iframe src="https://dexscreener.com/solana/'+t.pair+'?embed=1&theme=dark&trades=0&info=0"></iframe></div></div>'; }
-  // trade
+  else { html+='<div class="card muted" style="text-align:center;padding:44px 16px">chart not available yet</div>'; }
+  html+='</div><div class="dg-side">';
   html+='<div class="card" id="tradeCard"></div>';
-  html+='</div>';
-  // bundle
+  html+='<div id="curveBar"></div>';
+  html+='</div></div>';
+  // bundle (full width)
   html+='<div class="card"><div class="h2">🔍 Bundle Check<button class="scanbtn" id="scanBtn">SCAN</button></div><div id="bundleOut"><div class="muted">tap SCAN to check holders, snipers &amp; funding clusters</div></div></div>';
+  html+='</div>';
   $('out').innerHTML=html;
   renderTrade(); loadCurve(); loadDexPaid(); loadHolders();
   $('scanBtn').addEventListener('click',scan);
