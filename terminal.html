@@ -89,6 +89,28 @@ h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:
 .coin .cp{font-size:11px;color:var(--dim)}
 .coin .cc{font-size:10px;font-weight:700;margin-top:1px}
 .coin .new{font-size:7px;font-family:var(--fd);letter-spacing:.06em;color:#04140a;background:var(--green);border-radius:8px;padding:2px 5px;margin-left:auto;align-self:flex-start}
+/* dense readable list — wide rows instead of cramped cards */
+.coingrid{display:flex;flex-direction:column;gap:8px}
+.coin{display:grid;grid-template-columns:2.4fr 1fr 1fr .9fr .9fr auto;align-items:center;gap:12px;padding:11px 16px}
+.coin img,.coin .ph{width:42px;height:42px;border-radius:11px;flex:0 0 42px}
+.c-name{display:flex;align-items:center;gap:11px;min-width:0}
+.c-name .ci{min-width:0;flex:1}
+.c-name .cn{font-family:var(--fd);font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-name .cn-sub{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-num{display:flex;flex-direction:column;text-align:right;line-height:1.25}
+.c-num b{font-family:var(--fm);font-size:13px;color:var(--text)}
+.c-num i{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;font-style:normal}
+.c-num.up b{color:var(--green)}.c-num.down b{color:var(--ember2)}
+.c-status{text-align:right}
+.cstat{display:inline-block;font-size:10px;font-family:var(--fd);padding:5px 10px;border-radius:20px;white-space:nowrap}
+.cstat.grad{background:rgba(82,255,143,.16);color:var(--green)}
+.cstat.curve{background:rgba(255,106,43,.18);color:var(--ember)}
+.cstat.new{background:rgba(132,167,141,.14);color:var(--dim)}
+@media(max-width:680px){
+  .coin{grid-template-columns:1.6fr .9fr .9fr .7fr auto;gap:8px;padding:10px 12px}
+  .coin .c-num.age{display:none}
+  .c-num i{font-size:8px}
+}
 .backf{display:inline-block;font-size:12px;color:var(--dim);cursor:pointer;margin-bottom:10px}
 .backf:hover{color:var(--green)}
 .chartwrap{height:380px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#0a0d0a}
@@ -219,13 +241,17 @@ function avatar(d){ var raw=imgSrc(d.img), ph='<div class="ph">'+initials(d.symb
   return '<img src="'+esc(proxyImg(raw))+'" loading="lazy" data-alt="'+esc(raw)+'" onerror="termImgErr(this)"/>'+'<div class="ph" style="display:none">'+initials(d.symbol)+'</div>'; }
 window.termImgErr=function(img){ var alt=img.getAttribute('data-alt'); if(alt&&img.src!==alt){ img.setAttribute('data-alt',''); img.src=alt; return; } img.style.display='none'; var ph=img.nextElementSibling; if(ph)ph.style.display='flex'; };
 function coinCard(d){
-  var pad=FEEDPAD[d.ca], grad=isGrad(d), curve=isCurve(d);
-  var right='<div class="cright"><span class="gb">'+(grad?'🎓':curve?'🔥':'•')+'</span><span class="ct">'+(grad?'LIVE':curve?gradPct(d)+'%':ageStr(d.created))+'</span></div>';
-  var mini=curve?'<div class="cmini"><i style="width:'+gradPct(d)+'%"></i></div>':'';
-  return '<div class="coin" data-ca="'+d.ca+'">'+avatar(d)
-    +'<div class="ci"><div class="cn">'+esc(d.symbol||'?')+(pad?' <span class="badge pad">PAD</span>':'')+'</div>'
-    +'<div class="cp">$'+fmt(d.mc)+' · '+ageStr(d.created)+'</div>'
-    +'<div class="cc '+((d.ch||0)>=0?'up':'down')+'">'+((d.ch||0)>=0?'+':'')+(d.ch||0).toFixed(0)+'% · $'+fmt(d.vol)+' vol</div>'+mini+'</div>'+right+'</div>';
+  var pad=FEEDPAD[d.ca], grad=isGrad(d), curve=isCurve(d), ch=(d.ch||0);
+  var status=grad?'<span class="cstat grad">🎓 LIVE</span>':curve?'<span class="cstat curve">🔥 '+gradPct(d)+'%</span>':'<span class="cstat new">NEW</span>';
+  var sub=(d.name&&d.name!==d.symbol)?'<div class="cn-sub">'+esc(String(d.name).slice(0,22))+'</div>':'';
+  return '<div class="coin" data-ca="'+d.ca+'">'
+    +'<div class="c-name">'+avatar(d)+'<div class="ci"><div class="cn">'+esc(d.symbol||'?')+(pad?' <span class="badge pad">PAD</span>':'')+'</div>'+sub+'</div></div>'
+    +'<div class="c-num"><b>$'+fmt(d.mc)+'</b><i>mcap</i></div>'
+    +'<div class="c-num"><b>$'+fmt(d.vol)+'</b><i>vol 24h</i></div>'
+    +'<div class="c-num '+(ch>=0?'up':'down')+'"><b>'+(ch>=0?'+':'')+ch.toFixed(0)+'%</b><i>24h</i></div>'
+    +'<div class="c-num age"><b>'+ageStr(d.created)+'</b><i>age</i></div>'
+    +'<div class="c-status">'+status+'</div>'
+    +'</div>';
 }
 var FEEDCOINS=null, FEEDPAD={}, FEEDFILTER='trending', FSORT='', FOPEN=false;
 var FILTERS={minMc:0,minVol:0,minLiq:0,maxAge:0};
