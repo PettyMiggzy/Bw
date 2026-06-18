@@ -67,6 +67,35 @@ async function emailConfirm(row) {
   } catch (_) {}
 }
 
+// email YOU the full order (incl. shipping) — the safe, private alternative to a Telegram chat
+async function emailAdmin(row) {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return;
+  const to = process.env.ADMIN_EMAIL || 'team@burnchronic.xyz';
+  const from = process.env.ORDER_FROM_EMAIL || 'Burn Chronic <team@burnchronic.xyz>';
+  const s = row.ship || {};
+  const items = row.items.map((i) => `<li>${i.qty}× ${esc(i.name)} — $${i.price}</li>`).join('');
+  const line = (label, val) => val ? `<tr><td style="color:#84a78d;padding:2px 10px 2px 0">${label}</td><td><b>${esc(val)}</b></td></tr>` : '';
+  const html = `<div style="font-family:system-ui,Arial,sans-serif;max-width:560px;color:#0b130d">
+    <h2 style="margin:0 0 4px">🛒 NEW ORDER — ${esc(row.id)}</h2>
+    <p style="font-size:18px;margin:0 0 10px"><b>$${row.total_usd}</b> ${row.total_sol ? '(' + row.total_sol + ' SOL)' : '(USDC)'}${row.discount_pct ? ' · 🎁 ' + row.discount_pct + '% holder discount' : ''}</p>
+    <ul style="line-height:1.7">${items}</ul>
+    ${row.cashback_chronic ? `<p style="color:#b8860b">🪙 Cashback owed: <b>${row.cashback_chronic} $CHRONIC</b>${row.buyer_wallet ? ' → ' + esc(row.buyer_wallet) : ''}</p>` : ''}
+    <h3 style="margin:16px 0 4px">📦 Ship to</h3>
+    <table style="font-size:13px;border-collapse:collapse">
+      ${line('Name', s.name)}${line('Address', s.addr)}${line('City', s.city)}${line('State', s.state)}${line('ZIP', s.zip)}${line('Country', s.country)}${line('Email', s.email)}${line('Referral', row.ref)}
+    </table>
+    <p style="margin-top:14px"><a href="https://solscan.io/tx/${esc(row.tx)}">View payment on Solscan ↗</a></p>
+  </div>`;
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ from, to: [to], subject: `🛒 NEW ORDER ${row.id} — $${row.total_usd}`, html }),
+    });
+  } catch (_) {}
+}
+
 module.exports = async (req, res) => {
   res.setHeader('content-type', 'application/json');
   if (blocked(req, res)) return;
@@ -124,8 +153,9 @@ module.exports = async (req, res) => {
   };
 
   try { if (G.sbEnabled()) await G.sbUpsert('grow_orders', row, 'id'); } catch (_) {}
-  await tgAlert(row);
-  await emailConfirm(row);
+  await tgAlert(row);          // optional — only if TG vars set
+  await emailAdmin(row);       // emails YOU the full order (safest) — only if RESEND_API_KEY set
+  await emailConfirm(row);     // emails the customer their confirmation
 
   res.statusCode = 200;
   res.end(JSON.stringify({ ok: true, id }));
