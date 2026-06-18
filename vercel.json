@@ -6,7 +6,8 @@
   ],
   "rewrites": [
     { "source": "/flex", "destination": "/api/flex" },
-    { "source": "/googlecd6551d875fbaa94.html", "destination": "/googleverify.txt" }
+    { "source": "/googlecd6551d875fbaa94.html", "destination": "/googleverify.txt" },
+    { "source": "/googlecd6551d875fbaa94", "destination": "/googleverify.txt" }
   ],
   "headers": [
     {
