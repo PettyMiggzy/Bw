@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>📜 $CHRONIC Docs — the deflationary smoke coin on Solana</title>
+<meta name="description" content="$CHRONIC litepaper & docs — tokenomics, the burn ecosystem (terminal, launchpad, grow game, smoke shop), and how supply is capped & deflationary on Solana." />
+<meta name="keywords" content="CHRONIC docs, CHRONIC litepaper, CHRONIC tokenomics, Solana memecoin docs, burn chronic, deflationary token" />
+<meta name="robots" content="index, follow, max-image-preview:large" />
+<meta name="theme-color" content="#070a07" />
+<link rel="canonical" href="https://www.burnchronic.xyz/docs" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="$CHRONIC" />
+<meta property="og:url" content="https://www.burnchronic.xyz/docs" />
+<meta property="og:title" content="📜 $CHRONIC Docs — the deflationary smoke coin on Solana" />
+<meta property="og:description" content="Tokenomics + the burn ecosystem: terminal, launchpad, grow game, smoke shop. Supply capped, mint renounced, deflationary by design." />
+<meta property="og:image" content="https://www.burnchronic.xyz/assets/og-chronic.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="@chronicinmysol" />
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=4" />
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+:root{--void:#070a07;--panel:#101a12;--green:#52ff8f;--green-dim:#2bd96a;--green-deep:#0c3d22;--ember:#ff6a2b;--ember2:#ff3d1f;--gold:#f5cf57;--purple:#a85cff;--text:#e9ffe9;--dim:#84a78d;--line:rgba(82,255,143,.16);--fd:'Bungee',sans-serif;--fh:'Bungee Shade',sans-serif;--fm:'Space Mono',monospace;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--void);color:var(--text);font-family:var(--fm);min-height:100vh;line-height:1.6;background-image:radial-gradient(120% 55% at 50% -10%,rgba(82,255,143,.12),transparent 60%)}
+a{color:var(--green);text-decoration:none}a:hover{text-decoration:underline}
+.bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;backdrop-filter:blur(12px);background:linear-gradient(180deg,rgba(7,10,7,.94),rgba(7,10,7,.45));border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:9px;font-family:var(--fd);color:var(--gold);font-size:15px}
+.brand img{width:26px;height:26px;border-radius:7px}
+.bar a.nav{color:var(--dim);font-size:12px}
+.wrap{max-width:760px;margin:0 auto;padding:26px 18px 90px}
+h1{font-family:var(--fh);font-size:clamp(30px,9vw,52px);text-align:center;color:var(--green);text-shadow:0 0 28px rgba(82,255,143,.4),3px 3px 0 var(--green-deep);margin-bottom:6px}
+.tag{text-align:center;color:var(--dim);font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:26px}
+h2{font-family:var(--fd);font-size:17px;color:var(--gold);margin:30px 0 12px;display:flex;align-items:center;gap:9px;border-top:1px solid var(--line);padding-top:24px}
+h3{font-family:var(--fd);font-size:13px;color:var(--green);margin:18px 0 6px}
+p{margin-bottom:12px;color:var(--text)}
+p.dim,li.dim{color:var(--dim)}
+ul{margin:0 0 12px 0;list-style:none}
+li{padding-left:22px;position:relative;margin-bottom:8px}
+li::before{content:"🌿";position:absolute;left:0;font-size:11px}
+b{color:var(--gold)}
+.card{background:linear-gradient(180deg,rgba(16,26,18,.9),rgba(10,15,11,.92));border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0}
+.kv{display:grid;grid-template-columns:1fr auto;gap:8px 14px;font-size:13px}
+.kv span{color:var(--dim)}.kv b{text-align:right;font-family:var(--fm)}
+.ca{font-family:var(--fm);font-size:12px;background:rgba(7,10,7,.6);border:1px solid var(--line);border-radius:9px;padding:11px;word-break:break-all;color:var(--green);cursor:pointer}
+.grid2{display:grid;gap:12px}
+@media(min-width:620px){.grid2{grid-template-columns:1fr 1fr}}
+.feat{background:linear-gradient(180deg,rgba(16,26,18,.85),rgba(10,15,11,.9));border:1px solid var(--line);border-radius:13px;padding:14px}
+.feat .ft{font-family:var(--fd);font-size:12px;color:var(--green);margin-bottom:5px}
+.feat p{font-size:12px;color:var(--dim);margin:0}
+.toc{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:8px}
+.toc a{font-size:11px;background:rgba(7,10,7,.5);border:1px solid var(--line);border-radius:20px;padding:7px 12px;color:var(--dim)}
+.foot{text-align:center;margin-top:30px;font-size:11px;color:var(--dim);border-top:1px solid var(--line);padding-top:18px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);z-index:40;opacity:0;background:var(--green);color:#04140a;font-family:var(--fd);font-size:12px;padding:11px 18px;border-radius:30px;transition:.25s;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="bar">
+  <a class="brand" href="/"><img src="/assets/logo-chronic.png" alt="$CHRONIC"/>DOCS</a>
+  <a class="nav" href="/">‹ home</a>
+</div>
+<div class="wrap">
+  <h1>$CHRONIC DOCS</h1>
+  <div class="tag">the deflationary smoke coin · live on Solana 🌿💀🔥</div>
+
+  <div class="toc">
+    <a href="#what">What it is</a><a href="#tokenomics">Tokenomics</a><a href="#supply">Supply &amp; burns</a><a href="#eco">Ecosystem</a><a href="#econ">Economics</a><a href="#links">Links</a>
+  </div>
+
+  <h2 id="what">💀 What is $CHRONIC?</h2>
+  <p>A literal skeleton smoked till the skin tapped out and posted up on Solana. <b>$CHRONIC</b> is a memecoin ecosystem where every product funnels back into one thing: <b>burning the supply forever.</b></p>
+  <p>Most memecoins are a chart and a dream. $CHRONIC is a full stack of real tools — a trading terminal, a launchpad, a burn-to-earn game, and a crypto smoke shop — all wired so that activity reduces supply. <b>Non-custodial</b> end to end: we never take custody of your funds. Burn it, don't hoard it.</p>
+
+  <h2 id="tokenomics">🪙 Tokenomics</h2>
+  <div class="card">
+    <div class="kv">
+      <span>Network</span><b>Solana</b>
+      <span>Ticker</span><b>$CHRONIC</b>
+      <span>Max supply</span><b>1,000,000,000</b>
+      <span>Mint authority</span><b style="color:var(--green)">Renounced ✓</b>
+      <span>Freeze authority</span><b style="color:var(--green)">Renounced ✓</b>
+      <span>Supply trend</span><b style="color:var(--ember)">Deflationary ↓</b>
+      <span>Dev allocation</span><b>None — fair launch</b>
+    </div>
+  </div>
+  <h3>Contract address</h3>
+  <div class="ca" id="ca" title="tap to copy">J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump</div>
+
+  <h2 id="supply">🔒 Supply &amp; burns — how it's locked</h2>
+  <p>$CHRONIC supply is <b>permanently capped</b> and <b>only goes down.</b> Two on-chain guarantees, both verifiable on any Solana explorer:</p>
+  <ul>
+    <li><b>Mint authority renounced</b> — the 1,000,000,000 max supply can <b>never</b> increase. No one can mint new tokens, ever.</li>
+    <li><b>Freeze authority renounced</b> — no wallet can be frozen or blacklisted.</li>
+    <li><b>Deflationary by SPL Burn</b> — $CHRONIC is removed from circulation via on-chain SPL Burn, which <b>destroys</b> tokens outright (they're subtracted from total supply, not parked in a dead wallet). So the live total supply on-chain is always below 1B and falling.</li>
+  </ul>
+  <p class="dim">Because burns destroy rather than store, no "dead address" holds the burned tokens — they cease to exist. The shrinking total supply is the proof, readable directly from the mint.</p>
+
+  <h2 id="eco">🏭 The ecosystem</h2>
+  <p class="dim">Every piece is live and feeds the burn:</p>
+  <div class="grid2">
+    <div class="feat"><div class="ft">🖥️ Trench Terminal</div><p>Trade any Solana token — chart, bundle-check, buy &amp; sell. Trade fees buy &amp; burn $CHRONIC. <a href="/terminal">open ›</a></p></div>
+    <div class="feat"><div class="ft">🚀 Launchpad</div><p>Launch your own coin in one click and keep <b style="color:var(--gold)">50% of every trade fee forever</b> — plus pump.fun creator rewards. <a href="/launch">launch ›</a></p></div>
+    <div class="feat"><div class="ft">🌱 GROW Game</div><p>Burn-to-earn: buy seeds, grow strains, earn XP. Top growers split a weekly pool. <a href="/grow">play ›</a></p></div>
+    <div class="feat"><div class="ft">🛒 Smoke Shop</div><p>Real smoke gear &amp; merch, paid in SOL or USDC. 40% of every order drips to holders. <a href="https://burnchronic.store/shop">shop ›</a></p></div>
+    <div class="feat"><div class="ft">🔥 The Burn</div><p>Burn $CHRONIC straight from your wallet, or send to the auto-burn wallet — gone forever. <a href="/burn">burn ›</a></p></div>
+    <div class="feat"><div class="ft">🏭 Merch Pad</div><p>Any project can launch a crypto-checkout merch store — zero inventory, you earn a cut. <a href="https://burnchronic.store/merchpad">merch pad ›</a></p></div>
+  </div>
+
+  <h2 id="econ">⚖️ Economics — how value flows to the burn</h2>
+  <ul>
+    <li><b>GROW game:</b> 60% of every in-game spend is <b>burned</b>, 40% funds the weekly prize pool. No dev cut.</li>
+    <li><b>Terminal / swaps:</b> a flat <b>1% fee</b> on trades. For coins launched on the Pad, that 1% is split so the creator earns <b>50% of trade fees forever.</b></li>
+    <li><b>Smoke Shop:</b> <b>40%</b> of every order drips back to $CHRONIC holders.</li>
+    <li><b>Non-custodial:</b> swaps route through Jupiter; burns are SPL Burn on your own wallet. We never take custody, never set approvals/authorities.</li>
+  </ul>
+
+  <h2 id="links">🔗 Links</h2>
+  <div class="card">
+    <div class="kv">
+      <span>Website</span><b><a href="https://www.burnchronic.xyz">burnchronic.xyz</a></b>
+      <span>Smoke Shop</span><b><a href="https://burnchronic.store/shop">burnchronic.store</a></b>
+      <span>Twitter / X</span><b><a href="https://x.com/chronicinmysol" rel="nofollow noopener" target="_blank">@chronicinmysol</a></b>
+      <span>Telegram</span><b><a href="https://t.me/burnchronic" rel="nofollow noopener" target="_blank">t.me/burnchronic</a></b>
+      <span>Contact</span><b><a href="mailto:team@burnchronic.xyz">team@burnchronic.xyz</a></b>
+    </div>
+  </div>
+
+  <p class="dim" style="font-size:11px;margin-top:18px">$CHRONIC is a community memecoin for entertainment. Nothing here is financial advice. Crypto is volatile and carries risk — do your own research and never spend more than you can afford to lose.</p>
+
+  <div class="foot">💀 supply only goes down · holders eat · burn it don't hoard it 🌿<br>© $CHRONIC — built on Solana</div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+var ca=document.getElementById('ca');
+if(ca)ca.addEventListener('click',function(){try{navigator.clipboard.writeText(this.textContent.trim());}catch(e){}var t=document.getElementById('toast');t.textContent='contract copied 🔥';t.className='toast show';setTimeout(function(){t.className='toast';},1800);});
+</script>
+</body>
+</html>

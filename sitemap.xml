@@ -12,6 +12,12 @@
     </image:image>
   </url>
   <url>
+    <loc>https://www.burnchronic.xyz/docs</loc>
+    <lastmod>2026-06-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://burnchronic.store/merchpad</loc>
     <lastmod>2026-06-16</lastmod>
     <changefreq>monthly</changefreq>
