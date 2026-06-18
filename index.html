@@ -94,6 +94,17 @@ nav{display:flex;align-items:center;justify-content:space-between;gap:12px;paddi
 .navlinks{display:flex;align-items:center}
 .navtoggle{display:none;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:1px solid var(--green);background:transparent;color:var(--green);font-size:20px;cursor:pointer;flex:0 0 auto}
 .navtoggle:active{transform:scale(.94)}
+/* nav "MORE" dropdown — declutters desktop, flattens on mobile */
+.navdrop{position:relative}
+.navmore-btn{cursor:pointer}
+.navmore-menu{display:none;position:absolute;top:calc(100% + 10px);right:0;flex-direction:column;gap:8px;background:linear-gradient(180deg,#0c140d,#070a07);border:1px solid var(--green);border-radius:16px;padding:10px;min-width:172px;z-index:60;box-shadow:0 14px 34px rgba(0,0,0,.55)}
+.navdrop:hover .navmore-menu,.navdrop.open .navmore-menu{display:flex}
+.navmore-menu .nav-stake{margin-right:0;text-align:center}
+@media(max-width:759px){
+  .navdrop{display:contents}
+  .navmore-btn{display:none}
+  .navmore-menu{display:flex;position:static;border:0;padding:0;background:none;box-shadow:none;min-width:0}
+}
 @media(max-width:759px){
   nav{flex-wrap:wrap;padding:12px 14px;gap:10px}
   .navtoggle{display:inline-flex}
@@ -419,15 +430,20 @@ footer .trib a{color:var(--ember);text-decoration:underline}
   <button class="navtoggle" id="navToggle" aria-label="menu" aria-expanded="false" onclick="var n=document.getElementById('navLinks'),o=n.classList.toggle('open');this.setAttribute('aria-expanded',o);this.textContent=o?'✕':'☰'">☰</button>
   <div class="navlinks" id="navLinks" onclick="if(event.target.tagName==='A'){var n=this,t=document.getElementById('navToggle');n.classList.remove('open');t.setAttribute('aria-expanded','false');t.textContent='☰'}">
   <a class="nav-stake" href="/terminal">🖥️ TERMINAL</a>
-  <a class="nav-stake" href="/launch">🚀 LAUNCH</a>
   <a class="nav-stake" href="/grow">🌱 GROW</a>
-  <a class="nav-stake" href="/buy">🪙 BUY</a>
   <a class="nav-stake" href="/burn">🔥 BURN</a>
-  <a class="nav-stake" href="/raid">🐦 RAID</a>
   <a class="nav-stake" href="/shop">🛒 SHOP</a>
-  <a class="nav-stake" href="/playbook">🦍 RAID KIT</a>
-  <a class="nav-stake" href="/generator">🖼 MEMES</a>
-  <a class="nav-stake" href="https://ai.burnchronic.xyz">🤖 AGENTS</a>
+  <a class="nav-stake" href="/launch">🚀 LAUNCH</a>
+  <div class="navdrop" id="navDrop">
+    <button class="nav-stake navmore-btn" type="button" onclick="document.getElementById('navDrop').classList.toggle('open')">⋯ MORE</button>
+    <div class="navmore-menu">
+      <a class="nav-stake" href="/buy">🪙 BUY</a>
+      <a class="nav-stake" href="/raid">🐦 RAID</a>
+      <a class="nav-stake" href="/playbook">🦍 RAID KIT</a>
+      <a class="nav-stake" href="/generator">🖼 MEMES</a>
+      <a class="nav-stake" href="https://ai.burnchronic.xyz">🤖 AGENTS</a>
+    </div>
+  </div>
   <a class="nav-buy" id="navBuyBtn" href="#" target="_blank" rel="noopener">🔥 BUY $CHRONIC</a>
   </div>
 </nav>
@@ -456,7 +472,7 @@ footer .trib a{color:var(--ember);text-decoration:underline}
     </video>
   </div>
   <div class="cta">
-    <a class="btn btn-fire" id="heroBuyBtn" href="#" target="_blank" rel="noopener">🔥 BUY $CHRONIC ON PUMP.FUN</a>
+    <a class="btn btn-fire" id="heroBuyBtn" href="#" rel="noopener">🔥 BUY $CHRONIC ON THE TERMINAL</a>
     <a class="btn btn-ghost" href="/grow">🌱 PLAY $CHRONIC GROW</a>
     <a class="btn btn-ghost" href="https://ai.burnchronic.xyz">🤖 MEET THE AGENTS</a>
     <a class="btn btn-ghost" href="#sessions">💨 THE SMOKE MAP</a>
@@ -539,7 +555,7 @@ fetch('/api/grow?action=leaderboard').then(function(r){return r.json();}).then(f
     </div>
     <div class="meter"><i id="burnMeter"></i></div>
     <div class="meter-cap"><span id="burnCapL">awaiting launch — the meter fills the moment trades hit</span><span id="burnCapR"></span></div>
-    <a class="topflex" href="https://pump.fun/coin/J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump" target="_blank" rel="noopener">💀 every $CHRONIC burned comes straight off the supply — gone forever, never coming back. the smoke never clears, and neither does he.</a>
+    <a class="topflex" href="/terminal?ca=J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump">💀 every $CHRONIC burned comes straight off the supply — gone forever, never coming back. the smoke never clears, and neither does he.</a>
     <div class="cd">
       <span>Next <b style="color:var(--ember)">4:20</b> smoke-time in</span>
       <span class="clk" id="cdClk">—</span>
@@ -614,7 +630,7 @@ fetch('/api/grow?action=leaderboard').then(function(r){return r.json();}).then(f
   <h2 class="sec">JOIN THE <span class="g">SMOKE</span></h2>
   <div class="steps">
     <div class="step rv"><div class="n">1</div><div><h4>Grab some SOL</h4><p>Get SOL in any Solana wallet — Phantom or Solflare. That’s your gas and your bag in one.</p></div></div>
-    <div class="step rv"><div class="n">2</div><div><h4>Cop $CHRONIC on pump.fun</h4><p>Paste the contract on <a href="https://pump.fun/coin/J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump" target="_blank" rel="noopener">pump.fun</a>, swap SOL for $CHRONIC. welcome to the smoke.</p></div></div>
+    <div class="step rv"><div class="n">2</div><div><h4>Cop $CHRONIC</h4><p>Hit the <a href="/terminal?ca=J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump">terminal</a>, swap SOL for $CHRONIC. welcome to the smoke.</p></div></div>
     <div class="step rv"><div class="n">3</div><div><h4>Hold the Fire</h4><p>Join <a href="https://t.me/burnchronic" target="_blank" rel="noopener">Telegram</a>, watch the supply burn, pass the lighter. the loyal stay forever.</p></div></div>
   </div>
 </section>
@@ -709,7 +725,7 @@ skip.addEventListener('click',()=>{clearTimeout(t);close();});
 el.addEventListener('click',e=>{if(e.target===vid||e.target===el){clearTimeout(t);close();}});})();
 
 /* ===== buy wiring ===== */
-(function(){const url=TOKEN?`https://pump.fun/coin/${TOKEN}`:'https://t.me/burnchronic';
+(function(){const url=TOKEN?`/terminal?ca=${TOKEN}`:'https://t.me/burnchronic';
 ['navBuyBtn','heroBuyBtn','buyLink'].forEach(id=>{const e=document.getElementById(id);if(e)e.href=url;});
 document.getElementById('xLink').href='https://x.com/chronicinmysol';
 if(TOKEN){const a=document.getElementById('caAddr');a.textContent=TOKEN;a.classList.remove('pending');
@@ -929,11 +945,11 @@ loadStrains(); bootSessions();
   // sticky buy fab — appears after the hero, links to buy
   var fab=document.getElementById('buyFab');
   var hb=document.getElementById('heroBuyBtn');
-  if(fab){ fab.href = (typeof TOKEN!=='undefined' && TOKEN) ? ('https://pump.fun/coin/'+TOKEN) : 'https://t.me/burnchronic'; }
+  if(fab){ fab.href = (typeof TOKEN!=='undefined' && TOKEN) ? ('/terminal?ca='+TOKEN) : 'https://t.me/burnchronic'; }
   window.addEventListener('scroll',function(){ if(!fab)return; fab.classList.toggle('show', window.scrollY>700); },{passive:true});
 })();
 </script>
-<a class="buyfab" id="buyFab" href="https://pump.fun/coin/J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump" target="_blank" rel="noopener">🔥 BUY $CHRONIC<span class="mc">don’t be the last one in</span></a>
+<a class="buyfab" id="buyFab" href="/terminal?ca=J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump" rel="noopener">🔥 BUY $CHRONIC<span class="mc">don’t be the last one in</span></a>
 <script>
 (function(){
   // ---- NEWSLETTER -> beehiiv hosted subscribe (real signups, double opt-in by beehiiv) ----

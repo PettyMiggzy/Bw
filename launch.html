@@ -151,8 +151,7 @@ function success(mint,symbol){
   var url='https://www.burnchronic.xyz/terminal?ca='+mint;
   $('result').innerHTML='<div class="card ok"><div class="h2" style="color:var(--green)">🚀 LAUNCHED</div>'
     +'<div class="ca">'+mint+'</div><div class="btns" style="flex-wrap:wrap;gap:8px">'
-    +'<a class="trade" style="background:linear-gradient(90deg,#a85cff,#7a3fd0);color:#fff" href="https://pump.fun/coin/'+mint+'" target="_blank" rel="noopener">🚀 Open coin page</a>'
-    +'<a class="trade" href="/terminal?ca='+mint+'">📈 Trade in terminal</a>'
+    +'<a class="trade" style="background:linear-gradient(90deg,#a85cff,#7a3fd0);color:#fff" href="/terminal?ca='+mint+'">📈 Trade in terminal</a>'
     +'<a class="share" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text='+encodeURIComponent(txt)+'&url='+encodeURIComponent(url)+'">🐦 Share</a></div>'
     +'<div class="note">you’re the creator — you keep <b style="color:var(--gold)">50% of every trade fee</b> on $'+esc(symbol)+', forever, on top of your normal creator fees. 🤝</div></div>';
   toast('🚀 launched! you earn 50% of fees');
