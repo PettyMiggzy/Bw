@@ -91,7 +91,7 @@ h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:
 .coin .new{font-size:7px;font-family:var(--fd);letter-spacing:.06em;color:#04140a;background:var(--green);border-radius:8px;padding:2px 5px;margin-left:auto;align-self:flex-start}
 /* dense readable list — wide rows instead of cramped cards */
 .coingrid{display:flex;flex-direction:column;gap:8px}
-.coin{display:grid;grid-template-columns:2.4fr 1fr 1fr .9fr .9fr auto;align-items:center;gap:12px;padding:11px 16px}
+.coin{display:grid;grid-template-columns:2.2fr 1fr 1fr 1fr .9fr .9fr auto;align-items:center;gap:12px;padding:11px 16px}
 .coin img,.coin .ph{width:42px;height:42px;border-radius:11px;flex:0 0 42px}
 .c-name{display:flex;align-items:center;gap:11px;min-width:0}
 .c-name .ci{min-width:0;flex:1}
@@ -108,7 +108,7 @@ h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:
 .cstat.new{background:rgba(132,167,141,.14);color:var(--dim)}
 @media(max-width:680px){
   .coin{grid-template-columns:1.6fr .9fr .9fr .7fr auto;gap:8px;padding:10px 12px}
-  .coin .c-num.age{display:none}
+  .coin .c-num.age,.coin .c-num.liqcol{display:none}
   .c-num i{font-size:8px}
 }
 .backf{display:inline-block;font-size:12px;color:var(--dim);cursor:pointer;margin-bottom:10px}
@@ -243,10 +243,10 @@ window.termImgErr=function(img){ var alt=img.getAttribute('data-alt'); if(alt&&i
 function coinCard(d){
   var pad=FEEDPAD[d.ca], grad=isGrad(d), curve=isCurve(d), ch=(d.ch||0);
   var status=grad?'<span class="cstat grad">🎓 LIVE</span>':curve?'<span class="cstat curve">🔥 '+gradPct(d)+'%</span>':'<span class="cstat new">NEW</span>';
-  var sub=(d.name&&d.name!==d.symbol)?'<div class="cn-sub">'+esc(String(d.name).slice(0,22))+'</div>':'';
   return '<div class="coin" data-ca="'+d.ca+'">'
-    +'<div class="c-name">'+avatar(d)+'<div class="ci"><div class="cn">'+esc(d.symbol||'?')+(pad?' <span class="badge pad">PAD</span>':'')+'</div>'+sub+'</div></div>'
+    +'<div class="c-name">'+avatar(d)+'<div class="ci"><div class="cn">'+esc(d.symbol||'?')+(pad?' <span class="badge pad">PAD</span>':'')+'</div></div></div>'
     +'<div class="c-num"><b>$'+fmt(d.mc)+'</b><i>mcap</i></div>'
+    +'<div class="c-num liqcol"><b>$'+fmt(d._lq||0)+'</b><i>liq</i></div>'
     +'<div class="c-num"><b>$'+fmt(d.vol)+'</b><i>vol 24h</i></div>'
     +'<div class="c-num '+(ch>=0?'up':'down')+'"><b>'+(ch>=0?'+':'')+ch.toFixed(0)+'%</b><i>24h</i></div>'
     +'<div class="c-num age"><b>'+ageStr(d.created)+'</b><i>age</i></div>'
