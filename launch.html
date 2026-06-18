@@ -25,6 +25,13 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .wallet.on{background:linear-gradient(90deg,var(--green-deep),var(--panel));color:var(--green);border:1px solid var(--green-dim)}
 .wrap{position:relative;z-index:2;max-width:520px;margin:0 auto;padding:20px 16px 90px}
 @media(min-width:768px){.wrap{max-width:680px;padding-top:34px}}
+/* desktop: stop looking like a phone — widen + put the form beside the live feed */
+@media(min-width:880px){
+  .wrap{max-width:1000px}
+  .cols{display:flex;gap:22px;align-items:flex-start}
+  .cols>#form{flex:1.05;min-width:0}
+  .cols>.card{flex:.95;min-width:0}
+}
 h1{font-family:var(--fh);font-size:clamp(34px,11vw,58px);text-align:center;color:var(--purple);text-shadow:0 0 30px rgba(168,92,255,.4),3px 3px 0 var(--green-deep)}
 .sub{text-align:center;color:var(--dim);font-size:12px;letter-spacing:.06em;margin:8px 0 4px}
 .pitch{display:flex;gap:8px;margin:14px 0 18px}
@@ -75,6 +82,7 @@ textarea{resize:vertical;min-height:62px}
     <div class="p"><b>🐦</b><i>instant share</i></div>
   </div>
 
+  <div class="cols">
   <div class="card" id="form">
     <label>token image</label>
     <div class="imgpick"><div class="prev" id="prev">🖼️</div><button id="pickBtn" type="button">choose image</button><input id="img" type="file" accept="image/*" style="display:none"/></div>
@@ -86,9 +94,10 @@ textarea{resize:vertical;min-height:62px}
     <div class="note">you sign &amp; pay — non-custodial. ~0.02 SOL + your dev buy. you become the creator and keep <b>50% of every trade fee</b> on your coin, <b>forever</b> — that's more than launching anywhere else.</div>
   </div>
 
-  <div id="result"></div>
-
   <div class="card"><div class="h2">🔥 Fresh off the Pad</div><div id="feed"><div class="spin">loading…</div></div></div>
+  </div>
+
+  <div id="result"></div>
   <div class="foot">🖥️ <a href="/terminal">terminal</a> · 🔥 <a href="/burn">burn</a> · 🌱 <a href="/grow">grow</a> · <a href="/">home</a> · 📧 <a href="mailto:team@burnchronic.xyz">contact</a></div>
 </div>
 <div class="toast" id="toast"></div>
