@@ -352,7 +352,7 @@ function renderGrid(){
     var d=document.createElement('div');d.className='card';
     var szSel=p.sizes?'<select class="szsel" aria-label="size for '+p.name+'">'+p.sizes.map(function(s){return '<option>'+s+'</option>';}).join('')+'</select>':'';
     var rt=RATINGS[p.id];var stars=rt&&rt.count?'<div class="stars" style="font-size:11px;margin-top:2px">'+starStr(rt.avg)+' <span style="color:var(--dim)">('+rt.count+')</span></div>':'';
-    d.innerHTML='<div class="thumb" role="img" aria-label="'+p.name+'">'+(p.tag?'<span class="tag">'+p.tag+'</span>':'')+p.emoji+'</div>'+
+    d.innerHTML='<div class="thumb" role="img" aria-label="'+p.name+'">'+(p.tag?'<span class="tag">'+p.tag+'</span>':'')+(p.img?'<img src="'+p.img+'" alt="'+p.name+'" loading="lazy" style="width:100%;height:100%;object-fit:cover">':p.emoji)+'</div>'+
       '<div class="info"><h3 class="nm">'+p.name+'</h3><div class="bl">'+p.blurb+'</div>'+stars+szSel+
       '<div class="pr"><span class="p">$'+p.price+'</span><button class="add" aria-label="Add '+p.name+' to cart">+ add</button></div></div>';
     var sel=d.querySelector('.szsel');if(sel)sel.onclick=function(e){e.stopPropagation();};
@@ -583,7 +583,7 @@ function openProduct(id){
   var szSel=p.sizes?'<select class="szsel" id="pmSize" style="margin:8px 0">'+p.sizes.map(function(s){return '<option>'+s+'</option>';}).join('')+'</select>':'';
   var m=$('pmodal');
   m.innerHTML='<div class="pinner">'+
-    '<div class="phead"><div class="pe">'+p.emoji+'</div><div><div class="ph3">'+esc(p.name)+'</div><div class="stars" id="pmAvg" style="font-size:12px">…</div></div><button class="pclose" id="pmClose" aria-label="close">×</button></div>'+
+    '<div class="phead"><div class="pe">'+(p.img?'<img src="'+p.img+'" alt="'+esc(p.name)+'" style="width:84px;height:84px;object-fit:cover;border-radius:12px;display:block">':p.emoji)+'</div><div><div class="ph3">'+esc(p.name)+'</div><div class="stars" id="pmAvg" style="font-size:12px">…</div></div><button class="pclose" id="pmClose" aria-label="close">×</button></div>'+
     '<div class="bl" style="font-size:12px;color:var(--dim);line-height:1.55">'+esc(p.blurb)+'</div>'+szSel+
     '<div class="pr" style="margin:12px 0;align-items:center"><span class="p" style="font-family:var(--fd);color:var(--green);font-size:20px">$'+p.price+'</span><button class="cta" id="pmAdd" style="width:auto;padding:11px 16px;margin-left:auto">+ add to cart</button></div>'+
     '<div id="pmReviews"><div class="muted">loading reviews…</div></div>'+
