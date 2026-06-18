@@ -298,7 +298,7 @@ function computeList(f){
   else if(f==='graduated') list=list.filter(isGrad);
   list=list.filter(passFilters);
   var skey=FSORT||defSort(f);
-  if(f==='trending'){ var pads=list.filter(function(d){return FEEDPAD[d.ca];}); var rest=sortList(list.filter(function(d){return !FEEDPAD[d.ca];}),skey); return pads.concat(rest); }
+  if(f==='trending'){ var pads=list.filter(function(d){return FEEDPAD[d.ca];}); var rest=sortList(list.filter(function(d){return !FEEDPAD[d.ca];}),skey); return pads.concat(rest).slice(0,10); }
   return sortList(list,skey);
 }
 function gridHtml(f){
