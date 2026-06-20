@@ -39,7 +39,8 @@ function feeAccountFor(mint) {
 }
 
 // BUY: skim 1% SOL upfront, then swap the rest — one versioned tx
-async function buildBuyWithFee(account, outputMint, lamports) {
+async function buildBuyWithFee(account, outputMint, lamports, feeBps) {
+  feeBps = (feeBps == null ? FEE_BPS : feeBps);
   const web3 = require('@solana/web3.js');
   const { PublicKey, SystemProgram, TransactionMessage, VersionedTransaction, TransactionInstruction, AddressLookupTableAccount } = web3;
   // pad-launched token? -> the dev earns 50% of the (1%) fee
@@ -50,7 +51,7 @@ async function buildBuyWithFee(account, outputMint, lamports) {
       if (rows && rows.length && G.isPubkey(rows[0].dev_wallet) && rows[0].dev_wallet !== FEE_WALLET) dev = rows[0].dev_wallet;
     }
   } catch (_) { /* no split */ }
-  const fee = (BigInt(lamports) * BigInt(FEE_BPS)) / 10000n;
+  const fee = (BigInt(lamports) * BigInt(feeBps)) / 10000n;
   const swapLamports = (BigInt(lamports) - fee).toString();
   const qp = new URLSearchParams({ inputMint: SOL, outputMint, amount: swapLamports, slippageBps: String(SLIPPAGE_BPS) });
   const quote = await jget(`/quote?${qp.toString()}`);
@@ -99,19 +100,20 @@ async function buildBuyWithFee(account, outputMint, lamports) {
   // push the tx past Solana's 1232-byte limit. Rather than ship a tx that fails
   // on-chain, bail so the caller falls back to a compact (Jupiter-built) swap.
   if (serialized.length > 1232) return null;
-  return { transaction: Buffer.from(serialized).toString('base64'), outAmount: quote.outAmount, inAmount: lamports, fee: FEE_BPS };
+  return { transaction: Buffer.from(serialized).toString('base64'), outAmount: quote.outAmount, inAmount: lamports, fee: feeBps };
 }
 
 // plain or referral-fee Jupiter swap (used for sells + fallback)
-async function buildSwap(account, inputMint, outputMint, amount, withFee) {
+async function buildSwap(account, inputMint, outputMint, amount, withFee, feeBps) {
+  feeBps = (feeBps == null ? FEE_BPS : feeBps);
   const qp = new URLSearchParams({ inputMint, outputMint, amount, slippageBps: String(SLIPPAGE_BPS) });
   let feeAccount = null;
-  if (withFee) {
+  if (withFee && feeBps > 0) {
     // charge the fee in SOL whenever SOL is one side (buys via wSOL input,
     // sells via SOL output) — keeps the fee currency consistent and compact.
     const feeMint = (inputMint === SOL || outputMint === SOL) ? SOL : outputMint;
     feeAccount = feeAccountFor(feeMint);
-    if (feeAccount) qp.set('platformFeeBps', String(FEE_BPS));
+    if (feeAccount) qp.set('platformFeeBps', String(feeBps));
   }
   const quote = await jget(`/quote?${qp.toString()}`);
   if (!quote || quote.error || !quote.outAmount) return { quote: null };
@@ -124,7 +126,7 @@ async function buildSwap(account, inputMint, outputMint, amount, withFee) {
   if (feeAccount && swap && swap.swapTransaction) {
     let tooBig = false;
     try { tooBig = Buffer.from(swap.swapTransaction, 'base64').length > 1232; } catch (_) {}
-    if (tooBig) return buildSwap(account, inputMint, outputMint, amount, false);
+    if (tooBig) return buildSwap(account, inputMint, outputMint, amount, false, feeBps);
   }
   return { quote, swap, feeApplied: !!feeAccount };
 }

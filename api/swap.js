@@ -14,6 +14,20 @@ const S = require('./_swap.js');
 
 const SOL = S.SOL;
 const FEE_BPS = S.FEE_BPS;
+const CHRONIC = process.env.CHRONIC_MINT || 'J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump';
+
+// $CHRONIC holder fee discount — verified on-chain, can't be spoofed.
+// 100k+ => half fee · 1M+ => trade FREE. The terminal becomes the token's #1 utility.
+async function holderFeeBps(account) {
+  let bps = FEE_BPS;
+  try {
+    const r = await G.solRpc('getTokenAccountsByOwner', [account, { mint: CHRONIC }, { encoding: 'jsonParsed' }]);
+    let bal = 0; ((r && r.value) || []).forEach((a) => { try { bal += Number(a.account.data.parsed.info.tokenAmount.uiAmount || 0); } catch (_) {} });
+    if (bal >= 1000000) bps = 0;
+    else if (bal >= 100000) bps = Math.round(FEE_BPS / 2);
+  } catch (_) {}
+  return bps;
+}
 
 function cors(res) {
   res.setHeader('access-control-allow-origin', '*');
@@ -42,16 +56,17 @@ module.exports = async (req, res) => {
   if (!amount || amount === '0') return send(res, 400, { error: 'bad amount' });
 
   try {
-    // BUY (paying in SOL): skim the 1% in SOL, fall back to plain swap on any hiccup
-    if (inputMint === SOL && FEE_BPS > 0) {
-      try { const r = await S.buildBuyWithFee(account, outputMint, amount); if (r) return send(res, 200, r); } catch (_) { /* fall through */ }
+    const feeBps = await holderFeeBps(account);   // dynamic by on-chain $CHRONIC holdings
+    // BUY (paying in SOL): skim the fee in SOL, fall back to plain swap on any hiccup
+    if (inputMint === SOL && feeBps > 0) {
+      try { const r = await S.buildBuyWithFee(account, outputMint, amount, feeBps); if (r) return send(res, 200, { ...r, holderFee: feeBps < FEE_BPS }); } catch (_) { /* fall through */ }
     }
-    // SELL / other: referral fee on output (SOL on sells), fallback to no fee
-    let r = await S.buildSwap(account, inputMint, outputMint, amount, true);
-    if ((!r.swap || !r.swap.swapTransaction)) r = await S.buildSwap(account, inputMint, outputMint, amount, false);
+    // SELL / other (or free-tier holder buy): referral fee on output, fallback to no fee
+    let r = await S.buildSwap(account, inputMint, outputMint, amount, feeBps > 0, feeBps);
+    if ((!r.swap || !r.swap.swapTransaction)) r = await S.buildSwap(account, inputMint, outputMint, amount, false, feeBps);
     if (!r.quote) return send(res, 400, { error: 'no route — try another amount' });
     if (!r.swap || !r.swap.swapTransaction) return send(res, 502, { error: 'swap build failed' });
-    return send(res, 200, { transaction: r.swap.swapTransaction, outAmount: r.quote.outAmount, inAmount: r.quote.inAmount, fee: r.feeApplied ? FEE_BPS : 0 });
+    return send(res, 200, { transaction: r.swap.swapTransaction, outAmount: r.quote.outAmount, inAmount: r.quote.inAmount, fee: r.feeApplied ? feeBps : 0, holderFee: feeBps < FEE_BPS });
   } catch (e) {
     return send(res, 502, { error: 'swap failed: ' + ((e && e.message) || e) });
   }

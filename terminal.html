@@ -26,6 +26,8 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .wrap{position:relative;z-index:2;max-width:680px;margin:0 auto;padding:18px 14px 90px}
 h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:var(--green);text-shadow:0 0 26px rgba(82,255,143,.4),3px 3px 0 var(--green-deep);margin-bottom:4px}
 .sub{text-align:center;color:var(--dim);font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px}
+.holderperk{display:block;text-align:center;margin:0 auto 14px;max-width:560px;font-size:11px;color:var(--green);background:linear-gradient(180deg,rgba(82,255,143,.1),rgba(7,10,7,.4));border:1px solid var(--green-dim);border-radius:11px;padding:9px 12px;text-decoration:none}
+.holderperk b{color:var(--gold)}
 .search{display:flex;gap:8px;margin-bottom:16px}
 .search input{flex:1;background:rgba(16,26,18,.85);border:1px solid var(--line);border-radius:13px;color:var(--green);font-family:var(--fm);font-size:13px;padding:14px;outline:none}
 .search input:focus{border-color:var(--green-dim)}
@@ -197,6 +199,7 @@ h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:
 <div class="wrap">
   <h1>TRENCH TERMINAL</h1>
   <div class="sub">scan · chart · buy · sell — fees feed the fire 🔥</div>
+  <a class="holderperk" href="/buy">🪙 hold <b>$CHRONIC</b> → <b>50% off</b> trade fees · <b>1M+ = trade FREE</b> · get $CHRONIC ›</a>
   <div class="search">
     <input id="ca" placeholder="paste any Solana token CA" spellcheck="false" />
     <button id="go">LOAD</button>
