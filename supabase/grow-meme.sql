@@ -12,3 +12,12 @@ create table if not exists grow_meme_usage (
 );
 alter table grow_meme_usage enable row level security;
 -- no anon policies on purpose; /api/meme uses the service key (bypasses RLS).
+
+-- spent payment signatures (pay-to-generate). PK = sig => one image per payment.
+create table if not exists grow_meme_paid (
+  sig        text primary key,
+  wallet     text,
+  created_at timestamptz not null default now()
+);
+alter table grow_meme_paid enable row level security;
+-- no anon policies; /api/meme (service key) is the only reader/writer.
