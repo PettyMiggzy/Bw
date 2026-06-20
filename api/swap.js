@@ -57,11 +57,9 @@ module.exports = async (req, res) => {
 
   try {
     const feeBps = await holderFeeBps(account);   // dynamic by on-chain $CHRONIC holdings
-    // BUY (paying in SOL): skim the fee in SOL, fall back to plain swap on any hiccup
-    if (inputMint === SOL && feeBps > 0) {
-      try { const r = await S.buildBuyWithFee(account, outputMint, amount, feeBps); if (r) return send(res, 200, { ...r, holderFee: feeBps < FEE_BPS }); } catch (_) { /* fall through */ }
-    }
-    // SELL / other (or free-tier holder buy): referral fee on output, fallback to no fee
+    // Fee via Jupiter's NATIVE platform fee — NO raw SystemProgram.transfer of SOL.
+    // The old buy-skim sent your SOL to the fee wallet before the swap, which Blowfish/Phantom
+    // read as a drainer pattern and blocked the whole dApp ("this dApp could be malicious").
     let r = await S.buildSwap(account, inputMint, outputMint, amount, feeBps > 0, feeBps);
     if ((!r.swap || !r.swap.swapTransaction)) r = await S.buildSwap(account, inputMint, outputMint, amount, false, feeBps);
     if (!r.quote) return send(res, 400, { error: 'no route — try another amount' });
