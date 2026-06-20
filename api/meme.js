@@ -16,7 +16,7 @@
 const G = require('./_grow.js');
 
 const VENICE = 'https://api.venice.ai/api/v1/image/generate';
-const KEY = process.env.VENICE_API_KEY || '';
+const KEY = process.env.VENICE_API_KEY || process.env.venice_api_key || '';
 const MODEL = process.env.VENICE_MODEL || 'z-image-turbo';
 const DAILY_CAP = parseInt(process.env.MEME_DAILY_CAP || '25', 10);
 
