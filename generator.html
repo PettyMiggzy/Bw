@@ -15,26 +15,32 @@
 body{font-family:var(--mono);background:var(--void);color:var(--text);min-height:100vh}
 a{color:inherit;text-decoration:none}
 header{position:sticky;top:0;z-index:50;background:rgba(7,10,7,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.nav{max-width:1100px;margin:0 auto;padding:0 20px;height:64px;display:flex;align-items:center;justify-content:space-between}
-.logo{font-family:var(--disp);font-size:22px;color:var(--green);display:flex;gap:8px;align-items:center}
+.nav{max-width:640px;margin:0 auto;padding:0 14px;height:54px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.logo{font-family:var(--disp);font-size:17px;color:var(--green);display:flex;gap:6px;align-items:center;white-space:nowrap}
 .logo span{color:var(--ember)}
-.btn{border:none;border-radius:10px;padding:11px 18px;font-weight:700;font-family:var(--mono);font-size:13px;color:var(--void);background:var(--green);cursor:pointer}
+.navbtns{display:flex;gap:7px;flex-shrink:0}
+.btn{border:none;border-radius:10px;padding:12px 18px;font-weight:700;font-family:var(--mono);font-size:14px;color:var(--void);background:var(--green);cursor:pointer}
+.btn:active{transform:translateY(1px)}
 .btn-ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
 .btn-ember{background:var(--ember);color:#fff}
-.wrap{max-width:1100px;margin:0 auto;padding:22px 20px 60px;display:grid;grid-template-columns:1fr 320px;gap:24px}
-@media(max-width:880px){.wrap{grid-template-columns:1fr}}
-h1{font-family:var(--disp);font-size:38px;color:var(--green);margin-bottom:4px;text-shadow:3px 3px 0 var(--green-deep)}
-.sub{color:var(--dim);font-size:14px;margin-bottom:16px}
-.stage{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;align-items:center}
-#c{max-width:100%;border-radius:8px;background:#000}
-.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;height:max-content}
-.panel h3{font-family:var(--disp);color:var(--green);font-size:18px;margin-bottom:10px}
+.btn.sm{padding:8px 12px;font-size:12px;border-radius:8px}
+.btn.big{width:100%;margin-top:14px;padding:15px;font-size:15px}
+.wrap{max-width:640px;margin:0 auto;padding:16px 14px 70px;display:flex;flex-direction:column;gap:14px}
+.hero{text-align:center;padding:4px 0 0}
+h1{font-family:var(--disp);font-size:clamp(26px,7.5vw,38px);color:var(--green);line-height:1.05;text-shadow:3px 3px 0 var(--green-deep)}
+.sub{color:var(--dim);font-size:13px;margin-top:8px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
+.panel h3{font-family:var(--disp);color:var(--green);font-size:16px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.tag{font-size:9px;color:var(--purple);font-family:var(--mono);letter-spacing:0;border:1px solid var(--purple);padding:2px 6px;border-radius:6px;font-weight:700}
 label{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;display:block;margin:12px 0 5px}
-input[type=text]{width:100%;padding:11px 12px;background:var(--void2);border:1px solid var(--line);color:var(--text);border-radius:9px;font-family:var(--mono);font-size:14px}
+input[type=text],select{width:100%;padding:12px;background:var(--void2);border:1px solid var(--line);color:var(--text);border-radius:10px;font-family:var(--mono);font-size:15px}
 input[type=range]{width:100%;accent-color:var(--green)}
-.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px;max-height:260px;overflow-y:auto}
-.thumb{aspect-ratio:1;border-radius:8px;overflow:hidden;border:2px solid transparent;background:var(--void2)}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;align-items:center}
+#c{max-width:100%;border-radius:10px;background:#000;display:block}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px;width:100%}
+.actions .btn{flex:1;min-width:96px;padding:12px 10px;font-size:13px}
+.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}
+.thumb{aspect-ratio:1;border-radius:8px;overflow:hidden;border:2px solid transparent;background:var(--void2);cursor:pointer}
 .thumb img{width:100%;height:100%;object-fit:cover}
 .thumb.sel{border-color:var(--green)}
 ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:var(--green-deep);border-radius:4px}
@@ -42,29 +48,26 @@ input[type=range]{width:100%;accent-color:var(--green)}
 </head>
 <body>
 <header><div class="nav">
-  <a class="logo" href="/"><span>🔥</span> CHRONIC <span>GEN</span></a>
-  <div style="display:flex;gap:8px"><a class="btn-ghost btn" href="/terminal">🖥️ Terminal</a><a class="btn-ghost btn" href="/">← Site</a></div>
-</div></header>
-<div class="wrap">
-  <div>
-    <h1>CHRONIC MEME GEN</h1>
-    <div class="sub">Pick art, add text, download. Burn it everywhere.</div>
-    <div class="stage">
-      <canvas id="c" width="800" height="800"></canvas>
-      <div class="actions">
-        <button class="btn" onclick="download()">⬇ Download PNG</button>
-        <button class="btn-ghost btn" onclick="copy()">📋 Copy</button>
-        <button class="btn-ghost btn" onclick="randomTemplate()">🎲 Random</button>
-        <button class="btn-ember btn" onclick="shuffleCap()">💬 Caption</button>
-      </div>
-    </div>
+  <a class="logo" href="/"><span>🔥</span> CHRONIC</a>
+  <div class="navbtns">
+    <a class="btn-ghost btn sm" href="/terminal">Terminal</a>
+    <a class="btn-ghost btn sm" href="/">Site</a>
   </div>
+</div></header>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>MEME GENERATOR</h1>
+    <div class="sub">Generate art → caption it → download. Burn it everywhere. 🔥</div>
+  </div>
+
+  <!-- ① GENERATE -->
   <div class="panel">
-    <h3>🤖 AI Image <span style="font-size:10px;color:var(--purple);font-family:var(--mono);letter-spacing:0">Venice</span></h3>
+    <h3>① Generate Art <span class="tag">VENICE AI</span></h3>
     <label>Describe your meme</label>
     <input type="text" id="prompt" placeholder="a skeleton ripping a fat bong on the moon" maxlength="600" onkeydown="if(event.key==='Enter')genAI()"/>
     <label>Style</label>
-    <select id="style" style="width:100%;padding:11px 12px;background:var(--void2);border:1px solid var(--line);color:var(--text);border-radius:9px;font-family:var(--mono);font-size:14px">
+    <select id="style">
       <option value="stoner">🌿 Stoner</option>
       <option value="cartoon">😂 Cartoon</option>
       <option value="none">— None —</option>
@@ -73,17 +76,35 @@ input[type=range]{width:100%;accent-color:var(--green)}
       <option value="3d">🧊 3D Render</option>
       <option value="realistic">📷 Realistic</option>
     </select>
-    <button class="btn" id="genBtn" style="width:100%;margin-top:12px" onclick="genAI()">✨ Generate Art</button>
-    <div id="genHint" style="font-size:10px;color:var(--dim);margin-top:7px;text-align:center">~5s · then add a caption below 👇</div>
-    <h3 style="margin-top:20px">Caption</h3>
+    <button class="btn big" id="genBtn" onclick="genAI()">✨ Generate Art</button>
+    <div id="genHint" style="font-size:11px;color:var(--dim);margin-top:9px;text-align:center">~5s · your art appears in the preview below 👇</div>
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="stage">
+    <canvas id="c" width="800" height="800"></canvas>
+    <div class="actions">
+      <button class="btn" onclick="download()">⬇ Download</button>
+      <button class="btn-ghost btn" onclick="copy()">📋 Copy</button>
+      <button class="btn-ember btn" onclick="shuffleCap()">💬 Caption</button>
+    </div>
+  </div>
+
+  <!-- ② CAPTION -->
+  <div class="panel">
+    <h3>② Add Caption <span style="font-size:11px;color:var(--dim);font-family:var(--mono)">(optional)</span></h3>
     <label>Top text</label>
     <input type="text" id="top" placeholder="top text..." oninput="draw()" maxlength="60"/>
     <label>Bottom text</label>
     <input type="text" id="bot" placeholder="bottom text..." oninput="draw()" maxlength="60"/>
     <label>Text size</label>
     <input type="range" id="size" min="28" max="90" value="54" oninput="draw()"/>
-    <h3 style="margin-top:18px">Template</h3>
-    <button class="btn-ghost btn" style="width:100%;margin-bottom:10px" onclick="document.getElementById('up').click()">＋ Upload your own</button>
+  </div>
+
+  <!-- ③ TEMPLATE -->
+  <div class="panel">
+    <h3>③ Or Start From a Template</h3>
+    <button class="btn-ghost btn" style="width:100%;margin-bottom:10px" onclick="document.getElementById('up').click()">＋ Upload your own image</button>
     <input type="file" id="up" accept="image/*" style="display:none" onchange="handleUpload(event)"/>
     <div class="thumbs" id="thumbs"></div>
   </div>
@@ -95,19 +116,30 @@ var TEMPLATES=[
 ];
 var CAPTIONS=["STAY CHRONIC","BURN IT DOWN","GAS ONLY","ZAZA","LOUD PACK","CHRONICALLY ONLINE","LIGHT IT UP","EXOTIC ONLY","UP IN SMOKE","HIGH SOCIETY","MIDS? NEVER","BURN TO MINT","PASS THE CHRONIC","ALL GAS NO MIDS","FEELING CHRONIC"];
 var cv=document.getElementById('c'),ctx=cv.getContext('2d');
-var img=new Image(),curSrc=TEMPLATES[0][0],isPng=false;
+var img=new Image(),curSrc=null,isPng=false,hasArt=false;
 function $(i){return document.getElementById(i);}
+// empty state — make it obvious the canvas is where art lands
+function drawPlaceholder(){
+  cv.width=800;cv.height=800;
+  ctx.fillStyle='#0c120c';ctx.fillRect(0,0,800,800);
+  ctx.strokeStyle='rgba(82,255,143,.30)';ctx.lineWidth=3;ctx.setLineDash([12,12]);ctx.strokeRect(24,24,752,752);ctx.setLineDash([]);
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.font='80px sans-serif';ctx.fillText('🖼️',400,300);
+  ctx.fillStyle='#52ff8f';ctx.font='900 46px Impact,"Arial Black",sans-serif';
+  ctx.fillText('YOUR MEME',400,400);ctx.fillText('SHOWS UP HERE',400,452);
+  ctx.fillStyle='#84a78d';ctx.font='400 22px "Space Mono",monospace';
+  ctx.fillText('type a prompt above → tap Generate',400,520);
+}
 function buildThumbs(){var t=$('thumbs');t.innerHTML='';TEMPLATES.forEach(function(tp){var d=document.createElement('div');d.className='thumb'+(tp[0]===curSrc?' sel':'');d.innerHTML='<img src="'+tp[0]+'" alt="'+tp[1]+'">';d.onclick=function(){curSrc=tp[0];load();buildThumbs();};t.appendChild(d);});}
 function handleUpload(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){load(ev.target.result,/png/i.test(f.type));buildThumbs();};r.readAsDataURL(f);}
-function load(src,png){if(src)curSrc=src;isPng=(typeof png==='boolean')?png:/\.png$/.test(curSrc);img=new Image();img.crossOrigin='anonymous';img.onload=function(){var W=800,H=Math.round(W*img.height/img.width);if(H>900){H=900;W=Math.round(H*img.width/img.height);}cv.width=W;cv.height=H;draw();};img.src=curSrc;}
+function load(src,png){if(src)curSrc=src;if(!curSrc){drawPlaceholder();return;}isPng=(typeof png==='boolean')?png:/\.png$/.test(curSrc);img=new Image();img.crossOrigin='anonymous';img.onload=function(){hasArt=true;var W=800,H=Math.round(W*img.height/img.width);if(H>900){H=900;W=Math.round(H*img.width/img.height);}cv.width=W;cv.height=H;draw();};img.src=curSrc;}
 function wrap(text,maxW){var words=text.split(' '),lines=[],cur='';for(var i=0;i<words.length;i++){var t=cur?cur+' '+words[i]:words[i];if(ctx.measureText(t).width>maxW&&cur){lines.push(cur);cur=words[i];}else cur=t;}if(cur)lines.push(cur);return lines;}
 function band(text,size,pos){if(!text)return;ctx.font='900 '+size+'px Impact,"Arial Black",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineJoin='round';ctx.lineWidth=Math.max(3,size/6);ctx.strokeStyle='#000';ctx.fillStyle='#fff';var maxW=cv.width*0.92,lh=size*1.05;var lines=wrap(text.toUpperCase(),maxW);var x=cv.width/2;for(var i=0;i<lines.length;i++){var y;if(pos==='top')y=size*0.7+size*0.2+i*lh+10;else y=cv.height-10-(lines.length-1-i)*lh-size*0.5;ctx.strokeText(lines[i],x,y);ctx.fillText(lines[i],x,y);}}
-function draw(){if(!img.complete||!img.width)return;ctx.clearRect(0,0,cv.width,cv.height);if(isPng){ctx.fillStyle='#0c120c';ctx.fillRect(0,0,cv.width,cv.height);}ctx.drawImage(img,0,0,cv.width,cv.height);var s=+$('size').value;band($('top').value,s,'top');band($('bot').value,s,'bottom');}
-function download(){var a=document.createElement('a');a.download='chronic-meme.png';a.href=cv.toDataURL('image/png');a.click();}
-function copy(){cv.toBlob(function(b){if(navigator.clipboard&&window.ClipboardItem){navigator.clipboard.write([new ClipboardItem({'image/png':b})]).then(function(){toast('Copied!');},function(){toast('Copy failed - use Download');});}else toast('Use Download');});}
-function randomTemplate(){curSrc=TEMPLATES[Math.floor(Math.random()*TEMPLATES.length)][0];load();buildThumbs();}
-function shuffleCap(){if(!$('top').value){$('top').value=CAPTIONS[Math.floor(Math.random()*CAPTIONS.length)];}else{$('bot').value=CAPTIONS[Math.floor(Math.random()*CAPTIONS.length)];}draw();}
-function toast(m){var t=document.createElement('div');t.textContent=m;t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:var(--void);padding:10px 18px;border-radius:10px;font-weight:700;z-index:200';document.body.appendChild(t);setTimeout(function(){t.remove();},1600);}
+function draw(){if(!hasArt||!img.complete||!img.width)return;ctx.clearRect(0,0,cv.width,cv.height);if(isPng){ctx.fillStyle='#0c120c';ctx.fillRect(0,0,cv.width,cv.height);}ctx.drawImage(img,0,0,cv.width,cv.height);var s=+$('size').value;band($('top').value,s,'top');band($('bot').value,s,'bottom');}
+function download(){if(!hasArt){toast('generate or pick art first');return;}var a=document.createElement('a');a.download='chronic-meme.png';a.href=cv.toDataURL('image/png');a.click();}
+function copy(){if(!hasArt){toast('generate or pick art first');return;}cv.toBlob(function(b){if(navigator.clipboard&&window.ClipboardItem){navigator.clipboard.write([new ClipboardItem({'image/png':b})]).then(function(){toast('Copied!');},function(){toast('Copy failed - use Download');});}else toast('Use Download');});}
+function shuffleCap(){if(!hasArt){toast('generate or pick art first');return;}if(!$('top').value){$('top').value=CAPTIONS[Math.floor(Math.random()*CAPTIONS.length)];}else{$('bot').value=CAPTIONS[Math.floor(Math.random()*CAPTIONS.length)];}draw();}
+function toast(m){var t=document.createElement('div');t.textContent=m;t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:var(--void);padding:10px 18px;border-radius:10px;font-weight:700;z-index:200;max-width:90%;text-align:center';document.body.appendChild(t);setTimeout(function(){t.remove();},2200);}
 /* ── wallet + pay-to-generate ─────────────────────────────────────────── */
 var _wallet=null,_w3=null,_cfg=null;
 function provider(){var p=(window.phantom&&window.phantom.solana)||window.solana;return(p&&p.isPhantom)?p:null;}
@@ -160,7 +192,7 @@ async function genAI(){
     }
     _paidSig=null;     // delivered — payment consumed, next one pays again
     load(j.image,true);    // drop AI art onto the canvas, then caption as usual
-    toast('🔥 art ready — caption it');
+    toast('🔥 art ready — scroll down to caption it');
   }catch(e){toast(/reject/i.test((e&&e.message)||'')?'cancelled':'gen failed');}
   finally{btn.disabled=false;btn.textContent=lab;btn.style.opacity='1';}
 }
@@ -169,7 +201,7 @@ async function genAI(){
   if(_cfg&&_cfg.paid){ $('genBtn').textContent='✨ Generate Art · '+_cfg.priceSol+' SOL';
     $('genHint').innerHTML='~5s · '+_cfg.priceSol+' SOL/meme · '+Math.round(_cfg.burnBps/100)+'% burns $CHRONIC 🔥'; }
 }catch(e){} })();
-buildThumbs();load();
+buildThumbs();drawPlaceholder();
 </script>
 </body>
 </html>
