@@ -127,12 +127,25 @@ async function verifyPayment(sig, account) {
   const signer = akeys.find((k) => k.signer);
   if (!signer || (signer.pubkey || signer) !== account) return { ok: false, reason: 'wrong_signer' };
 
-  const keys = akeys.map((k) => k.pubkey || k);
-  const pre = tx.meta.preBalances || [];
-  const post = tx.meta.postBalances || [];
-  const gain = (wallet) => { const i = keys.indexOf(wallet); return i < 0 ? 0n : BigInt(post[i] || 0) - BigInt(pre[i] || 0); };
-  if (gain(FEE_WALLET) < BigInt(FEE_LAMPORTS)) return { ok: false, reason: 'fee_short' };
-  if (gain(BURN_WALLET) < BigInt(BURN_LAMPORTS)) return { ok: false, reason: 'burn_short' };
+  // Count the SOL actually sent TO each wallet from the parsed System transfers.
+  // (We can't use net balance deltas: when the payer IS the fee wallet — e.g. the
+  // owner testing with the treasury wallet — its delta nets negative and looks short.)
+  let gotFee = 0n, gotBurn = 0n;
+  const scan = (ixs) => {
+    for (const ix of (ixs || [])) {
+      const p = ix.parsed;
+      if (p && p.type === 'transfer' && p.info && p.info.lamports != null) {
+        const amt = BigInt(p.info.lamports);
+        if (p.info.destination === FEE_WALLET) gotFee += amt;
+        if (p.info.destination === BURN_WALLET) gotBurn += amt;
+      }
+    }
+  };
+  scan(tx.transaction.message.instructions);
+  for (const inner of (tx.meta.innerInstructions || [])) scan(inner.instructions);
+
+  if (gotFee < BigInt(FEE_LAMPORTS)) return { ok: false, reason: 'fee_short' };
+  if (gotBurn < BigInt(BURN_LAMPORTS)) return { ok: false, reason: 'burn_short' };
   return { ok: true };
 }
 
