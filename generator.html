@@ -60,7 +60,22 @@ input[type=range]{width:100%;accent-color:var(--green)}
     </div>
   </div>
   <div class="panel">
-    <h3>Caption</h3>
+    <h3>🤖 AI Image <span style="font-size:10px;color:var(--purple);font-family:var(--mono);letter-spacing:0">Venice</span></h3>
+    <label>Describe your meme</label>
+    <input type="text" id="prompt" placeholder="a skeleton ripping a fat bong on the moon" maxlength="600" onkeydown="if(event.key==='Enter')genAI()"/>
+    <label>Style</label>
+    <select id="style" style="width:100%;padding:11px 12px;background:var(--void2);border:1px solid var(--line);color:var(--text);border-radius:9px;font-family:var(--mono);font-size:14px">
+      <option value="stoner">🌿 Stoner</option>
+      <option value="cartoon">😂 Cartoon</option>
+      <option value="none">— None —</option>
+      <option value="anime">🎌 Anime</option>
+      <option value="pixel">👾 Pixel</option>
+      <option value="3d">🧊 3D Render</option>
+      <option value="realistic">📷 Realistic</option>
+    </select>
+    <button class="btn" id="genBtn" style="width:100%;margin-top:12px" onclick="genAI()">✨ Generate Art</button>
+    <div id="genHint" style="font-size:10px;color:var(--dim);margin-top:7px;text-align:center">~5s · then add a caption below 👇</div>
+    <h3 style="margin-top:20px">Caption</h3>
     <label>Top text</label>
     <input type="text" id="top" placeholder="top text..." oninput="draw()" maxlength="60"/>
     <label>Bottom text</label>
@@ -93,6 +108,19 @@ function copy(){cv.toBlob(function(b){if(navigator.clipboard&&window.ClipboardIt
 function randomTemplate(){curSrc=TEMPLATES[Math.floor(Math.random()*TEMPLATES.length)][0];load();buildThumbs();}
 function shuffleCap(){if(!$('top').value){$('top').value=CAPTIONS[Math.floor(Math.random()*CAPTIONS.length)];}else{$('bot').value=CAPTIONS[Math.floor(Math.random()*CAPTIONS.length)];}draw();}
 function toast(m){var t=document.createElement('div');t.textContent=m;t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:var(--void);padding:10px 18px;border-radius:10px;font-weight:700;z-index:200';document.body.appendChild(t);setTimeout(function(){t.remove();},1600);}
+async function genAI(){
+  var p=($('prompt').value||'').trim();
+  if(p.length<2){toast('describe your meme first');return;}
+  var btn=$('genBtn');btn.disabled=true;var lab=btn.textContent;btn.textContent='✨ summoning…';btn.style.opacity='.6';
+  try{
+    var r=await fetch('/api/meme',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({prompt:p,style:$('style').value})});
+    var j=await r.json();
+    if(j.error||!j.image){toast(j.error||'gen failed');return;}
+    load(j.image,true);    // drop AI art onto the canvas, then caption as usual
+    toast('🔥 art ready — caption it');
+  }catch(e){toast('gen failed');}
+  finally{btn.disabled=false;btn.textContent=lab;btn.style.opacity='1';}
+}
 buildThumbs();load();
 </script>
 </body>
