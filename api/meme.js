@@ -120,7 +120,8 @@ async function verifyPayment(sig, account) {
   if (!tx) return { ok: false, reason: 'tx_not_found' };
   if (tx.meta && tx.meta.err) return { ok: false, reason: 'tx_failed' };
   // recency backstop so a payment can't be replayed long after the fact
-  if (tx.blockTime && (Date.now() / 1000 - tx.blockTime) > 300) return { ok: false, reason: 'too_old' };
+  // (generous window so a user can retry a failed generation without re-paying)
+  if (tx.blockTime && (Date.now() / 1000 - tx.blockTime) > 1200) return { ok: false, reason: 'too_old' };
 
   const akeys = tx.transaction.message.accountKeys || [];
   const signer = akeys.find((k) => k.signer);
@@ -174,6 +175,7 @@ module.exports = async (req, res) => {
   if (prompt.length < 2) return send(res, 400, { error: 'type what you want to see' });
   const style = STYLES[b.style] != null ? b.style : 'none';
 
+  let paidSig = null, paidAccount = null;
   if (PAID) {
     const sig = String(b.signature || '').trim();
     const account = String(b.account || '').trim();
@@ -182,7 +184,7 @@ module.exports = async (req, res) => {
     if (await sigUsed(sig)) return send(res, 402, paymentInfo({ error: 'payment already used' }));
     const v = await verifyPayment(sig, account);
     if (!v.ok) return send(res, 402, paymentInfo({ error: 'payment not verified (' + v.reason + ')' }));
-    await markSig(sig, account);
+    paidSig = sig; paidAccount = account;            // valid — but DON'T consume until an image is delivered
   } else {
     // free mode — guard with a per-IP daily cap
     if (!(await underLimit(clientIp(req)))) {
@@ -192,9 +194,12 @@ module.exports = async (req, res) => {
 
   try {
     const out = await generate(prompt, style);
-    if (out.error) return send(res, 502, { error: out.error });
+    // generation failed: do NOT consume the payment — the user can retry the
+    // SAME signature for free until it works (within the recency window).
+    if (out.error) return send(res, 502, { error: out.error, retryable: PAID });
+    if (paidSig) await markSig(paidSig, paidAccount);   // success -> spend the payment now
     return send(res, 200, out);
   } catch (e) {
-    return send(res, 502, { error: 'gen failed: ' + ((e && e.message) || e) });
+    return send(res, 502, { error: 'gen failed: ' + ((e && e.message) || e), retryable: PAID });
   }
 };

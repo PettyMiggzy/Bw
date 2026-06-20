@@ -132,23 +132,33 @@ async function payFor(info){
   for(var i=0;i<24;i++){ try{ var st=await conn(w3).getSignatureStatuses([sig]); var v=st&&st.value&&st.value[0]; if(v&&(v.confirmationStatus==='confirmed'||v.confirmationStatus==='finalized')){ if(v.err)throw new Error('pay failed'); break; } }catch(e){ if(/pay failed/.test(e.message))throw e; } await new Promise(function(r){setTimeout(r,1200);}); }
   return sig;
 }
+var _paidSig=null;   // a paid-but-not-yet-delivered signature, reused on retry (no double charge)
 async function genAI(){
   var prm=($('prompt').value||'').trim();
   if(prm.length<2){toast('describe your meme first');return;}
   var btn=$('genBtn');btn.disabled=true;var lab=btn.textContent;btn.style.opacity='.6';
   try{
-    btn.textContent='✨ summoning…';
-    var r=await fetch('/api/meme',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({prompt:prm,style:$('style').value,account:_wallet||undefined})});
+    var style=$('style').value;
+    btn.textContent=_paidSig?'✨ generating…':'✨ summoning…';
+    // if we already have a paid signature from a failed attempt, reuse it (free retry)
+    var r=await fetch('/api/meme',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({prompt:prm,style:style,account:_wallet||undefined,signature:_paidSig||undefined})});
     var j=await r.json();
     if(r.status===402){
+      _paidSig=null;   // server rejected/expired the old sig — pay fresh
       if(!_wallet){ btn.textContent='connect wallet…'; if(!(await connectWallet())){ toast('connect a wallet to generate'); return; } }
       btn.textContent='approve '+(j.priceSol||'')+' SOL…';
       var sig=await payFor(j);
+      _paidSig=sig;    // remember it so a later failure doesn't charge again
       btn.textContent='✨ generating…';
-      var r2=await fetch('/api/meme',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({prompt:prm,style:$('style').value,account:_wallet,signature:sig})});
+      var r2=await fetch('/api/meme',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({prompt:prm,style:style,account:_wallet,signature:sig})});
       j=await r2.json();
     }
-    if(j.error||!j.image){toast(j.error||'gen failed');return;}
+    if(j.error||!j.image){
+      if(j.retryable&&_paidSig){ toast('generation hiccup — tap Generate again (already paid, free retry)'); }
+      else { toast(j.error||'gen failed'); }
+      return;
+    }
+    _paidSig=null;     // delivered — payment consumed, next one pays again
     load(j.image,true);    // drop AI art onto the canvas, then caption as usual
     toast('🔥 art ready — caption it');
   }catch(e){toast(/reject/i.test((e&&e.message)||'')?'cancelled':'gen failed');}
