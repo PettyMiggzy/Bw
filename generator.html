@@ -156,6 +156,7 @@ async function payFor(info){
   var tx=new w3.Transaction();
   if(info.feeLamports>0)  tx.add(w3.SystemProgram.transfer({fromPubkey:pk,toPubkey:new w3.PublicKey(info.feeWallet),lamports:info.feeLamports}));
   if(info.burnLamports>0) tx.add(w3.SystemProgram.transfer({fromPubkey:pk,toPubkey:new w3.PublicKey(info.burnWallet),lamports:info.burnLamports}));
+  if(info.yieldLamports>0&&info.yieldWallet) tx.add(w3.SystemProgram.transfer({fromPubkey:pk,toPubkey:new w3.PublicKey(info.yieldWallet),lamports:info.yieldLamports}));
   tx.feePayer=pk;
   var bh=await conn(w3).getLatestBlockhash('confirmed'); tx.recentBlockhash=bh.blockhash;
   var sig;

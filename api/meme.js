@@ -37,11 +37,15 @@ const DAILY_CAP = parseInt(process.env.MEME_DAILY_CAP || '25', 10);
 const PRICE_SOL = parseFloat(process.env.MEME_PRICE_SOL || '0.002');
 const PRICE_LAMPORTS = Math.max(0, Math.round((PRICE_SOL || 0) * 1e9));
 const BURN_BPS = parseInt(process.env.MEME_BURN_BPS || '4000', 10);
+const YIELD_BPS = parseInt(process.env.MEME_YIELD_BPS || '3000', 10);
 const FEE_WALLET = process.env.MEME_FEE_WALLET || 'E7Cr2nad1SvBWF8vcGhNW575UVVPdTcgHEqSTMQzoUr5';
 const BURN_WALLET = process.env.MEME_BURN_WALLET || '6869BJqsz86WYkQJtc2do5s97hoKXMF8YxZe3oWwzpva';
+// some of the overhead funds the grow SOL-yield pool (defaults to the grow pool wallet)
+const YIELD_WALLET = process.env.MEME_YIELD_WALLET || process.env.POOL_WALLET || '';
 const PAID = PRICE_LAMPORTS > 0;
 const BURN_LAMPORTS = Math.floor((PRICE_LAMPORTS * BURN_BPS) / 10000);
-const FEE_LAMPORTS = PRICE_LAMPORTS - BURN_LAMPORTS;
+const YIELD_LAMPORTS = YIELD_WALLET ? Math.floor((PRICE_LAMPORTS * YIELD_BPS) / 10000) : 0;
+const FEE_LAMPORTS = Math.max(0, PRICE_LAMPORTS - BURN_LAMPORTS - YIELD_LAMPORTS);
 
 function paymentInfo(extra) {
   return Object.assign({
@@ -50,9 +54,12 @@ function paymentInfo(extra) {
     priceLamports: PRICE_LAMPORTS,
     feeWallet: FEE_WALLET,
     burnWallet: BURN_WALLET,
+    yieldWallet: YIELD_WALLET,
     feeLamports: FEE_LAMPORTS,
     burnLamports: BURN_LAMPORTS,
+    yieldLamports: YIELD_LAMPORTS,
     burnBps: BURN_BPS,
+    yieldBps: YIELD_LAMPORTS ? YIELD_BPS : 0,
   }, extra || {});
 }
 
@@ -130,7 +137,7 @@ async function verifyPayment(sig, account) {
   // Count the SOL actually sent TO each wallet from the parsed System transfers.
   // (We can't use net balance deltas: when the payer IS the fee wallet — e.g. the
   // owner testing with the treasury wallet — its delta nets negative and looks short.)
-  let gotFee = 0n, gotBurn = 0n;
+  let gotFee = 0n, gotBurn = 0n, gotYield = 0n;
   const scan = (ixs) => {
     for (const ix of (ixs || [])) {
       const p = ix.parsed;
@@ -138,6 +145,7 @@ async function verifyPayment(sig, account) {
         const amt = BigInt(p.info.lamports);
         if (p.info.destination === FEE_WALLET) gotFee += amt;
         if (p.info.destination === BURN_WALLET) gotBurn += amt;
+        if (YIELD_WALLET && p.info.destination === YIELD_WALLET) gotYield += amt;
       }
     }
   };
@@ -146,6 +154,7 @@ async function verifyPayment(sig, account) {
 
   if (gotFee < BigInt(FEE_LAMPORTS)) return { ok: false, reason: 'fee_short' };
   if (gotBurn < BigInt(BURN_LAMPORTS)) return { ok: false, reason: 'burn_short' };
+  if (YIELD_LAMPORTS > 0 && gotYield < BigInt(YIELD_LAMPORTS)) return { ok: false, reason: 'yield_short' };
   return { ok: true };
 }
 
@@ -176,8 +185,9 @@ module.exports = async (req, res) => {
   if (req.method === 'GET') {
     return send(res, 200, {
       ok: true, paid: PAID, priceSol: PRICE_SOL, priceLamports: PRICE_LAMPORTS,
-      feeWallet: FEE_WALLET, burnWallet: BURN_WALLET,
-      feeLamports: FEE_LAMPORTS, burnLamports: BURN_LAMPORTS, burnBps: BURN_BPS,
+      feeWallet: FEE_WALLET, burnWallet: BURN_WALLET, yieldWallet: YIELD_WALLET,
+      feeLamports: FEE_LAMPORTS, burnLamports: BURN_LAMPORTS, yieldLamports: YIELD_LAMPORTS,
+      burnBps: BURN_BPS, yieldBps: YIELD_LAMPORTS ? YIELD_BPS : 0,
     });
   }
   if (req.method !== 'POST') return send(res, 405, { error: 'POST only' });
