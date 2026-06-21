@@ -85,8 +85,9 @@ input[type=range]{width:100%;accent-color:var(--green)}
     <canvas id="c" width="800" height="800"></canvas>
     <div class="actions">
       <button class="btn" onclick="download()">⬇ Download</button>
+      <button class="btn-ember btn" onclick="shareX()">🐦 Share on X</button>
       <button class="btn-ghost btn" onclick="copy()">📋 Copy</button>
-      <button class="btn-ember btn" onclick="shuffleCap()">💬 Caption</button>
+      <button class="btn-ghost btn" onclick="shuffleCap()">💬 Caption</button>
     </div>
   </div>
 
@@ -135,9 +136,15 @@ function handleUpload(e){var f=e.target.files[0];if(!f)return;var r=new FileRead
 function load(src,png){if(src)curSrc=src;if(!curSrc){drawPlaceholder();return;}isPng=(typeof png==='boolean')?png:/\.png$/.test(curSrc);img=new Image();img.crossOrigin='anonymous';img.onload=function(){hasArt=true;var W=800,H=Math.round(W*img.height/img.width);if(H>900){H=900;W=Math.round(H*img.width/img.height);}cv.width=W;cv.height=H;draw();};img.src=curSrc;}
 function wrap(text,maxW){var words=text.split(' '),lines=[],cur='';for(var i=0;i<words.length;i++){var t=cur?cur+' '+words[i]:words[i];if(ctx.measureText(t).width>maxW&&cur){lines.push(cur);cur=words[i];}else cur=t;}if(cur)lines.push(cur);return lines;}
 function band(text,size,pos){if(!text)return;ctx.font='900 '+size+'px Impact,"Arial Black",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineJoin='round';ctx.lineWidth=Math.max(3,size/6);ctx.strokeStyle='#000';ctx.fillStyle='#fff';var maxW=cv.width*0.92,lh=size*1.05;var lines=wrap(text.toUpperCase(),maxW);var x=cv.width/2;for(var i=0;i<lines.length;i++){var y;if(pos==='top')y=size*0.7+size*0.2+i*lh+10;else y=cv.height-10-(lines.length-1-i)*lh-size*0.5;ctx.strokeText(lines[i],x,y);ctx.fillText(lines[i],x,y);}}
-function draw(){if(!hasArt||!img.complete||!img.width)return;ctx.clearRect(0,0,cv.width,cv.height);if(isPng){ctx.fillStyle='#0c120c';ctx.fillRect(0,0,cv.width,cv.height);}ctx.drawImage(img,0,0,cv.width,cv.height);var s=+$('size').value;band($('top').value,s,'top');band($('bot').value,s,'bottom');}
+function draw(){if(!hasArt||!img.complete||!img.width)return;ctx.clearRect(0,0,cv.width,cv.height);if(isPng){ctx.fillStyle='#0c120c';ctx.fillRect(0,0,cv.width,cv.height);}ctx.drawImage(img,0,0,cv.width,cv.height);var s=+$('size').value;band($('top').value,s,'top');band($('bot').value,s,'bottom');watermark();}
+// every meme is an ad: brand it so a shared meme markets $CHRONIC
+function watermark(){var s=Math.max(15,Math.round(cv.width*0.030));ctx.font='700 '+s+'px "Space Mono",monospace';ctx.textAlign='right';ctx.textBaseline='bottom';var x=cv.width-14,y=cv.height-12;ctx.lineJoin='round';ctx.lineWidth=Math.max(2,s/6);ctx.strokeStyle='rgba(0,0,0,.8)';ctx.fillStyle='rgba(82,255,143,.95)';var t='$CHRONIC · burnchronic.xyz';ctx.strokeText(t,x,y);ctx.fillText(t,x,y);}
 function download(){if(!hasArt){toast('generate or pick art first');return;}var a=document.createElement('a');a.download='chronic-meme.png';a.href=cv.toDataURL('image/png');a.click();}
 function copy(){if(!hasArt){toast('generate or pick art first');return;}cv.toBlob(function(b){if(navigator.clipboard&&window.ClipboardItem){navigator.clipboard.write([new ClipboardItem({'image/png':b})]).then(function(){toast('Copied!');},function(){toast('Copy failed - use Download');});}else toast('Use Download');});}
+function shareX(){if(!hasArt){toast('generate or pick art first');return;}
+  var txt='Made this with $CHRONIC 🔥\n\nthe memecoin that burns supply + pays you SOL to farm 🌱\n\nmake yours 👇';
+  try{cv.toBlob(function(b){if(b&&navigator.clipboard&&window.ClipboardItem){navigator.clipboard.write([new ClipboardItem({'image/png':b})]).then(function(){toast('🖼️ meme copied — paste it into your post');},function(){});}});}catch(e){}
+  window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(txt)+'&url='+encodeURIComponent('https://www.burnchronic.xyz/generator'),'_blank','noopener');}
 function shuffleCap(){if(!hasArt){toast('generate or pick art first');return;}if(!$('top').value){$('top').value=CAPTIONS[Math.floor(Math.random()*CAPTIONS.length)];}else{$('bot').value=CAPTIONS[Math.floor(Math.random()*CAPTIONS.length)];}draw();}
 function toast(m){var t=document.createElement('div');t.textContent=m;t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:var(--void);padding:10px 18px;border-radius:10px;font-weight:700;z-index:200;max-width:90%;text-align:center';document.body.appendChild(t);setTimeout(function(){t.remove();},2200);}
 /* ── wallet + pay-to-generate ─────────────────────────────────────────── */
