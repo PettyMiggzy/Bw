@@ -62,6 +62,25 @@ async function seasonTotals(seasonId) {
     return { totalXp: rows.reduce((a, x) => a + Number(x.xp || 0), 0), players: rows.length };
   } catch (_) { return { totalXp: 0, players: 0 }; }
 }
+
+// the SOL yield pool = pool wallet's SOL minus a gas reserve (distributed
+// pro-rata by XP at settle). Cached briefly so we don't RPC on every request.
+let _solPool = { t: 0, v: 0 };
+async function solYieldPool() {
+  if (Date.now() - _solPool.t < 20000) return _solPool.v;
+  const w = process.env.GROW_YIELD_WALLET || G.POOL_WALLET;
+  const reserve = parseFloat(process.env.GROW_YIELD_RESERVE_SOL || '0.1');
+  let sol = 0;
+  if (w) {
+    try {
+      const r = await G.solRpc('getBalance', [w]);
+      const lamports = (r && typeof r === 'object' && r.value != null) ? r.value : (typeof r === 'number' ? r : 0);
+      sol = Math.max(0, lamports / 1e9 - reserve);
+    } catch (_) { sol = 0; }
+  }
+  _solPool = { t: Date.now(), v: sol };
+  return sol;
+}
 async function readBody(req) {
   if (req.body && typeof req.body === 'object') return req.body;
   const chunks = []; for await (const c of req) chunks.push(c);
@@ -125,6 +144,7 @@ module.exports = async (req, res) => {
         poolWhole: Math.floor(Number(season.pool_base) / Math.pow(10, G.DECIMALS)),
         totalXp: totals.totalXp,
         players: totals.players,
+        solPool: await solYieldPool(),
       };
       if (action === 'leaderboard') {
         const limit = Math.min(100, parseInt(req.query.limit || '25', 10) || 25);
@@ -192,7 +212,8 @@ module.exports = async (req, res) => {
         player: decorate(player),
         season: { id: season.id, endsAt: season.ends_at,
                   poolWhole: Math.floor(Number(season.pool_base) / Math.pow(10, G.DECIMALS)),
-                  totalXp: totals.totalXp, players: totals.players },
+                  totalXp: totals.totalXp, players: totals.players,
+                  solPool: await solYieldPool() },
         xp: await myXp(season.id),
       });
     }

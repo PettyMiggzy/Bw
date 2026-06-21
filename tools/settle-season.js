@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 'use strict';
 /*
- * settle-season.js — pay every grower their XP-weighted (pro-rata) share of the pool,
- * then close the season and open the next one.
+ * settle-season.js — pay every grower their XP-weighted (pro-rata) share of the
+ * weekly pool: the $CHRONIC pool PLUS a SOL yield (the pool wallet's SOL balance
+ * minus a gas reserve — route your fee/creator SOL there to fund "earn SOL by
+ * farming"). Then close the season and open the next one.
  *
  * Run this once a week (cron / GitHub Action / manual) with the POOL keypair.
  * The keypair is the "burner now -> your wallet later": whatever wallet holds
@@ -15,6 +17,8 @@
  *   CHRONIC_MINT               (default: live pump.fun mint)
  *   CHRONIC_DECIMALS           (default: 6)
  *   POOL_SECRET_KEY            base58 string OR JSON array of the 64-byte secret
+ *   YIELD_RESERVE_SOL          SOL kept in the pool wallet for gas (default 0.1);
+ *                              everything above it is paid out as SOL yield
  *
  * Flags:
  *   --dry    compute + print payouts, send nothing, don't settle
@@ -23,6 +27,7 @@
  */
 const {
   Connection, Keypair, PublicKey,
+  SystemProgram, Transaction, sendAndConfirmTransaction,
 } = require('@solana/web3.js');
 const {
   getOrCreateAssociatedTokenAccount, transferChecked, TOKEN_2022_PROGRAM_ID,
@@ -96,27 +101,51 @@ async function sbRpc(fn, args) {
   // hand the rounding dust to the highest XP first
   for (let i = 0; left > 0n && i < alloc.length; i++) { alloc[i] += 1n; left -= 1n; }
 
-  const winners = top.map((t, i) => ({ wallet: t.wallet, xp: Number(t.xp), amount_base: alloc[i].toString() }));
-  console.log('▸ payouts:');
+  // SOL yield: the "earn SOL by farming" stream. Distribute the pool wallet's
+  // SOL (the routed fee/volume SOL) minus a gas reserve, pro-rata by the SAME
+  // XP weights — on top of the $CHRONIC pool.
+  const RESERVE_SOL = parseFloat(process.env.YIELD_RESERVE_SOL || '0.1');
+  const conn = new Connection(RPC, 'confirmed');
+  let payer = null;
+  const payerKey = () => (payer || (payer = loadKeypair()));
+  const poolPub = process.env.POOL_WALLET ? new PublicKey(process.env.POOL_WALLET) : payerKey().publicKey;
+  const balLamports = BigInt(await conn.getBalance(poolPub));
+  const reserveLamports = BigInt(Math.floor(RESERVE_SOL * 1e9));
+  const solPot = balLamports > reserveLamports ? balLamports - reserveLamports : 0n;
+  let solAlloc = xps.map((x) => (solPot * x) / sum);
+  let solLeft = solPot - solAlloc.reduce((a, b) => a + b, 0n);
+  for (let i = 0; solLeft > 0n && i < solAlloc.length; i++) { solAlloc[i] += 1n; solLeft -= 1n; }
+
+  const winners = top.map((t, i) => ({
+    wallet: t.wallet, xp: Number(t.xp),
+    amount_base: alloc[i].toString(), sol_lamports: solAlloc[i].toString(),
+  }));
+  console.log(`▸ paying ${winners.length} growers: ${Number(poolBase) / 10 ** DECIMALS} $CHRONIC + ${Number(solPot) / 1e9} SOL yield`);
   winners.forEach((w, i) => console.log(
-    `   #${i + 1} ${w.wallet}  ${Number(w.xp)} XP  ->  ${Number(alloc[i]) / 10 ** DECIMALS} $CHRONIC`));
+    `   #${i + 1} ${w.wallet}  ${Number(w.xp)} XP  ->  ${Number(alloc[i]) / 10 ** DECIMALS} $CHRONIC + ${Number(solAlloc[i]) / 1e9} SOL`));
 
   if (DRY) { console.log('• --dry: nothing sent, season left open.'); return; }
 
-  // 4. send the on-chain payouts from the pool wallet
-  const payer = loadKeypair();
-  const conn = new Connection(RPC, 'confirmed');
+  // 4. send the on-chain payouts from the pool wallet ($CHRONIC + SOL yield)
+  payer = payerKey();
   // $CHRONIC is a Token-2022 mint — derive ATAs and transfer with that program.
   const fromAta = await getOrCreateAssociatedTokenAccount(conn, payer, MINT, payer.publicKey, false, 'confirmed', undefined, TOKEN_2022_PROGRAM_ID);
 
   for (let i = 0; i < winners.length; i++) {
     const w = winners[i];
     const amt = BigInt(w.amount_base);
-    if (amt === 0n) { w.sig = null; continue; }
-    const toAta = await getOrCreateAssociatedTokenAccount(conn, payer, MINT, new PublicKey(w.wallet), false, 'confirmed', undefined, TOKEN_2022_PROGRAM_ID);
-    const sig = await transferChecked(conn, payer, fromAta.address, MINT, toAta.address, payer, amt, DECIMALS, [], undefined, TOKEN_2022_PROGRAM_ID);
-    w.sig = sig;
-    console.log(`   ✓ paid #${i + 1} — ${sig}`);
+    const solAmt = BigInt(w.sol_lamports);
+    if (amt > 0n) {
+      const toAta = await getOrCreateAssociatedTokenAccount(conn, payer, MINT, new PublicKey(w.wallet), false, 'confirmed', undefined, TOKEN_2022_PROGRAM_ID);
+      w.sig = await transferChecked(conn, payer, fromAta.address, MINT, toAta.address, payer, amt, DECIMALS, [], undefined, TOKEN_2022_PROGRAM_ID);
+    }
+    if (solAmt > 0n) {
+      const stx = new Transaction().add(SystemProgram.transfer({
+        fromPubkey: payer.publicKey, toPubkey: new PublicKey(w.wallet), lamports: Number(solAmt),
+      }));
+      w.solSig = await sendAndConfirmTransaction(conn, stx, [payer]);
+    }
+    console.log(`   ✓ paid #${i + 1} — ${Number(amt) / 10 ** DECIMALS} $CHRONIC${solAmt > 0n ? ' + ' + Number(solAmt) / 1e9 + ' SOL' : ''}`);
   }
 
   // 5. close the season + open the next
