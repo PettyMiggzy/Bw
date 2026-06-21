@@ -4,10 +4,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
 <title>$CHRONIC GROW — burn to grow, grow to win</title>
-<meta name="description" content="Burn $CHRONIC to grow. 60% burned forever, 40% into the weekly pool. Top 3 growers split the pot by XP. Resets every 7 days." />
+<meta name="description" content="A yield farm you actually play. Burn $CHRONIC to grow — 60% burned forever, 40% into the weekly yield pool. Every grower earns a pro-rata share by XP. Resets every 7 days." />
 <link rel="canonical" href="https://www.burnchronic.xyz/grow" />
 <meta property="og:title" content="$CHRONIC GROW — burn to grow, grow to win" />
-<meta property="og:description" content="Burn $CHRONIC, stack XP, top the leaderboard. 60% burned · 40% to the weekly pool. Top 3 split it." />
+<meta property="og:description" content="A yield farm you actually play. Burn $CHRONIC, stack XP, earn your pro-rata share. 60% burned · 40% to the weekly yield pool. Every grower earns." />
 <meta property="og:image" content="https://www.burnchronic.xyz/assets/og-chronic.jpg" />
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=4" />
@@ -69,6 +69,15 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
 .season .pool span{font-size:.42em;color:var(--green);font-family:var(--fd);margin-left:6px}
 .season .sub{color:var(--dim);font-size:12px}
 .season .sub b{color:var(--green)}
+.yieldrow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  margin-top:12px;padding:11px 14px;border-radius:14px;
+  background:linear-gradient(90deg,rgba(82,255,143,.10),rgba(168,92,255,.08));
+  border:1px solid rgba(82,255,143,.22)}
+.yieldrow .yl{display:flex;flex-direction:column;gap:1px}
+.yieldrow .ylab{font-family:var(--fd);font-size:9px;letter-spacing:.18em;color:var(--purple);text-transform:uppercase}
+.yieldrow .yval{font-size:14px;color:var(--text)}
+.yieldrow .yval b{font-family:var(--fh);font-size:22px;color:var(--green);text-shadow:0 0 18px rgba(82,255,143,.35);margin-right:3px}
+.yieldrow .ys{font-size:11px;color:var(--gold);font-weight:700;text-align:right}
 .season .timerrow{display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap}
 .cd{display:flex;gap:6px}
 .cd .u{background:rgba(7,10,7,.6);border:1px solid var(--line);border-radius:10px;padding:7px 10px;text-align:center;min-width:48px}
@@ -227,14 +236,18 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
 
 <div class="wrap">
   <h1 class="title">$CHRONIC GROW</h1>
-  <div class="tagline">burn to grow · <b>grow to win</b> · top 3 split the pot every 7 days</div>
+  <div class="tagline">burn to grow · <b>grow to earn</b> · every grower shares the pool every 7 days</div>
   <div class="modepill" id="modePill">◆ <b>demo mode</b> — connect a wallet to play for real</div>
 
   <!-- SEASON POOL -->
   <div class="season">
-    <div class="lab">◆ This Week's Pool</div>
+    <div class="lab">◆ This Week's Yield Pool</div>
     <div class="pool"><span id="poolN">0</span><span>$CHRONIC</span></div>
-    <div class="sub">Top 3 growers split it by <b>XP share</b> when the season ends.</div>
+    <div class="sub"><b>Every grower</b> earns a pro-rata share by XP — the more you farm, the bigger your cut. 🔥</div>
+    <div class="yieldrow" id="yieldRow">
+      <div class="yl"><span class="ylab">Your pending yield</span><span class="yval"><b id="yieldN">—</b> $CHRONIC</span></div>
+      <div class="ys" id="yieldShare">connect &amp; grow to claim 🔥</div>
+    </div>
     <div class="timerrow">
       <span class="lab2">Resets in</span>
       <div class="cd" id="cd">
@@ -300,7 +313,7 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
       <div class="step"><div class="n">1</div><div class="t"><b>Burn to buy.</b> Spend <span class="g">$CHRONIC</span> on seeds &amp; gear. <span class="o">60% is burned forever</span>, <span class="y">40% drops into this week's pool.</span></div></div>
       <div class="step"><div class="n">2</div><div class="t"><b>Grow, water &amp; sell.</b> Plant a seed, <span class="g">tap it to water</span> (each splash speeds growth), then sell the ripe buds. Every sale earns <span class="g">XP</span> — fancier strains pay more, and each harvest rolls a quality: <span class="o">🔥 Fire</span> or <span class="y">💎 Exotic</span> multiply your XP.</div></div>
       <div class="step"><div class="n">3</div><div class="t"><b>Climb.</b> XP ranks you on the <span class="y">weekly leaderboard.</span> Burn more, grow more, climb higher.</div></div>
-      <div class="step"><div class="n">4</div><div class="t"><b>Top 3 win.</b> When the 7-day season ends, the <span class="y">top 3 growers split the whole pool</span> proportional to their XP. Then it resets and the race starts again.</div></div>
+      <div class="step"><div class="n">4</div><div class="t"><b>Everyone earns.</b> When the 7-day season ends, <span class="y">every grower claims a pro-rata share of the whole pool</span> proportional to their XP — more XP, bigger cut. Then it resets and the next yield round starts.</div></div>
       <div class="disc">
         No dev cut — 100% of every spend goes to the burn or the players' pool. Prize is paid in $CHRONIC.
         <br><br><b>Live mode</b> uses your Solana wallet: each buy is one transaction that burns 60% and sends 40% to the pool, verified on-chain. <b>Demo mode</b> simulates it locally so you can feel the loop first.
@@ -401,10 +414,10 @@ var DEMO_BANK=50000000; // demo is free play — auto top-up so it never blocks
 var DEMO_DEF={ on:false, bal:DEMO_BANK, xp:0, contributed:0, basePool:0,
   seeds:{}, lvl:{light:0,nutes:0,plot:0,auto:0}, plots:[], seasonEnd:Date.now()+SEASON_MS };
 var D; // demo state
-var LIVE={ token:null, wallet:null, lvl:{}, seeds:{}, plots:[], nugs:[], nfts:[], xp:0, poolWhole:0, endsAt:null, board:null, balance:null, lastWinners:null };
+var LIVE={ token:null, wallet:null, lvl:{}, seeds:{}, plots:[], nugs:[], nfts:[], xp:0, poolWhole:0, totalXp:0, endsAt:null, board:null, balance:null, lastWinners:null };
 var MARKET_FEE_BPS=500;
 // real season data shown to everyone (incl. demo), so the pool/board are never fake
-var PUB={ poolWhole:0, endsAt:Date.now()+SEASON_MS, board:null, lastWinners:null };
+var PUB={ poolWhole:0, totalXp:0, endsAt:Date.now()+SEASON_MS, board:null, lastWinners:null };
 
 function loadDemo(){ try{D=JSON.parse(localStorage.getItem('cg3'))||null;}catch(e){D=null;} if(!D)D=JSON.parse(JSON.stringify(DEMO_DEF));
   for(var k in DEMO_DEF) if(typeof D[k]==='undefined') D[k]=JSON.parse(JSON.stringify(DEMO_DEF[k]));
@@ -422,11 +435,11 @@ var _th; function toast(m,bad){ var t=$('toast'); t.textContent=m; t.classList.t
 function VM(){
   if(MODE==='live'){
     return { live:true, connected:true, wallet:LIVE.wallet, balance:LIVE.balance, xp:LIVE.xp,
-      poolWhole:LIVE.poolWhole, endsAt:LIVE.endsAt?new Date(LIVE.endsAt).getTime():Date.now()+SEASON_MS,
+      poolWhole:LIVE.poolWhole, totalXp:LIVE.totalXp||0, endsAt:LIVE.endsAt?new Date(LIVE.endsAt).getTime():Date.now()+SEASON_MS,
       lvl:LIVE.lvl||{}, seeds:LIVE.seeds||{}, plots:LIVE.plots||[], board:LIVE.board };
   }
   return { live:false, connected:D.on, wallet:null, balance:D.on?D.bal:null, xp:D.xp,
-    poolWhole:PUB.poolWhole, endsAt:PUB.endsAt,
+    poolWhole:PUB.poolWhole, totalXp:PUB.totalXp||0, endsAt:PUB.endsAt,
     lvl:D.lvl, seeds:D.seeds, plots:D.plots, board:PUB.board };
 }
 function plotCount(V){ return STARTPLOTS+((V.lvl&&V.lvl.plot)||0); }
@@ -504,11 +517,11 @@ function applyPlayer(p){ LIVE.lvl=p.lvl||{}; LIVE.seeds=p.seeds||{}; LIVE.nugs=p
 async function refreshState(){
   var st=await apiGet('state');
   if(st.error){ if(/auth/i.test(st.error)){ logoutLive(); toast('session expired — reconnect',true);} return; }
-  applyPlayer(st.player); LIVE.xp=st.xp; LIVE.poolWhole=st.season.poolWhole; LIVE.endsAt=st.season.endsAt;
+  applyPlayer(st.player); LIVE.xp=st.xp; LIVE.poolWhole=st.season.poolWhole; LIVE.endsAt=st.season.endsAt; LIVE.totalXp=st.season.totalXp||0;
 }
 async function refreshSeason(){
   var lb=await apiGet('leaderboard',{limit:25});
-  if(!lb.error){ LIVE.poolWhole=lb.poolWhole; LIVE.endsAt=lb.endsAt; LIVE.lastWinners=lb.lastWinners||null;
+  if(!lb.error){ LIVE.poolWhole=lb.poolWhole; LIVE.endsAt=lb.endsAt; LIVE.totalXp=lb.totalXp||0; LIVE.lastWinners=lb.lastWinners||null;
     LIVE.board=(lb.board||[]).map(function(r){ return {who:shortW(r.wallet),addr:'',xp:r.xp,you:r.wallet===LIVE.wallet}; });
     if(LIVE.wallet && !LIVE.board.some(function(b){return b.you;}) && LIVE.xp>0)
       LIVE.board.push({who:shortW(LIVE.wallet),addr:'you',xp:LIVE.xp,you:true});
@@ -516,7 +529,7 @@ async function refreshSeason(){
 }
 async function refreshLive(){ try{ await refreshState(); }catch(e){} try{ LIVE.balance=await fetchBalance(); }catch(e){} try{ await refreshSeason(); }catch(e){} renderAll(); }
 async function refreshPublic(){ try{ var lb=await apiGet('leaderboard',{limit:25}); if(lb&&!lb.error){
-  PUB.poolWhole=lb.poolWhole||0; if(lb.endsAt) PUB.endsAt=new Date(lb.endsAt).getTime(); PUB.lastWinners=lb.lastWinners||null;
+  PUB.poolWhole=lb.poolWhole||0; PUB.totalXp=lb.totalXp||0; if(lb.endsAt) PUB.endsAt=new Date(lb.endsAt).getTime(); PUB.lastWinners=lb.lastWinners||null;
   PUB.board=(lb.board||[]).map(function(r){ return {who:shortW(r.wallet),addr:'',xp:r.xp,you:false}; }); } }catch(e){} }
 
 /* ---------- connect / login ---------- */
@@ -674,20 +687,22 @@ function renderBoard(){ var V=VM(); var list;
   var P=V.poolWhole; renderLastWin();
   var pod=$('podium'); pod.innerHTML='';
   if(!list.length){ pod.innerHTML=''; $('rows').innerHTML='<div class="empty-note">No growers yet this season — be the first to burn. 🔥</div>'; return; }
-  var top3=list.slice(0,3); var sum=top3.reduce(function(a,b){return a+b.xp;},0)||1;
+  var top3=list.slice(0,3);
+  // pro-rata over EVERY grower (not just the top 3): your share = your XP / total XP
+  var denom=(V.totalXp&&V.totalXp>0)?V.totalXp:(list.reduce(function(a,b){return a+b.xp;},0)||1);
   var medals=['🥇','🥈','🥉'], order=[1,0,2];
-  order.forEach(function(idx){ var p=top3[idx]; if(!p)return; var share=Math.round(P*(p.xp/sum));
+  order.forEach(function(idx){ var p=top3[idx]; if(!p)return; var share=Math.round(P*(p.xp/denom));
     var d=document.createElement('div'); d.className='pod g'+(idx+1)+(p.you?' you':'');
     d.innerHTML='<div class="rk">'+medals[idx]+'</div><div class="who">'+p.who+'</div><div class="xp">'+fmt(p.xp)+' XP</div>'
       +'<div class="win">'+fmt(share)+'<i>$CHRONIC</i></div>'; pod.appendChild(d); });
   var rows=$('rows'); rows.innerHTML='';
   list.forEach(function(p,i){ var d=document.createElement('div'); d.className='row'+(p.you?' you':'')+(i<3?' top':'');
     d.innerHTML='<div class="rk">'+(i+1)+'</div><div class="who">'+p.who+(p.addr?'<small>'+p.addr+'</small>':'')+'</div>'
-      +'<div class="xp">'+fmt(p.xp)+'<i>XP</i></div>'; rows.appendChild(d); });
+      +'<div class="xp">'+fmt(p.xp)+'<i>XP · '+fmt(Math.round(P*(p.xp/denom)))+' $C</i></div>'; rows.appendChild(d); });
   var sb=$('boardShare'); if(sb){ var youI=-1; for(var k=0;k<list.length;k++){ if(list[k].you){youI=k;break;} }
-    var rank=youI>=0?(youI+1):null;
-    var txt=rank?('I’m rank #'+rank+' on $CHRONIC GROW 🌱🔥 — '+fmt(V.xp)+' XP. top 3 split the '+fmt(P)+' $CHRONIC weekly pool. catch up 👇')
-                :('$CHRONIC GROW 🌱 burn to grow — top 3 split the '+fmt(P)+' $CHRONIC weekly pool every week 🔥👇');
+    var rank=youI>=0?(youI+1):null; var youYield=fmt(Math.round(P*((V.xp||0)/denom)));
+    var txt=rank?('I’m rank #'+rank+' on $CHRONIC GROW 🌱🔥 — '+fmt(V.xp)+' XP earning ~'+youYield+' $CHRONIC from the yield pool. every grower earns a share. catch up 👇')
+                :('$CHRONIC GROW 🌱 a yield farm you actually play — burn to grow, every grower earns a pro-rata share of the '+fmt(P)+' $CHRONIC weekly pool 🔥👇');
     var su=rank?('https://www.burnchronic.xyz/flex?type=rank&rank='+rank+'&xp='+Math.floor(V.xp)):('https://www.burnchronic.xyz/flex?type=pool&pool='+P);
     sb.href='https://twitter.com/intent/tweet?text='+encodeURIComponent(txt)+'&url='+encodeURIComponent(su); }
 }
@@ -764,6 +779,17 @@ function renderHud(){ var V=VM(); $('balN').textContent=(V.balance==null)?'—':
   else { mp.className='modepill'; mp.innerHTML='◆ <b>demo mode</b> — connect a wallet to play for real'; } }
 var _poolShown=0;
 function renderPool(){ var V=VM(); animateNum($('poolN'),V.poolWhole); }
+function renderYield(){ var V=VM(); var row=$('yieldRow'); if(!row)return;
+  var yn=$('yieldN'), ys=$('yieldShare');
+  if(V.live && V.totalXp>0 && V.xp>0){
+    var share=V.xp/V.totalXp, pend=Math.round(V.poolWhole*share);
+    yn.textContent=fmt(pend);
+    ys.textContent=(share*100).toFixed(share>=0.1?1:2)+'% of pool · paid weekly';
+  } else if(V.live){
+    yn.textContent='0'; ys.textContent='plant & grow to start earning 🌱';
+  } else {
+    yn.textContent='—'; ys.textContent='connect & grow to claim your share 🔥';
+  } }
 function animateNum(el,to){ var from=_poolShown||0; var t0=performance.now(),dur=600;
   function step(t){ var k=Math.min(1,(t-t0)/dur); var v=Math.round(from+(to-from)*(1-Math.pow(1-k,3))); el.textContent=fmt(v); if(k<1)requestAnimationFrame(step); else _poolShown=to; }
   requestAnimationFrame(step); }
@@ -771,7 +797,7 @@ function renderCountdown(){ var V=VM(); var ms=Math.max(0,V.endsAt-Date.now());
   var s=Math.floor(ms/1000),d=Math.floor(s/86400); s-=d*86400; var h=Math.floor(s/3600); s-=h*3600; var m=Math.floor(s/60); s-=m*60;
   $('cdD').textContent=d; $('cdH').textContent=String(h).padStart(2,'0'); $('cdM').textContent=String(m).padStart(2,'0'); $('cdS').textContent=String(s).padStart(2,'0'); }
 
-function renderAll(){ for(var i=0;i<MAXPLOTS;i++) renderPlot(i); renderSeedShop(); renderShop(); renderBoard(); renderHud(); renderPool(); renderCountdown(); }
+function renderAll(){ for(var i=0;i<MAXPLOTS;i++) renderPlot(i); renderSeedShop(); renderShop(); renderBoard(); renderHud(); renderPool(); renderYield(); renderCountdown(); }
 
 /* ---------- particles ---------- */
 function burst(x,y,col){ for(var i=0;i<16;i++){ var e=document.createElement('div'); e.className='ember'; if(col){e.style.background=col;e.style.boxShadow='0 0 8px #5ab0ff';} document.body.appendChild(e);

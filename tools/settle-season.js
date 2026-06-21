@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /*
- * settle-season.js — pay the top-3 growers their XP-weighted share of the pool,
+ * settle-season.js — pay every grower their XP-weighted (pro-rata) share of the pool,
  * then close the season and open the next one.
  *
  * Run this once a week (cron / GitHub Action / manual) with the POOL keypair.
@@ -77,9 +77,11 @@ async function sbRpc(fn, args) {
   const poolBase = BigInt(Math.trunc(Number(due.pool_base)));
   console.log(`▸ settling season ${due.id} — pool ${Number(poolBase) / 10 ** DECIMALS} $CHRONIC`);
 
-  // 2. top 3 by XP
+  // 2. every grower, ranked by XP. PAYOUT_SLOTS caps the count so the on-chain
+  // payout gas stays bounded (each new recipient costs ~0.002 SOL in ATA rent).
+  const SLOTS = Math.max(1, parseInt(process.env.PAYOUT_SLOTS || '50', 10));
   const top = await sbGet(
-    `grow_scores?season_id=eq.${due.id}&order=xp.desc&limit=3&select=wallet,xp`);
+    `grow_scores?season_id=eq.${due.id}&order=xp.desc&limit=${SLOTS}&select=wallet,xp`);
   if (!top.length || poolBase === 0n) {
     console.log('• no players / empty pool — closing season with no payout.');
     if (!DRY) await sbRpc('grow_settle_season', { p_season_id: due.id, p_winners: [] });

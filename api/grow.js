@@ -47,6 +47,21 @@ function authWallet(req) {
 }
 
 const json = (res, code, obj) => { res.status(code).json(obj); };
+
+// total XP (+ player count) for a season — lets the client show each grower's
+// pro-rata share of the pool ("pending yield"). Uses the SQL helper if present,
+// else falls back to summing scores so it works before grow-yield.sql is run.
+async function seasonTotals(seasonId) {
+  try {
+    const r = await G.sbRpc('grow_season_totals', { p_season_id: seasonId });
+    const row = Array.isArray(r) ? r[0] : r;
+    if (row && row.total_xp != null) return { totalXp: Number(row.total_xp), players: Number(row.players || 0) };
+  } catch (_) { /* function not deployed yet — fall back */ }
+  try {
+    const rows = await G.sbSelect(`grow_scores?season_id=eq.${seasonId}&select=xp&limit=1000`);
+    return { totalXp: rows.reduce((a, x) => a + Number(x.xp || 0), 0), players: rows.length };
+  } catch (_) { return { totalXp: 0, players: 0 }; }
+}
 async function readBody(req) {
   if (req.body && typeof req.body === 'object') return req.body;
   const chunks = []; for await (const c of req) chunks.push(c);
@@ -102,11 +117,14 @@ module.exports = async (req, res) => {
     if (action === 'season' || action === 'leaderboard') {
       const s = await G.sbRpc('grow_current_season', {});
       const season = Array.isArray(s) ? s[0] : s;
+      const totals = await seasonTotals(season.id);
       const out = {
         season: season.id,
         endsAt: season.ends_at,
         poolBase: season.pool_base,
         poolWhole: Math.floor(Number(season.pool_base) / Math.pow(10, G.DECIMALS)),
+        totalXp: totals.totalXp,
+        players: totals.players,
       };
       if (action === 'leaderboard') {
         const limit = Math.min(100, parseInt(req.query.limit || '25', 10) || 25);
@@ -169,10 +187,12 @@ module.exports = async (req, res) => {
       const s = await G.sbRpc('grow_current_season', {});
       const season = Array.isArray(s) ? s[0] : s;
       const player = await loadPlayer();
+      const totals = await seasonTotals(season.id);
       return json(res, 200, {
         player: decorate(player),
         season: { id: season.id, endsAt: season.ends_at,
-                  poolWhole: Math.floor(Number(season.pool_base) / Math.pow(10, G.DECIMALS)) },
+                  poolWhole: Math.floor(Number(season.pool_base) / Math.pow(10, G.DECIMALS)),
+                  totalXp: totals.totalXp, players: totals.players },
         xp: await myXp(season.id),
       });
     }
