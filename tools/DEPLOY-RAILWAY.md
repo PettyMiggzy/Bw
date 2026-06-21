@@ -38,3 +38,47 @@ Supabase table. The $CHRONIC terminal's **New** board reads that table via
   with `"live": true`.
 - The terminal **New** board will show them seconds after they mint, upgrading
   to live price/mcap once Dexscreener indexes each one.
+
+---
+
+# Deploy the buy-&-burn engine (feeburn.js)
+
+`feeburn.js` is the worker that actually **burns** $CHRONIC. Every cycle it
+SPL-burns the *entire* $CHRONIC balance of the burn wallet — so anything sent
+to that wallet (manual sends, the meme generator's 40% routed as SOL+DCA, etc.)
+gets burned forever. **If this worker isn't running, tokens sent to the wallet
+just sit there — they do NOT auto-burn.**
+
+## Setup (~3 min) — a SECOND Railway service in the same project
+
+1. Railway project → **New → GitHub Repo** → same repo (a second service).
+2. Service **Settings**:
+   - **Root Directory:** `tools`
+   - **Custom Start Command:** `node feeburn.js`
+3. **Variables** tab — add:
+   ```
+   BURN_SECRET_KEY = <burn wallet keypair>   # base58 or [json]. SET HERE ONLY,
+                                             # never paste it in chat or commit it.
+   SOLANA_RPC      = https://solana-mainnet.g.alchemy.com/v2/<key>
+   DCA_SOL         = 0        # 0 = burn-only. >0 also buys $CHRONIC with the
+                             # wallet's SOL each cycle, then burns it (turns the
+                             # meme-fee 40% SOL into real burns).
+   DCA_INTERVAL_MIN = 60      # minutes between cycles
+   RESERVE_SOL      = 0.05    # SOL kept for gas, never spent
+   ```
+   Optional — tweet every burn (free marketing):
+   ```
+   TWEET_BURNS = 1
+   TWEET_MIN   = 1000
+   X_API_KEY / X_API_SECRET / X_ACCESS_TOKEN / X_ACCESS_SECRET = <your X app keys>
+   ```
+4. **Deploy.** Logs print `$CHRONIC buy-&-burn engine`, the burn wallet address,
+   then `🔥 burned N $CHRONIC — <sig>` on the **first cycle** (immediately) if the
+   wallet holds any tokens. Your 6M will burn on that first cycle.
+
+## Notes
+- `BURN_SECRET_KEY` must be the keypair of the wallet that **holds** the tokens
+  (the one you've been sending $CHRONIC to). Burning requires its signature.
+- Keep ~`RESERVE_SOL` SOL in the wallet for gas (each burn tx is ~0.000005 SOL).
+- Burn-only (`DCA_SOL=0`) is the simplest start; flip `DCA_SOL` up later to also
+  convert incoming SOL into buy-&-burns.
