@@ -406,7 +406,6 @@ function render(){
   html+='<div class="card" id="tradeCard"></div>';
   html+='<div id="curveBar"></div>';
   html+='<div class="card seccard"><div class="sech">🛡️ Data &amp; Security</div>'
-    +'<a id="secRadar" href="/rugradar?ca='+encodeURIComponent(t.ca)+'" target="_blank" style="text-decoration:none"><div class="secrow"><span>🛰️ Rug Radar</span><b class="muted">scanning…</b></div></a>'
     +'<div id="secAuth"><div class="secrow"><span>Mint Authority</span><b class="muted">…</b></div><div class="secrow"><span>Freeze Authority</span><b class="muted">…</b></div></div>'
     +'<div class="secrow"><span>Liquidity</span><b>$'+fmt(t.liq)+'</b></div>'
     +'<div class="secrow"><span>24h Volume</span><b>$'+fmt(t.vol)+'</b></div>'
@@ -418,7 +417,7 @@ function render(){
   html+='<div class="card"><div class="h2">🔍 Bundle Check<button class="scanbtn" id="scanBtn">SCAN</button></div><div id="bundleOut"><div class="muted">tap SCAN to check holders, snipers &amp; funding clusters</div></div></div>';
   html+='</div>';
   $('out').innerHTML=html;
-  renderTrade(); loadCurve(); loadDexPaid(); loadHolders(); loadSecurity(); loadRadar();
+  renderTrade(); loadCurve(); loadDexPaid(); loadHolders(); loadSecurity();
   $('scanBtn').addEventListener('click',scan);
   var bf=$('backFeed'); if(bf)bf.addEventListener('click',function(){ history.replaceState(null,'','/terminal'); $('ca').value=''; showFeed(); });
 }
@@ -461,14 +460,6 @@ async function loadSecurity(){ var el=$('secAuth'); if(!el)return;
     el.innerHTML='<div class="secrow"><span>Mint Authority</span>'+flag(!!info.mintAuthority)+'</div>'
       +'<div class="secrow"><span>Freeze Authority</span>'+flag(!!info.freezeAuthority)+'</div>';
   }catch(e){} }
-
-/* Rug Radar grade — one-call safety score (/api/rugcheck), tap row for the full scan */
-async function loadRadar(){ var a=$('secRadar'); if(!a)return; var el=a.querySelector('b'); if(!el)return;
-  try{ var r=await fetch('/api/rugcheck?ca='+encodeURIComponent(token.ca)); var d=await r.json();
-    if(!d||d.ok===false){ el.className='muted'; el.textContent='—'; return; }
-    var cls=(d.verdict==='danger'||d.grade==='F'||d.grade==='D')?'bad':(d.grade==='C'?'muted':'good');
-    el.className=cls; el.textContent=d.grade+' · '+d.score+'/100 ›';
-  }catch(e){ el.className='muted'; el.textContent='—'; } }
 
 function renderTrade(){
   var c=$('tradeCard'); if(!c)return;
