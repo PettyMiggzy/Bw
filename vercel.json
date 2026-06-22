@@ -36,7 +36,7 @@
       ]
     },
     {
-      "source": "/(terminal|launch|buy|sell|burn|raid|grow|bundle|generator|ape|contact|playbook|merchpad|docs|rugradar)",
+      "source": "/(terminal|launch|buy|sell|burn|raid|grow|bundle|generator|ape|contact|playbook|merchpad|docs)",
       "headers": [
         { "key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate" }
       ]

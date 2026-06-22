@@ -24,12 +24,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.burnchronic.xyz/rugradar</loc>
-    <lastmod>2026-06-21</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://burnchronic.store/merchpad</loc>
     <lastmod>2026-06-16</lastmod>
     <changefreq>monthly</changefreq>
