@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<title>👛 Your $CHRONIC Wallet</title>
+<meta name="description" content="No wallet, no seed phrase, no extension. Sign in with email and get a Solana wallet in one tap — then buy $CHRONIC with a card." />
+<link rel="canonical" href="https://www.burnchronic.xyz/wallet" />
+<meta property="og:title" content="👛 Your $CHRONIC Wallet" />
+<meta property="og:description" content="Email in → wallet out. No seed phrase. Buy $CHRONIC with a card, then burn it 🔥" />
+<meta property="og:image" content="https://www.burnchronic.xyz/assets/og-chronic.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=4" />
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+:root{--void:#070a07;--panel:#101a12;--green:#52ff8f;--green-dim:#2bd96a;--green-deep:#0c3d22;--ember:#ff6a2b;--ember2:#ff3d1f;--gold:#f5cf57;--purple:#a85cff;--text:#e9ffe9;--dim:#84a78d;--line:rgba(82,255,143,.16);--fd:'Bungee',sans-serif;--fh:'Bungee Shade',sans-serif;--fm:'Space Mono',monospace;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--void);color:var(--text);font-family:var(--fm);min-height:100%;display:flex;flex-direction:column;
+ background-image:radial-gradient(120% 60% at 50% -10%,rgba(82,255,143,.18),transparent 60%),radial-gradient(80% 50% at 100% 18%,rgba(168,92,255,.12),transparent 55%);}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;background-image:linear-gradient(rgba(82,255,143,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(82,255,143,.045) 1px,transparent 1px);background-size:42px 42px;mask-image:radial-gradient(120% 80% at 50% 0,#000,transparent 75%)}
+.bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;backdrop-filter:blur(12px);background:linear-gradient(180deg,rgba(7,10,7,.92),rgba(7,10,7,.4));border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:9px;font-family:var(--fd);color:var(--gold);font-size:15px;text-decoration:none}
+.brand img{width:26px;height:26px;border-radius:7px}
+.bar a.nav{color:var(--dim);font-size:12px;text-decoration:none}
+.wrap{position:relative;z-index:2;flex:1;max-width:460px;width:100%;margin:0 auto;padding:24px 16px 60px;display:flex;flex-direction:column;justify-content:center}
+h1{font-family:var(--fh);font-size:clamp(34px,12vw,58px);line-height:.9;text-align:center;color:var(--green);text-shadow:0 0 34px rgba(82,255,143,.5),4px 4px 0 var(--green-deep)}
+.sub{text-align:center;color:var(--dim);font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin:8px 0 22px}
+.sub b{color:var(--gold)}
+.card{background:linear-gradient(180deg,rgba(16,26,18,.9),rgba(10,15,11,.92));border:1px solid var(--line);border-radius:20px;padding:18px}
+.lab{font-family:var(--fd);font-size:10px;letter-spacing:.18em;color:var(--green);text-transform:uppercase;margin-bottom:10px}
+.addr{display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(7,10,7,.5);border:1px solid var(--line);border-radius:13px;padding:12px 14px;margin-bottom:14px;cursor:pointer}
+.addr code{color:var(--green);font-size:13px}
+.addr small{color:var(--dim);font-size:10px}
+.btn{display:block;width:100%;font-family:var(--fd);font-size:15px;border:0;border-radius:14px;padding:16px;cursor:pointer;letter-spacing:.04em;text-align:center;text-decoration:none;margin-top:10px}
+.btn.go{background:linear-gradient(90deg,var(--green-dim),var(--green));color:#04140a;box-shadow:0 8px 28px rgba(82,255,143,.3)}
+.btn.go:disabled{opacity:.5;box-shadow:none}
+.btn.ghost{background:transparent;border:1px solid var(--green-dim);color:var(--green)}
+.btn.ember{background:transparent;border:1px solid var(--ember);color:var(--ember)}
+.btn:active{transform:scale(.98)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row .btn{margin-top:0}
+.meta{text-align:center;font-size:10px;color:var(--dim);margin-top:16px;letter-spacing:.06em;line-height:1.6}
+.logout{display:block;text-align:center;color:var(--dim);font-size:11px;margin-top:18px;text-decoration:underline;cursor:pointer}
+.note{text-align:center;font-size:11px;color:var(--dim);margin-top:20px;line-height:1.7}
+.note a{color:var(--green);text-decoration:none}
+.spin{text-align:center;color:var(--dim);font-size:12px;padding:30px 0}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);z-index:40;opacity:0;background:var(--green);color:#04140a;font-family:var(--fd);font-size:12px;padding:11px 18px;border-radius:30px;transition:.25s;pointer-events:none;text-align:center;max-width:92vw}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.bad{background:var(--ember2);color:#fff}
+.warn{background:rgba(245,207,87,.08);border:1px solid rgba(245,207,87,.35);color:var(--gold);border-radius:13px;padding:13px 14px;font-size:11px;line-height:1.6;text-align:center}
+</style>
+</head>
+<body>
+<div class="bar">
+  <a class="brand" href="/"><img src="/assets/logo-chronic.png" alt="$CHRONIC"/>WALLET</a>
+  <a class="nav" href="/buy">🪙 buy ›</a>
+</div>
+<div class="wrap">
+  <h1>WALLET</h1>
+  <div class="sub">no seed phrase · <b>email in, wallet out</b> · no extension</div>
+  <div id="app"><div class="card"><div class="spin">loading…</div></div></div>
+  <div class="note">non-custodial — the keys live with you, secured by Privy.<br/>then go <a href="/buy">🪙 buy</a> · <a href="/burn">🔥 burn</a> · <a href="/grow">🌱 grow</a></div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+var _th;function toast(m,bad){var t=document.getElementById('toast');t.textContent=m;t.classList.toggle('bad',!!bad);t.classList.add('show');clearTimeout(_th);_th=setTimeout(function(){t.classList.remove('show');},2600);}
+</script>
+<script type="module">
+// ── Seedless embedded wallet via Privy. Public app id is safe to ship (it's an
+// identifier, not a secret). Set it in Privy dashboard → App settings.
+// Single shared React instance across all esm.sh deps via ?deps= pinning.
+const PRIVY_APP_ID = window.PRIVY_APP_ID || 'PRIVY_APP_ID_HERE';
+
+import React from 'https://esm.sh/react@18.3.1';
+import { createRoot } from 'https://esm.sh/react-dom@18.3.1/client';
+import htm from 'https://esm.sh/htm@3.1.1';
+import { PrivyProvider, usePrivy, useSolanaWallets }
+  from 'https://esm.sh/@privy-io/react-auth@1.92.0?deps=react@18.3.1,react-dom@18.3.1';
+
+const html = htm.bind(React.createElement);
+const short = (a) => a ? a.slice(0,4) + '…' + a.slice(-4) : '';
+
+function Inner() {
+  const { ready, authenticated, login, logout } = usePrivy();
+  const { wallets, createWallet } = useSolanaWallets();
+  const wallet = wallets && wallets[0];
+  const address = wallet && wallet.address;
+
+  // auto-create an embedded Solana wallet for fresh logins
+  React.useEffect(() => {
+    if (authenticated && wallets && wallets.length === 0 && createWallet) {
+      createWallet().catch(() => {});
+    }
+  }, [authenticated, wallets]);
+
+  if (!ready) return html`<div class="card"><div class="spin">loading…</div></div>`;
+
+  if (!authenticated) {
+    return html`<div class="card">
+      <div class="lab">▸ Get your wallet</div>
+      <p style=${{color:'var(--dim)',fontSize:'12px',lineHeight:1.7,marginBottom:'14px'}}>
+        Sign in with your email. We mint you a real Solana wallet — no seed phrase to write down, no extension to install. Buy $CHRONIC with a card right after.
+      </p>
+      <button class="btn go" onClick=${login}>✉️ Sign in with email</button>
+    </div>`;
+  }
+
+  async function card() {
+    if (!address) { toast('wallet still spinning up…', true); return; }
+    try {
+      const r = await fetch('/api/moonpay?intent=buy&address=' + encodeURIComponent(address));
+      const j = await r.json();
+      if (j.error === 'ramp_unconfigured') { toast('💳 card buy unlocks soon', true); return; }
+      if (j.error || !j.url) { toast(j.error || 'card checkout unavailable', true); return; }
+      window.open(j.url, '_blank', 'noopener');
+      toast('💳 finish in MoonPay — SOL lands in this wallet');
+    } catch (_) { toast('card checkout failed', true); }
+  }
+  function copy() {
+    if (!address) return;
+    navigator.clipboard && navigator.clipboard.writeText(address);
+    toast('📋 address copied');
+  }
+
+  return html`<div class="card">
+    <div class="lab">▸ Your Solana wallet</div>
+    ${address
+      ? html`<div class="addr" onClick=${copy}><div><code>${short(address)}</code><br/><small>tap to copy</small></div><span>📋</span></div>`
+      : html`<div class="spin">creating your wallet…</div>`}
+    <button class="btn go" onClick=${card}>💳 Buy $CHRONIC with card</button>
+    <div class="row" style=${{marginTop:'10px'}}>
+      <a class="btn ghost" href="/buy">🪙 Buy w/ SOL</a>
+      <a class="btn ember" href="/sell">🔻 Sell</a>
+    </div>
+    <div class="meta">your card buy delivers SOL here, then swaps to $CHRONIC via Jupiter</div>
+    <span class="logout" onClick=${logout}>log out</span>
+  </div>`;
+}
+
+function App() {
+  if (PRIVY_APP_ID === 'PRIVY_APP_ID_HERE') {
+    return html`<div class="card"><div class="warn">
+      👛 The seedless wallet needs a Privy App ID.<br/>
+      Set <b>PRIVY_APP_ID</b> (Privy dashboard → App settings) to switch this on.<br/>
+      Meanwhile use <a href="/buy" style=${{color:'var(--green)'}}>🪙 Buy with a Solana wallet</a>.
+    </div></div>`;
+  }
+  return html`<${PrivyProvider} appId=${PRIVY_APP_ID} config=${{
+    appearance: { theme: 'dark', accentColor: '#52ff8f', logo: 'https://www.burnchronic.xyz/assets/logo-chronic.png' },
+    loginMethods: ['email'],
+    embeddedWallets: { createOnLogin: 'users-without-wallets', requireUserPasswordOnCreate: false }
+  }}><${Inner} /><//>`;
+}
+
+createRoot(document.getElementById('app')).render(html`<${App} />`);
+</script>
+</body>
+</html>
