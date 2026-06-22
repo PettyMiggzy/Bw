@@ -4,11 +4,15 @@
  * terminal route (/api/swap) AND the shareable Blinks (/api/actions/buy|sell)
  * so every surface charges the same fee. Underscore-prefixed => not routed.
  *
- * Fee (1%, in SOL):
- *   - BUY  (input = SOL):  skim 1% of the SOL to SWAP_FEE_WALLET, swap the rest.
- *     Pad-launched tokens split that 1% 50/50 with the dev.
- *   - SELL (output = SOL): Jupiter referral platform fee on the SOL output.
- * Both fall back to a plain swap if fee setup isn't ready, so trades never break.
+ * Fee (1%, in SOL) — taken via Jupiter's NATIVE platformFee on the referral
+ * account (REFERRAL), never a raw SystemProgram transfer (that reads as a
+ * drainer to Phantom/Blowfish and warns on the whole dApp):
+ *   - BUY  (input = SOL):  platformFee in SOL on the wSOL input side.
+ *   - SELL (output = SOL): platformFee in SOL on the SOL output.
+ * Fees pool to the referral account; pad-launched dev splits are settled from
+ * there out-of-band (see tools/feeburn.js / cashback.js), not on each tx.
+ * Every path falls back to a plain swap if fee setup isn't ready, so trades
+ * never break.
  */
 const G = require('./_grow.js');
 
@@ -38,72 +42,13 @@ function feeAccountFor(mint) {
   } catch (_) { return null; }
 }
 
-// BUY: skim 1% SOL upfront, then swap the rest — one versioned tx
-async function buildBuyWithFee(account, outputMint, lamports, feeBps) {
-  feeBps = (feeBps == null ? FEE_BPS : feeBps);
-  const web3 = require('@solana/web3.js');
-  const { PublicKey, SystemProgram, TransactionMessage, VersionedTransaction, TransactionInstruction, AddressLookupTableAccount } = web3;
-  // pad-launched token? -> the dev earns 50% of the (1%) fee
-  let dev = null;
-  try {
-    if (G.sbEnabled()) {
-      const rows = await G.sbSelect(`grow_launches?mint=eq.${encodeURIComponent(outputMint)}&select=dev_wallet`);
-      if (rows && rows.length && G.isPubkey(rows[0].dev_wallet) && rows[0].dev_wallet !== FEE_WALLET) dev = rows[0].dev_wallet;
-    }
-  } catch (_) { /* no split */ }
-  const fee = (BigInt(lamports) * BigInt(feeBps)) / 10000n;
-  const swapLamports = (BigInt(lamports) - fee).toString();
-  const qp = new URLSearchParams({ inputMint: SOL, outputMint, amount: swapLamports, slippageBps: String(SLIPPAGE_BPS) });
-  const quote = await jget(`/quote?${qp.toString()}`);
-  if (!quote || quote.error || !quote.outAmount) return null;
-  const si = await jpost('/swap-instructions', { quoteResponse: quote, userPublicKey: account, wrapAndUnwrapSol: true, dynamicComputeUnitLimit: true });
-  if (!si || !si.swapInstruction) return null;
+// NOTE: the old buildBuyWithFee() (skim 1% SOL via a prepended SystemProgram
+// transfer, then swap the rest) was removed. Phantom/Blowfish read "send SOL to
+// an unknown wallet, then swap" as a drainer pattern and warned on the whole
+// dApp. Both buys (terminal + blink) now take the 1% through Jupiter's native
+// platformFee via buildSwap() below, which carries no such flag.
 
-  const owner = new PublicKey(account);
-  const de = (ix) => new TransactionInstruction({
-    programId: new PublicKey(ix.programId),
-    keys: (ix.accounts || []).map((a) => ({ pubkey: new PublicKey(a.pubkey), isSigner: a.isSigner, isWritable: a.isWritable })),
-    data: Buffer.from(ix.data, 'base64'),
-  });
-  const feeIxs = [];
-  if (dev) {
-    const half = fee / 2n;
-    feeIxs.push(SystemProgram.transfer({ fromPubkey: owner, toPubkey: new PublicKey(dev), lamports: Number(half) }));
-    feeIxs.push(SystemProgram.transfer({ fromPubkey: owner, toPubkey: new PublicKey(FEE_WALLET), lamports: Number(fee - half) }));
-  } else {
-    feeIxs.push(SystemProgram.transfer({ fromPubkey: owner, toPubkey: new PublicKey(FEE_WALLET), lamports: Number(fee) }));
-  }
-  const ixs = [
-    ...(si.computeBudgetInstructions || []).map(de),
-    ...feeIxs,
-    ...(si.setupInstructions || []).map(de),
-    de(si.swapInstruction),
-    ...(si.cleanupInstruction ? [de(si.cleanupInstruction)] : []),
-  ];
-  let alts = [];
-  const addrs = (si.addressLookupTableAddresses || []).slice();
-  if (SWAP_ALT && addrs.indexOf(SWAP_ALT) < 0) addrs.push(SWAP_ALT); // our shared ALT shrinks the fee'd tx
-  if (addrs.length) {
-    const infos = await G.solRpc('getMultipleAccounts', [addrs, { encoding: 'base64' }]);
-    (infos.value || []).forEach((acc, i) => {
-      if (acc && acc.data) alts.push(new AddressLookupTableAccount({
-        key: new PublicKey(addrs[i]),
-        state: AddressLookupTableAccount.deserialize(Buffer.from(acc.data[0], 'base64')),
-      }));
-    });
-  }
-  const bh = await G.solRpc('getLatestBlockhash', [{ commitment: 'confirmed' }]);
-  const msg = new TransactionMessage({ payerKey: owner, recentBlockhash: bh.value.blockhash, instructions: ixs }).compileToV0Message(alts);
-  const tx = new VersionedTransaction(msg);
-  const serialized = tx.serialize();
-  // If Jupiter gave us no lookup tables, the prepended SOL-fee instruction can
-  // push the tx past Solana's 1232-byte limit. Rather than ship a tx that fails
-  // on-chain, bail so the caller falls back to a compact (Jupiter-built) swap.
-  if (serialized.length > 1232) return null;
-  return { transaction: Buffer.from(serialized).toString('base64'), outAmount: quote.outAmount, inAmount: lamports, fee: feeBps };
-}
-
-// plain or referral-fee Jupiter swap (used for sells + fallback)
+// plain or referral-fee Jupiter swap (used for buys, sells + fallback)
 async function buildSwap(account, inputMint, outputMint, amount, withFee, feeBps) {
   feeBps = (feeBps == null ? FEE_BPS : feeBps);
   const qp = new URLSearchParams({ inputMint, outputMint, amount, slippageBps: String(SLIPPAGE_BPS) });
@@ -131,4 +76,4 @@ async function buildSwap(account, inputMint, outputMint, amount, withFee, feeBps
   return { quote, swap, feeApplied: !!feeAccount };
 }
 
-module.exports = { JUP, SOL, SLIPPAGE_BPS, FEE_BPS, FEE_WALLET, REFERRAL, REFERRAL_PROGRAM, feeAccountFor, buildBuyWithFee, buildSwap };
+module.exports = { JUP, SOL, SLIPPAGE_BPS, FEE_BPS, FEE_WALLET, REFERRAL, REFERRAL_PROGRAM, feeAccountFor, buildSwap };

@@ -58,19 +58,18 @@ module.exports = async (req, res) => {
 
   try {
     const lamports = String(Math.round(sol * 1e9));
-    // 1% SOL fee (same as the terminal); fall back to a plain swap if it can't build
-    let transaction = null;
-    try { const r = await S.buildBuyWithFee(account, G.MINT, lamports); if (r) transaction = r.transaction; } catch (_) { /* fall through */ }
-    if (!transaction) {
-      let r = await S.buildSwap(account, SOL, G.MINT, lamports, true); // fee in SOL; self-drops if the route can't fit it
-      if (!r.swap || !r.swap.swapTransaction) r = await S.buildSwap(account, SOL, G.MINT, lamports, false);
-      if (!r.quote) return send(res, 400, { message: 'No route — try a different amount or later.' });
-      if (!r.swap || !r.swap.swapTransaction) return send(res, 502, { message: 'Swap build failed — try again.' });
-      transaction = r.swap.swapTransaction;
-    }
+    // 1% SOL fee via Jupiter's NATIVE platform fee — the SAME clean path as the
+    // terminal (/api/swap). We deliberately do NOT prepend a raw SystemProgram
+    // SOL transfer of the fee: Phantom/Blowfish read "send SOL to an unknown
+    // wallet, then swap" as a drainer pattern and warn on the whole dApp, even
+    // for a benign tx. Jupiter's platformFee keeps the 1% without that flag.
+    let r = await S.buildSwap(account, SOL, G.MINT, lamports, true); // fee in SOL; self-drops if the route can't fit it
+    if (!r.swap || !r.swap.swapTransaction) r = await S.buildSwap(account, SOL, G.MINT, lamports, false);
+    if (!r.quote) return send(res, 400, { message: 'No route — try a different amount or later.' });
+    if (!r.swap || !r.swap.swapTransaction) return send(res, 502, { message: 'Swap build failed — try again.' });
     return send(res, 200, {
       type: 'transaction',
-      transaction,
+      transaction: r.swap.swapTransaction,
       message: `Buy $CHRONIC with ${sol} SOL — then burn it 🔥`,
     });
   } catch (e) {
