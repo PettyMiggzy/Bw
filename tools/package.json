@@ -12,6 +12,8 @@
     "cashback:dry": "node cashback.js --dry",
     "post": "node poster.js",
     "post:dry": "node poster.js --dry",
+    "ig-post": "node ig-poster.js",
+    "ig-post:dry": "node ig-poster.js --dry",
     "newmints": "node newmints-listener.js",
     "create-alt": "node create-alt.js",
     "feeburn": "node feeburn.js",

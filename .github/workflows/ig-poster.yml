@@ -1,0 +1,49 @@
+name: $CHRONIC Instagram auto-poster
+
+# Posts big burns / pool milestones / season winners to Instagram, mirroring the
+# X poster. First run sets a baseline (posts nothing). Safe to run often — it
+# only posts when there's a NEW event past the saved cursor.
+#
+# Required repo secrets (Settings -> Secrets and variables -> Actions):
+#   SUPABASE_URL, SUPABASE_SERVICE_KEY, IG_USER_ID, IG_ACCESS_TOKEN
+# Optional: GRAPH_VERSION, IG_IMAGE, CHRONIC_DECIMALS, POST_BURN_THRESHOLD, POOL_STEP
+
+on:
+  schedule:
+    # every 15 min — catches new burns/milestones promptly
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: 'Dry run (print posts, send nothing)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: ig-poster
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install tools deps
+        working-directory: tools
+        run: npm install --no-audit --no-fund
+      - name: Run IG poster
+        working-directory: tools
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          GRAPH_VERSION: ${{ secrets.GRAPH_VERSION }}
+          IG_IMAGE: ${{ secrets.IG_IMAGE }}
+          CHRONIC_DECIMALS: ${{ secrets.CHRONIC_DECIMALS }}
+          POST_BURN_THRESHOLD: ${{ secrets.POST_BURN_THRESHOLD }}
+          POOL_STEP: ${{ secrets.POOL_STEP }}
+        run: node ig-poster.js ${{ (github.event_name == 'workflow_dispatch' && inputs.dry) && '--dry' || '' }}
