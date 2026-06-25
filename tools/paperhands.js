@@ -4,9 +4,11 @@
  * paperhands.js — $CHRONIC "Paperhands Patrol". Roasts every sell in Telegram.
  *
  * Subscribes to live $CHRONIC trades via PumpPortal (subscribeTokenTrade), and
- * when someone SELLS, it posts a savage little roast — bigger dumps get bigger
- * roasts. It also tracks each wallet's buy cost-basis (in memory) so it can call
- * out "sold at a -X% LOSS" when the seller bought after the bot started.
+ * when someone SELLS, it posts a savage, context-aware roast — bigger dumps get
+ * bigger roasts, and losers get cooked harder than profit-takers. It tracks each
+ * wallet's buy cost-basis (persisted to disk) so it can call out the seller's
+ * realized PnL — "% LOSS (-X SOL)" or "+% and ran". Coverage grows over time as
+ * it sees more buys; sellers it never saw buy just get a generic roast.
  *
  * Zero secrets in code. Run on the droplet with pm2 (needs the `ws` package):
  *   cd /root/chronic-burns && npm install ws
@@ -17,8 +19,10 @@
  *   CHRONIC_MINT               (default = live mint)
  *   MIN_SELL_SOL               (default 0.01) ignore dust sells below this
  *   SHAME_BUYS=1               (optional) also post a small green note on buys
+ *   PAPERHANDS_STORE           (optional) cost-basis file path (default ./paperhands-cost.json)
  */
 const WebSocket = require('ws');
+const fs = require('fs');
 
 const MINT = process.env.CHRONIC_MINT || 'J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump';
 const TG_TOKEN = process.env.TG_BOT_TOKEN;
@@ -44,12 +48,34 @@ async function tg(text) {
   } catch (e) { console.error('tg err', e.message); }
 }
 
-// in-memory cost basis per wallet (resets on restart; only sees post-start buys)
-const cost = {};
-function recordBuy(w, tok, sol) { const c = cost[w] || (cost[w] = { tok: 0, sol: 0 }); c.tok += tok; c.sol += sol; }
-function pnlPct(w, sellPx) { const c = cost[w]; if (!c || c.tok <= 0) return null; const avg = c.sol / c.tok; if (avg <= 0) return null; return (sellPx / avg - 1) * 100; }
+// Persistent cost basis per wallet — survives restarts and accumulates coverage
+// so PnL actually shows. Tracks avg buy price; reduces the position as they sell.
+const STORE = process.env.PAPERHANDS_STORE || './paperhands-cost.json';
+let cost = {};
+try { cost = JSON.parse(fs.readFileSync(STORE, 'utf8')) || {}; } catch (_) {}
+let _saveT;
+function save() { clearTimeout(_saveT); _saveT = setTimeout(() => { try { fs.writeFileSync(STORE, JSON.stringify(cost)); } catch (e) { console.error('save err', e.message); } }, 1500); }
+function recordBuy(w, tok, sol) { const c = cost[w] || (cost[w] = { tok: 0, sol: 0 }); c.tok += tok; c.sol += sol; save(); }
+function avgPx(w) { const c = cost[w]; if (!c || c.tok <= 0) return null; const a = c.sol / c.tok; return a > 0 ? a : null; }
+// realize the sold portion against the avg basis; returns { pct, sol } or null
+function realize(w, tok, sol) {
+  const avg = avgPx(w); if (!avg) return null;
+  const c = cost[w];
+  const sold = Math.min(tok, c.tok);
+  const pct = (sol / tok) / avg - 1;          // price-based %, whole sell
+  const solPnl = (sol * (sold / tok)) - avg * sold; // SOL gained/lost on tracked portion
+  c.sol -= avg * sold; c.tok -= sold;          // shrink the position
+  if (c.tok < 1e-9) { delete cost[w]; }
+  save();
+  return { pct: pct * 100, sol: solPnl };
+}
 
-const ROASTS = ['ngmi 🦴', 'weak hands detected 🧻', 'the skeleton is disappointed 💀', 'fumbled the bag 🤡', 'couldn\'t hold 💅', 'paper everything 🧻', 'down bad behavior 📉', 'he folded 🃏', 'enjoy the bottom ser 📉', 'first time? 🤝'];
+// context-aware roast pools — the worse the trade, the harder the smoke
+const ROASTS = {
+  loss: ['bought high, sold low — a true visionary 🤡', 'speedran poverty 💀', 'donated straight to the diamond hands. thank you for your service 🫡', 'sold the exact bottom. surgical 📉🔬', 'paper hands, paper bag, paper future 🧻', 'you didn’t get rugged — you rugged yourself 😭', 'held it all the way DOWN, then sold. elite 🏆🤡', 'round trip to nowhere ✈️💀', 'the skeleton bought your bag and didn’t even blink 🦴', 'ngmi, professionally 📉'],
+  profit: ['sold for lunch money. the skeleton eats forever 🍽️🦴', 'took the appetizer, missed the feast 🍽️', 'small green, generational regret loading… ⏳', 'congrats — you sold the restaurant for a tip 💀', 'won the battle, fumbled the war 🏳️', 'profitable AND a jeet. impressively mid 🤡'],
+  unknown: ['weak hands detected 🧻', 'the skeleton is disappointed 💀', 'fumbled the bag 🤡', 'couldn’t hold 💅', 'down bad behavior 📉', 'he folded 🃏', 'enjoy the exit liquidity ser — something strong just bought your bag 🦴', 'first time? 🤝'],
+};
 function header(sol) {
   if (sol >= 1) return '🚨🚨 MASSIVE PAPERHANDS 🚨🚨';
   if (sol >= 0.25) return '🧻🧻 BIG FUMBLE 🧻🧻';
@@ -62,16 +88,19 @@ function handle(m) {
   const sol = Number(m.solAmount || m.sol_amount || 0);
   const w = m.traderPublicKey || m.trader || '';
   if (!tok || !sol) return;
-  const px = sol / tok;
   if (type === 'buy') { recordBuy(w, tok, sol); if (SHAME_BUYS) tg('🟢 <b>BUY</b> ' + fmt(tok) + ' $CHRONIC for ' + sol.toFixed(3) + ' SOL — diamond hands only 💎\n' + SITE); return; }
   if (type !== 'sell') return;
   if (sol < MIN_SELL_SOL) return; // ignore dust
-  const pnl = pnlPct(w, px);
-  let lossLine = '';
-  if (pnl !== null) lossLine = pnl < 0 ? '\nsold at a <b>' + pnl.toFixed(0) + '% LOSS</b> 💀💀' : '\n(up ' + pnl.toFixed(0) + '%, still fumbled the future 🤡)';
+
+  const r = realize(w, tok, sol);     // { pct, sol } or null if we never saw them buy
+  let pnlLine = '', mood = 'unknown';
+  if (r) {
+    if (r.pct < 0) { mood = 'loss'; pnlLine = '\n💀 realized a <b>' + r.pct.toFixed(0) + '% LOSS</b> (' + r.sol.toFixed(3) + ' SOL) 💀'; }
+    else { mood = 'profit'; pnlLine = '\n🤡 took <b>+' + r.pct.toFixed(0) + '%</b> (+' + r.sol.toFixed(3) + ' SOL) and ran'; }
+  }
   const sig = m.signature ? ('\n<a href="https://solscan.io/tx/' + m.signature + '">tx</a>') : '';
-  tg(header(sol) + '\n\n<code>' + sh(w) + '</code> dumped <b>' + fmt(tok) + ' $CHRONIC</b> for ' + sol.toFixed(3) + ' SOL' + lossLine + '\n' + pick(ROASTS) + sig);
-  console.log('roasted sell', sh(w), tok, sol);
+  tg(header(sol) + '\n\n<code>' + sh(w) + '</code> dumped <b>' + fmt(tok) + ' $CHRONIC</b> for ' + sol.toFixed(3) + ' SOL' + pnlLine + '\n' + pick(ROASTS[mood]) + sig);
+  console.log('roasted sell', sh(w), tok, sol, mood, r ? r.pct.toFixed(0) + '%' : 'no-basis');
 }
 
 let ws, alive;
