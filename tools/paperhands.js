@@ -131,9 +131,8 @@ async function shameRecap() {
   const cut = last === 0 ? 0 : now - SHAME_EVERY_H * 3600 * 1000; // first run = all-time
   const win = arr.filter((e) => (e.t || 0) >= cut);
   if (!win.length) { _setShame(now); return; }
-  const top = win.slice().sort((a, b) => (b.sol || 0) - (a.sol || 0))[0]; // biggest dumper
-  const line = '👑 <b>KING JEET</b> — <code>' + top.who + '</code>\ndumped <b>' + (Number(top.sol) || 0).toFixed(3) + ' SOL</b>';
-  await tg('🧻💀 <b>BIGGEST JEET OF THE DAY</b> 💀🧻\n\n' + line + '\n' + pick(ROASTS.loss) + '\n\nsupply only goes down. burn it dont hoard it 🔥');
+  const top = win.slice().sort((a, b) => (b.sol || 0) - (a.sol || 0))[0]; // biggest dumper (amount NOT shown)
+  await tg('🧻💀 <b>BIGGEST JEET OF THE DAY</b> 💀🧻\n\n👑 <b>KING JEET</b> — <code>' + top.who + '</code>\n' + pick(ROASTS.loss) + '\n\nsupply only goes down. burn it dont hoard it 🔥');
   _setShame(now); console.log('posted daily shame recap');
 }
 setInterval(shameRecap, 3600 * 1000); // re-check hourly
