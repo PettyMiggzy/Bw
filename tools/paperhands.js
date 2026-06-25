@@ -131,15 +131,8 @@ async function shameRecap() {
   const cut = last === 0 ? 0 : now - SHAME_EVERY_H * 3600 * 1000; // first run = all-time
   const win = arr.filter((e) => (e.t || 0) >= cut);
   if (!win.length) { _setShame(now); return; }
-  const losers = win.filter((e) => e.pct != null && e.pct < 0).sort((a, b) => a.pct - b.pct);
-  const top = losers[0] || win.slice().sort((a, b) => (b.sol || 0) - (a.sol || 0))[0];
-  let line;
-  if (top.pct != null && top.pct < 0) {
-    const lost = top.sol * (top.pct / 100) / (1 + top.pct / 100);
-    line = '👑 <b>KING JEET</b> — <code>' + top.who + '</code>\nsold at <b>' + top.pct.toFixed(0) + '% LOSS</b> (~' + lost.toFixed(3) + ' SOL)';
-  } else {
-    line = '👑 <b>KING JEET</b> — <code>' + top.who + '</code>\ndumped <b>' + (Number(top.sol) || 0).toFixed(3) + ' SOL</b>';
-  }
+  const top = win.slice().sort((a, b) => (b.sol || 0) - (a.sol || 0))[0]; // biggest dumper
+  const line = '👑 <b>KING JEET</b> — <code>' + top.who + '</code>\ndumped <b>' + (Number(top.sol) || 0).toFixed(3) + ' SOL</b>';
   await tg('🧻💀 <b>BIGGEST JEET OF THE DAY</b> 💀🧻\n\n' + line + '\n' + pick(ROASTS.loss) + '\n\nsupply only goes down. burn it dont hoard it 🔥');
   _setShame(now); console.log('posted daily shame recap');
 }
