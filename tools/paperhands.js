@@ -3,21 +3,17 @@
 /*
  * paperhands.js — $CHRONIC "Paperhands Patrol". Roasts every sell in Telegram.
  *
- * DETECTION (proven, venue-correct): subscribe to the POOL's logs through YOUR
- * Solana RPC (logsSubscribe), pull each tx, classify buy/sell from the pool's
- * native SOL balance delta, and read the trader's $CHRONIC token delta for size.
+ * DETECTION: subscribe to the POOL's logs through YOUR Solana RPC (logsSubscribe),
+ * pull each tx, classify buy/sell from the pool's native SOL balance delta.
  *
- * ROAST + PnL: persistent cost-basis per wallet -> realized PnL on sells
- * ("% LOSS (-X SOL)" or "+% and ran"), context-aware roast pools (losers cooked
- * harder than profit-takers), and the jeets.json feed is preserved.
- *
- * Run on the droplet with pm2 (needs `ws`):
- *   cd /root/chronic-burns && npm install ws
- *   pm2 start paperhands.js --name chronic-paperhands   (env already set in pm2)
+ * PnL: on each sell we ask the Solana Tracker Data API for that wallet's REAL
+ * realized PnL on $CHRONIC (USD) — works for ANY wallet, even ones we never saw
+ * buy. Plus a daily "Biggest Jeet of the Day" crown with the same real PnL.
  *
  * Env: SOLANA_RPC (ws-capable), POOL_ADDRESS, CHRONIC_MINT, TG_BOT_TOKEN,
- *      TG_CHAT_ID, MIN_SELL_SOL (0.01), SHAME_BUYS (1=announce buys),
- *      TOKEN_SYMBOL (CHRONIC), PAPERHANDS_STORE, JEETS_FILE
+ *      TG_CHAT_ID, MIN_SELL_SOL (0.01), SHAME_BUYS, TOKEN_SYMBOL,
+ *      STRACKER_KEY (Solana Tracker Data API x-api-key), STRACKER_BASE,
+ *      SHAME_POST_HOURS (24), JEETS_FILE, SHAME_STATE
  */
 const WebSocket = require('ws');
 const fs = require('fs');
@@ -31,30 +27,17 @@ const MIN_SELL_SOL = parseFloat(process.env.MIN_SELL_SOL || '0.01');
 const SHAME_BUYS = process.env.SHAME_BUYS === '1';
 const SYM = process.env.TOKEN_SYMBOL || 'CHRONIC';
 const JEETS = process.env.JEETS_FILE || '/root/chronic-burns/jeets.json';
-const STORE = process.env.PAPERHANDS_STORE || '/root/chronic-burns/paperhands-cost.json';
+const SHAME_STATE = process.env.SHAME_STATE || '/root/chronic-burns/shame-state.json';
+const STRACKER_BASE = process.env.STRACKER_BASE || 'https://data.solanatracker.io';
+const STRACKER_KEY = process.env.STRACKER_KEY || ''; // set in env (or hardcoded on the droplet)
 if (!TG_TOKEN || !TG_CHAT) { console.error('TG_BOT_TOKEN + TG_CHAT_ID required'); process.exit(1); }
 
 const WS_URL = RPC.replace(/^http/, 'ws');
 const sh = (a) => (a ? a.slice(0, 4) + '..' + a.slice(-4) : '');
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const fmt = (n) => { n = Number(n) || 0; const a = Math.abs(n); if (a >= 1e9) return (n / 1e9).toFixed(2) + 'B'; if (a >= 1e6) return (n / 1e6).toFixed(2) + 'M'; if (a >= 1e3) return (n / 1e3).toFixed(1) + 'K'; return a < 1 ? n.toFixed(3) : n.toFixed(0); };
+const usd = (n) => { n = Math.abs(Number(n) || 0); return n >= 1000 ? '$' + (n / 1000).toFixed(1) + 'k' : '$' + n.toFixed(2); };
 const seen = new Set();
-
-// persistent cost basis -> realized PnL (survives restarts, grows over time)
-let cost = {};
-try { cost = JSON.parse(fs.readFileSync(STORE, 'utf8')) || {}; } catch (_) {}
-let _saveT;
-function save() { clearTimeout(_saveT); _saveT = setTimeout(() => { try { fs.writeFileSync(STORE, JSON.stringify(cost)); } catch (e) { console.error('save err', e.message); } }, 1500); }
-function recordBuy(w, tok, sol) { if (!(tok > 0) || !(sol > 0)) return; const c = cost[w] || (cost[w] = { tok: 0, sol: 0 }); c.tok += tok; c.sol += sol; save(); }
-function avgPx(w) { const c = cost[w]; if (!c || c.tok <= 0) return null; const a = c.sol / c.tok; return a > 0 ? a : null; }
-function realize(w, tok, sol) {
-  const avg = avgPx(w); if (!avg || !(tok > 0)) return null;
-  const c = cost[w]; const sold = Math.min(tok, c.tok);
-  const pct = ((sol / tok) / avg - 1) * 100;
-  const solPnl = (sol * (sold / tok)) - avg * sold;
-  c.sol -= avg * sold; c.tok -= sold; if (c.tok < 1e-9) delete cost[w]; save();
-  return { pct, sol: solPnl };
-}
 
 const ROASTS = {
   loss: ['bought high, sold low — a true visionary 🤡', 'speedran poverty 💀', 'donated straight to the diamond hands. thank you for your service 🫡', 'sold the exact bottom. surgical 📉', 'paper hands, paper bag, paper future 🧻', 'you didnt get rugged — you rugged yourself 😭', 'held it all the way DOWN then sold. elite 🏆🤡', 'round trip to nowhere ✈️💀', 'the skeleton bought your bag and didnt even blink 🦴', 'ngmi, professionally 📉'],
@@ -65,7 +48,27 @@ function header(sol) { if (sol >= 1) return '🚨🚨 MASSIVE PAPERHANDS 🚨�
 
 async function rpc(m, p) { const r = await fetch(RPC, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: m, params: p }) }); return (await r.json()).result; }
 async function tg(text) { try { await fetch('https://api.telegram.org/bot' + TG_TOKEN + '/sendMessage', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ chat_id: TG_CHAT, text, parse_mode: 'HTML', disable_web_page_preview: true }) }); } catch (e) { console.error('tg err', e.message); } }
-function logJeet(who, sol, sig, pct) { try { let arr = []; try { arr = JSON.parse(fs.readFileSync(JEETS, 'utf8')); } catch (_) {} const e = { who, sol: +sol.toFixed(3), t: Date.now(), sig }; if (pct != null) e.pct = Math.round(pct); arr.unshift(e); fs.writeFileSync(JEETS, JSON.stringify(arr.slice(0, 50))); } catch (_) {} }
+function logJeet(addr, who, sol, sig) { try { let arr = []; try { arr = JSON.parse(fs.readFileSync(JEETS, 'utf8')); } catch (_) {} arr.unshift({ addr, who, sol: +sol.toFixed(3), t: Date.now(), sig }); fs.writeFileSync(JEETS, JSON.stringify(arr.slice(0, 50))); } catch (_) {} }
+
+// Solana Tracker: a wallet's realized $CHRONIC PnL (USD). Cached 60s, best-effort.
+const _pnlCache = {};
+async function strackerPnl(wallet) {
+  if (!STRACKER_KEY || !wallet) return null;
+  const c = _pnlCache[wallet]; if (c && Date.now() - c.t < 60000) return c.v;
+  let v = null;
+  try {
+    const r = await fetch(STRACKER_BASE + '/pnl/' + wallet, { headers: { 'x-api-key': STRACKER_KEY } });
+    if (r.ok) { const j = await r.json(); const t = j && j.tokens && j.tokens[MINT]; if (t) v = { realized: Number(t.realized) || 0, holding: Number(t.holding) || 0 }; }
+  } catch (_) {}
+  _pnlCache[wallet] = { t: Date.now(), v };
+  return v;
+}
+function pnlLineFor(p) {
+  if (!p) return { line: '', mood: 'unknown' };
+  if (p.realized < -0.01) return { mood: 'loss', line: '\n💀 realized <b>-' + usd(p.realized) + '</b> on $' + SYM + (p.holding > 0 ? ' (still bagholding 🎒)' : '') + ' 💀' };
+  if (p.realized > 0.01) return { mood: 'profit', line: '\n🤡 banked <b>+' + usd(p.realized) + '</b> and ran' };
+  return { line: '', mood: 'unknown' };
+}
 
 // trader's $CHRONIC balance change in this tx (UI units; + on buy, - on sell)
 function tokenDelta(tx, trader) {
@@ -79,28 +82,23 @@ async function handleSig(sig) {
   if (!tx || !tx.meta || tx.meta.err) return;
   const keys = tx.transaction.message.accountKeys.map((k) => k.pubkey || k);
   const idx = keys.indexOf(POOL); if (idx < 0) return;
-  const delta = (tx.meta.postBalances[idx] - tx.meta.preBalances[idx]) / 1e9; // pool SOL change
+  const delta = (tx.meta.postBalances[idx] - tx.meta.preBalances[idx]) / 1e9;
   const solAmt = Math.abs(delta);
   const trader = keys[0];
   const tokAmt = Math.abs(tokenDelta(tx, trader));
 
-  if (delta > 0) { // pool SOL up => BUY
-    recordBuy(trader, tokAmt, solAmt);
+  if (delta > 0) { // BUY
     if (SHAME_BUYS && solAmt >= MIN_SELL_SOL) await tg('🟢 <b>' + sh(trader) + '</b> aped <b>' + solAmt.toFixed(3) + ' SOL</b> of $' + SYM + ' — diamond hands only 💎\n🔎 https://solscan.io/tx/' + sig);
     return;
   }
-  // pool SOL down => SELL
+  // SELL
   if (solAmt < MIN_SELL_SOL) return;
-  const r = realize(trader, tokAmt, solAmt);
-  let pnlLine = '', mood = 'unknown';
-  if (r) {
-    if (r.pct < 0) { mood = 'loss'; pnlLine = '\n💀 realized a <b>' + r.pct.toFixed(0) + '% LOSS</b> (' + r.sol.toFixed(3) + ' SOL) 💀'; }
-    else { mood = 'profit'; pnlLine = '\n🤡 took <b>+' + r.pct.toFixed(0) + '%</b> (+' + r.sol.toFixed(3) + ' SOL) and ran'; }
-  }
-  const amtLine = '<code>' + sh(trader) + '</code> dumped ' + (tokAmt > 0 ? '<b>' + fmt(tokAmt) + ' $' + SYM + '</b> for ' : '') + '<b>' + solAmt.toFixed(3) + ' SOL</b>';
+  const p = await strackerPnl(trader);
+  const { line: pnlLine, mood } = pnlLineFor(p);
+  const amtLine = '<code>' + sh(trader) + '</code> dumped <b>' + fmt(tokAmt) + ' $' + SYM + '</b>';
   await tg(header(solAmt) + '\n\n' + amtLine + pnlLine + '\n' + pick(ROASTS[mood]) + '\n🔎 https://solscan.io/tx/' + sig);
-  logJeet(sh(trader), solAmt, sig, r ? r.pct : null);
-  console.log('SELL', sh(trader), solAmt.toFixed(3), mood, r ? r.pct.toFixed(0) + '%' : 'no-basis');
+  logJeet(trader, sh(trader), solAmt, sig);
+  console.log('SELL', sh(trader), solAmt.toFixed(3), mood);
 }
 
 let ws, backoff = 1000;
@@ -114,26 +112,23 @@ function connect() {
   ws.on('error', (e) => { console.log('ws err', e.message); try { ws.close(); } catch (_) {} });
 }
 connect();
-console.log('$' + SYM + ' Paperhands Patrol — pool feed, min sell ' + MIN_SELL_SOL + ' SOL, shame buys ' + (SHAME_BUYS ? 'on' : 'off'));
+console.log('$' + SYM + ' Paperhands Patrol — pool feed, PnL ' + (STRACKER_KEY ? 'ON' : 'OFF') + ', min sell ' + MIN_SELL_SOL + ' SOL');
 
-// ── daily "Biggest Jeet of the Day" recap to the chat ──────────────────
-// Posts the worst loser in the window to TG_CHAT. Fires once on boot (so it
-// shows immediately after deploy), then every SHAME_POST_HOURS. Skips quietly
-// when nobody folded in the window. State persisted so restarts don't spam.
+// ── daily "Biggest Jeet of the Day" crown to the chat ──
 const SHAME_EVERY_H = parseFloat(process.env.SHAME_POST_HOURS || '24');
-const SHAME_STATE = process.env.SHAME_STATE || '/root/chronic-burns/shame-state.json';
 function _lastShame() { try { return JSON.parse(fs.readFileSync(SHAME_STATE, 'utf8')).t || 0; } catch (_) { return 0; } }
 function _setShame(t) { try { fs.writeFileSync(SHAME_STATE, JSON.stringify({ t })); } catch (_) {} }
 async function shameRecap() {
   const now = Date.now(); const last = _lastShame();
   if (now - last < SHAME_EVERY_H * 3600 * 1000) return;
   let arr = []; try { arr = JSON.parse(fs.readFileSync(JEETS, 'utf8')) || []; } catch (_) {}
-  const cut = last === 0 ? 0 : now - SHAME_EVERY_H * 3600 * 1000; // first run = all-time
+  const cut = last === 0 ? 0 : now - SHAME_EVERY_H * 3600 * 1000;
   const win = arr.filter((e) => (e.t || 0) >= cut);
   if (!win.length) { _setShame(now); return; }
-  const top = win.slice().sort((a, b) => (b.sol || 0) - (a.sol || 0))[0]; // biggest dumper (amount NOT shown)
-  await tg('🧻💀 <b>BIGGEST JEET OF THE DAY</b> 💀🧻\n\n👑 <b>KING JEET</b> — <code>' + top.who + '</code>\n' + pick(ROASTS.loss) + '\n\nsupply only goes down. burn it dont hoard it 🔥');
+  const top = win.slice().sort((a, b) => (b.sol || 0) - (a.sol || 0))[0];
+  const { line: pnlLine } = pnlLineFor(top.addr ? await strackerPnl(top.addr) : null);
+  await tg('🧻💀 <b>BIGGEST JEET OF THE DAY</b> 💀🧻\n\n👑 <b>KING JEET</b> — <code>' + top.who + '</code>' + pnlLine + '\n' + pick(ROASTS.loss) + '\n\nsupply only goes down. burn it dont hoard it 🔥');
   _setShame(now); console.log('posted daily shame recap');
 }
-setInterval(shameRecap, 3600 * 1000); // re-check hourly
-setTimeout(shameRecap, 5000);         // and once shortly after boot
+setInterval(shameRecap, 3600 * 1000);
+setTimeout(shameRecap, 5000);
