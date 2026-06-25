@@ -115,3 +115,33 @@ function connect() {
 }
 connect();
 console.log('$' + SYM + ' Paperhands Patrol — pool feed, min sell ' + MIN_SELL_SOL + ' SOL, shame buys ' + (SHAME_BUYS ? 'on' : 'off'));
+
+// ── daily "Biggest Jeet of the Day" recap to the chat ──────────────────
+// Posts the worst loser in the window to TG_CHAT. Fires once on boot (so it
+// shows immediately after deploy), then every SHAME_POST_HOURS. Skips quietly
+// when nobody folded in the window. State persisted so restarts don't spam.
+const SHAME_EVERY_H = parseFloat(process.env.SHAME_POST_HOURS || '24');
+const SHAME_STATE = process.env.SHAME_STATE || '/root/chronic-burns/shame-state.json';
+function _lastShame() { try { return JSON.parse(fs.readFileSync(SHAME_STATE, 'utf8')).t || 0; } catch (_) { return 0; } }
+function _setShame(t) { try { fs.writeFileSync(SHAME_STATE, JSON.stringify({ t })); } catch (_) {} }
+async function shameRecap() {
+  const now = Date.now(); const last = _lastShame();
+  if (now - last < SHAME_EVERY_H * 3600 * 1000) return;
+  let arr = []; try { arr = JSON.parse(fs.readFileSync(JEETS, 'utf8')) || []; } catch (_) {}
+  const cut = last === 0 ? 0 : now - SHAME_EVERY_H * 3600 * 1000; // first run = all-time
+  const win = arr.filter((e) => (e.t || 0) >= cut);
+  if (!win.length) { _setShame(now); return; }
+  const losers = win.filter((e) => e.pct != null && e.pct < 0).sort((a, b) => a.pct - b.pct);
+  const top = losers[0] || win.slice().sort((a, b) => (b.sol || 0) - (a.sol || 0))[0];
+  let line;
+  if (top.pct != null && top.pct < 0) {
+    const lost = top.sol * (top.pct / 100) / (1 + top.pct / 100);
+    line = '👑 <b>KING JEET</b> — <code>' + top.who + '</code>\nsold at <b>' + top.pct.toFixed(0) + '% LOSS</b> (~' + lost.toFixed(3) + ' SOL)';
+  } else {
+    line = '👑 <b>KING JEET</b> — <code>' + top.who + '</code>\ndumped <b>' + (Number(top.sol) || 0).toFixed(3) + ' SOL</b>';
+  }
+  await tg('🧻💀 <b>BIGGEST JEET OF THE DAY</b> 💀🧻\n\n' + line + '\n' + pick(ROASTS.loss) + '\n\nsupply only goes down. burn it dont hoard it 🔥');
+  _setShame(now); console.log('posted daily shame recap');
+}
+setInterval(shameRecap, 3600 * 1000); // re-check hourly
+setTimeout(shameRecap, 5000);         // and once shortly after boot
