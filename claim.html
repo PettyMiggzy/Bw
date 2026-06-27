@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<title>🌿 Claim $CHRONIC XP Rewards</title>
+<meta name="description" content="Claim the rewards you earned chatting — your tokens + MON, signed by the pool, you pay gas." />
+<link rel="canonical" href="https://www.burnchronic.xyz/claim" />
+<meta name="robots" content="noindex" />
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=4" />
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+:root{--void:#070a07;--panel:#101a12;--green:#52ff8f;--green-dim:#2bd96a;--green-deep:#0c3d22;--ember:#ff6a2b;--ember2:#ff3d1f;--gold:#f5cf57;--purple:#a85cff;--text:#e9ffe9;--dim:#84a78d;--line:rgba(82,255,143,.16);--fd:'Bungee',sans-serif;--fh:'Bungee Shade',sans-serif;--fm:'Space Mono',monospace;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--void);color:var(--text);font-family:var(--fm);min-height:100%;display:flex;flex-direction:column;
+ background-image:radial-gradient(120% 60% at 50% -10%,rgba(82,255,143,.18),transparent 60%),radial-gradient(80% 50% at 100% 18%,rgba(168,92,255,.12),transparent 55%);}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;background-image:linear-gradient(rgba(82,255,143,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(82,255,143,.045) 1px,transparent 1px);background-size:42px 42px;mask-image:radial-gradient(120% 80% at 50% 0,#000,transparent 75%)}
+.bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;backdrop-filter:blur(12px);background:linear-gradient(180deg,rgba(7,10,7,.92),rgba(7,10,7,.4));border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:9px;font-family:var(--fd);color:var(--gold);font-size:15px;text-decoration:none}
+.brand img{width:26px;height:26px;border-radius:7px}
+.bar a.nav{color:var(--dim);font-size:12px;text-decoration:none}
+.wrap{position:relative;z-index:2;flex:1;max-width:480px;width:100%;margin:0 auto;padding:24px 16px 60px;display:flex;flex-direction:column;justify-content:center}
+h1{font-family:var(--fh);font-size:clamp(34px,12vw,58px);line-height:.9;text-align:center;color:var(--green);text-shadow:0 0 34px rgba(82,255,143,.5),4px 4px 0 var(--green-deep)}
+.sub{text-align:center;color:var(--dim);font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin:8px 0 22px}
+.sub b{color:var(--gold)}
+.card{background:linear-gradient(180deg,rgba(16,26,18,.9),rgba(10,15,11,.92));border:1px solid var(--line);border-radius:20px;padding:18px}
+.lab{font-family:var(--fd);font-size:10px;letter-spacing:.18em;color:var(--green);text-transform:uppercase;margin-bottom:10px}
+.btn{display:block;width:100%;font-family:var(--fd);font-size:15px;border:0;border-radius:14px;padding:16px;cursor:pointer;letter-spacing:.04em;text-align:center;text-decoration:none;margin-top:10px}
+.btn.go{background:linear-gradient(90deg,var(--green-dim),var(--green));color:#04140a;box-shadow:0 8px 28px rgba(82,255,143,.3)}
+.btn.go:disabled{opacity:.5;box-shadow:none;cursor:default}
+.btn.ghost{background:transparent;border:1px solid var(--green-dim);color:var(--green)}
+.btn:active{transform:scale(.98)}
+.who{text-align:center;font-size:10px;color:var(--dim);margin:10px 0 0}.who b{color:var(--green)}
+.xp{text-align:center;font-family:var(--fd);color:var(--gold);font-size:13px;margin:2px 0 14px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(7,10,7,.5);border:1px solid var(--line);border-radius:13px;padding:13px 14px;margin-bottom:10px}
+.row .l .t{font-family:var(--fd);font-size:15px;color:var(--text)}
+.row .l .s{font-size:10px;color:var(--dim);margin-top:3px}
+.row .amt{font-family:var(--fd);font-size:15px;color:var(--green);white-space:nowrap}
+.cbtn{font-family:var(--fd);font-size:11px;border:0;border-radius:10px;padding:9px 13px;cursor:pointer;background:linear-gradient(90deg,var(--green-dim),var(--green));color:#04140a}
+.cbtn:disabled{opacity:.45;cursor:default;background:rgba(82,255,143,.15);color:var(--dim)}
+.empty{text-align:center;color:var(--dim);font-size:12px;line-height:1.7;padding:14px 4px}
+.empty code{color:var(--green)}
+.note{text-align:center;font-size:11px;color:var(--dim);margin-top:18px;line-height:1.7}
+.note a{color:var(--green);text-decoration:none}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);z-index:40;opacity:0;background:var(--green);color:#04140a;font-family:var(--fd);font-size:12px;padding:11px 18px;border-radius:30px;transition:.25s;pointer-events:none;text-align:center;max-width:92vw}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.bad{background:var(--ember2);color:#fff}
+</style>
+</head>
+<body>
+<div class="bar">
+  <a class="brand" href="/"><img src="/assets/logo-chronic.png" alt="$CHRONIC"/>CLAIM</a>
+  <a class="nav" href="/grow">🌱 grow ›</a>
+</div>
+<div class="wrap">
+  <h1>CLAIM</h1>
+  <div class="sub">your XP rewards · <b>signed by the pool</b> · you pay gas</div>
+  <div class="card" id="card">
+    <div class="lab">▸ Connect your wallet</div>
+    <p style="color:var(--dim);font-size:12px;line-height:1.7;margin-bottom:14px">Earn XP by chatting in the Telegram group. Link your wallet there with <code style="color:var(--green)">/wallet 0x…</code>, then claim what you earned right here.</p>
+    <button class="btn go" id="connectBtn">🦊 Connect Wallet</button>
+    <div class="who" id="who"></div>
+  </div>
+  <div class="note">on <b style="color:var(--purple)">Monad</b> · rewards are signed by the pool, paid from the pool — we never hold your funds.<br/><a href="/grow">🌱 grow</a> · <a href="/">home</a></div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+var _th;function toast(m,bad){var t=document.getElementById('toast');t.textContent=m;t.classList.toggle('bad',!!bad);t.classList.add('show');clearTimeout(_th);_th=setTimeout(function(){t.classList.remove('show');},2800);}
+</script>
+<script type="module">
+import { BrowserProvider, Contract, formatUnits } from 'https://esm.sh/ethers@6.13.4';
+
+// Monad chain params (from the bot: CHAIN_ID 143, MONAD_RPC)
+const MONAD = {
+  chainId: '0x8f', // 143
+  chainName: 'Monad',
+  nativeCurrency: { name: 'Monad', symbol: 'MON', decimals: 18 },
+  rpcUrls: ['https://rpc.monad.xyz'],
+  blockExplorerUrls: ['https://explorer.monad.xyz'],
+};
+const NATIVE = '0x0000000000000000000000000000000000000000';
+// Pool contract claim ABI — inferred from the bot's signing scheme
+// (signs keccak256(abi.encodePacked(pool, chainId, user, token, cumulative))).
+// VERIFY this matches your deployed pool before going live.
+const POOL_ABI = ['function claim(address token, uint256 cumulative, bytes signature)'];
+
+const $ = (id) => document.getElementById(id);
+let provider, signer, account;
+
+async function ensureMonad(eth) {
+  try { await eth.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: MONAD.chainId }] }); }
+  catch (e) {
+    if (e && e.code === 4902) { await eth.request({ method: 'wallet_addEthereumChain', params: [MONAD] }); }
+    else throw e;
+  }
+}
+
+async function connect() {
+  const eth = window.ethereum;
+  if (!eth) { toast('no EVM wallet found — install MetaMask', true); return; }
+  $('connectBtn').disabled = true; $('connectBtn').textContent = 'connecting…';
+  try {
+    const accs = await eth.request({ method: 'eth_requestAccounts' });
+    account = accs[0];
+    await ensureMonad(eth);
+    provider = new BrowserProvider(eth);
+    signer = await provider.getSigner();
+    $('who').innerHTML = 'claiming as <b>' + account.slice(0, 6) + '…' + account.slice(-4) + '</b>';
+    await loadRewards();
+  } catch (e) {
+    toast(/reject|denied/i.test((e && e.message) || '') ? 'cancelled' : 'connect failed', true);
+    $('connectBtn').disabled = false; $('connectBtn').textContent = '🦊 Connect Wallet';
+  }
+}
+
+async function loadRewards() {
+  $('card').innerHTML = '<div class="lab">▸ Your rewards</div><div class="empty">loading…</div>';
+  let j;
+  try { j = await (await fetch('/api/xpclaim?wallet=' + account)).json(); }
+  catch (e) { $('card').innerHTML = '<div class="empty">couldn’t reach the rewards server — try again 🌿</div>'; return; }
+
+  if (j.error) { renderEmpty('error: ' + j.error); return; }
+  if (!j.found) { renderEmpty('this wallet isn’t linked to any XP yet.<br/>in the Telegram group, run <code>/wallet ' + account.slice(0, 6) + '…</code>'); return; }
+  if (j.payoutsDisabled) { renderEmpty('claims are paused right now — check back soon 🌿<br/>(you’ve got <b>' + (j.xp || 0) + ' XP</b> banked)'); return; }
+
+  const entries = (j.entries || []);
+  const pool = j.pool;
+  let html = '<div class="lab">▸ Your rewards</div><div class="xp">' + (j.xp || 0) + ' XP earned</div>';
+  let any = false;
+  entries.forEach(function (e, i) {
+    let claimable;
+    try { claimable = BigInt(e.cumulative) - BigInt(e.claimed || '0'); } catch (_) { claimable = 0n; }
+    if (claimable <= 0n && !e.cooldown) return;
+    any = true;
+    const amt = formatUnits(claimable > 0n ? claimable : 0n, e.decimals || 18);
+    const amtShort = Number(amt).toLocaleString(undefined, { maximumFractionDigits: 4 });
+    let status = '', disabled = '', label = 'Claim';
+    if (e.cooldown) { disabled = 'disabled'; label = e.cooldownDays + 'd'; status = 'cooldown — ' + e.cooldownDays + ' day(s) left'; }
+    else if (e.floorNotMet) { disabled = 'disabled'; label = '🔒'; status = 'earn a bit more XP to unlock MON'; }
+    else if (!e.signature) { disabled = 'disabled'; label = '—'; status = 'nothing new to claim'; }
+    html += '<div class="row"><div class="l"><div class="t">' + (e.symbol || '?') + '</div>' +
+            '<div class="s">' + (status || 'ready to claim') + '</div></div>' +
+            '<div class="amt">' + amtShort + '</div>' +
+            '<button class="cbtn" ' + disabled + ' data-i="' + i + '">' + label + '</button></div>';
+  });
+  if (!any) html += '<div class="empty">nothing to claim yet — earn XP by chatting in the group 🌱</div>';
+  html += '<div class="who" style="margin-top:8px">pool ' + (pool ? pool.slice(0, 6) + '…' + pool.slice(-4) : '?') + '</div>';
+  $('card').innerHTML = html;
+
+  // wire claim buttons
+  $('card').querySelectorAll('.cbtn:not([disabled])').forEach(function (b) {
+    b.addEventListener('click', function () { doClaim(pool, entries[+b.dataset.i], b); });
+  });
+}
+
+function renderEmpty(msg) {
+  $('card').innerHTML = '<div class="lab">▸ Your rewards</div><div class="empty">' + msg + '</div>';
+}
+
+async function doClaim(pool, e, btn) {
+  if (!e.signature) { toast('nothing to claim', true); return; }
+  btn.disabled = true; const old = btn.textContent; btn.textContent = '…';
+  try {
+    const c = new Contract(pool, POOL_ABI, signer);
+    const tx = await c.claim(e.token, e.cumulative, e.signature);
+    toast('claiming… ⛓');
+    await tx.wait();
+    toast('🌿 claimed ' + (e.symbol || '') + ' — nice');
+    await loadRewards();
+  } catch (err) {
+    toast(/reject|denied/i.test((err && err.message) || '') ? 'cancelled' : 'claim failed: ' + ((err && err.shortMessage) || (err && err.message) || err), true);
+    btn.disabled = false; btn.textContent = old;
+  }
+}
+
+$('connectBtn').addEventListener('click', connect);
+if (window.ethereum && window.ethereum.selectedAddress) connect();
+</script>
+</body>
+</html>
