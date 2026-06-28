@@ -20,6 +20,7 @@
     "newmints": "node newmints-listener.js",
     "create-alt": "node create-alt.js",
     "feeburn": "node feeburn.js",
+    "feesplit": "node feesplit.js",
     "tg-burns": "node tg-burns.js"
   },
   "dependencies": {
