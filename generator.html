@@ -161,9 +161,11 @@ async function connectWallet(){
 async function payFor(info){
   var w3=await web3(); var p=provider(); var pk=new w3.PublicKey(_wallet);
   var tx=new w3.Transaction();
-  if(info.feeLamports>0)  tx.add(w3.SystemProgram.transfer({fromPubkey:pk,toPubkey:new w3.PublicKey(info.feeWallet),lamports:info.feeLamports}));
-  if(info.burnLamports>0) tx.add(w3.SystemProgram.transfer({fromPubkey:pk,toPubkey:new w3.PublicKey(info.burnWallet),lamports:info.burnLamports}));
-  if(info.yieldLamports>0&&info.yieldWallet) tx.add(w3.SystemProgram.transfer({fromPubkey:pk,toPubkey:new w3.PublicKey(info.yieldWallet),lamports:info.yieldLamports}));
+  // ONE plain transfer of the full price to a single collection wallet. The burn/yield
+  // split is settled off-chain (same as swap fees). Multiple SOL transfers to multiple
+  // wallets read as a "drainer" to Phantom/Blowfish and flag the whole domain.
+  var lamports=info.payLamports||info.priceLamports||0, dest=info.payWallet||info.feeWallet;
+  if(lamports>0) tx.add(w3.SystemProgram.transfer({fromPubkey:pk,toPubkey:new w3.PublicKey(dest),lamports:lamports}));
   tx.feePayer=pk;
   var bh=await conn(w3).getLatestBlockhash('confirmed'); tx.recentBlockhash=bh.blockhash;
   var sig;

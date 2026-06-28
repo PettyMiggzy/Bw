@@ -8,12 +8,12 @@
  *                                    -> verifies the SOL payment on-chain, then { image }
  *
  * Pay-to-generate (covers the Venice cost + profit, and burns):
- *   Each generation costs MEME_PRICE_SOL. The user's wallet sends ONE plain tx:
- *     - MEME_BURN_BPS (40%) -> MEME_BURN_WALLET  (the DCA buy-burn wallet; it
- *       buys $CHRONIC with the SOL and burns it -> deflationary)
- *     - the rest    (60%)  -> MEME_FEE_WALLET   (overhead)
+ *   Each generation costs MEME_PRICE_SOL. The wallet sends ONE plain transfer of
+ *   the FULL price to a single collection wallet (MEME_FEE_WALLET). The 40% burn +
+ *   yield split is then settled OFF-CHAIN from there (same model as the swap fees).
  *   We verify that tx landed before calling Venice, so nobody gets a free image.
- *   Plain SystemProgram transfers => Phantom simulates cleanly (no warning).
+ *   ONE single-recipient transfer => no multi-wallet "drainer" shape, which is what
+ *   tripped Phantom/Blowfish into flagging the whole domain.
  *
  * Set MEME_PRICE_SOL=0 to make it free (then a per-IP daily cap applies instead).
  * The Venice key NEVER leaves the server.
@@ -52,6 +52,8 @@ function paymentInfo(extra) {
     error: 'payment_required',
     priceSol: PRICE_SOL,
     priceLamports: PRICE_LAMPORTS,
+    payWallet: FEE_WALLET,
+    payLamports: PRICE_LAMPORTS,
     feeWallet: FEE_WALLET,
     burnWallet: BURN_WALLET,
     yieldWallet: YIELD_WALLET,
@@ -134,27 +136,23 @@ async function verifyPayment(sig, account) {
   const signer = akeys.find((k) => k.signer);
   if (!signer || (signer.pubkey || signer) !== account) return { ok: false, reason: 'wrong_signer' };
 
-  // Count the SOL actually sent TO each wallet from the parsed System transfers.
-  // (We can't use net balance deltas: when the payer IS the fee wallet — e.g. the
-  // owner testing with the treasury wallet — its delta nets negative and looks short.)
-  let gotFee = 0n, gotBurn = 0n, gotYield = 0n;
+  // ONE clean payment: the full price must land in a single collection wallet
+  // (FEE_WALLET). The burn/yield split is settled OFF-CHAIN from there — same model
+  // as the swap fees (pool, settle out-of-band). A single plain transfer carries no
+  // multi-recipient "drainer" shape, which is what flagged the domain in Phantom.
+  let got = 0n;
   const scan = (ixs) => {
     for (const ix of (ixs || [])) {
       const p = ix.parsed;
-      if (p && p.type === 'transfer' && p.info && p.info.lamports != null) {
-        const amt = BigInt(p.info.lamports);
-        if (p.info.destination === FEE_WALLET) gotFee += amt;
-        if (p.info.destination === BURN_WALLET) gotBurn += amt;
-        if (YIELD_WALLET && p.info.destination === YIELD_WALLET) gotYield += amt;
+      if (p && p.type === 'transfer' && p.info && p.info.lamports != null && p.info.destination === FEE_WALLET) {
+        got += BigInt(p.info.lamports);
       }
     }
   };
   scan(tx.transaction.message.instructions);
   for (const inner of (tx.meta.innerInstructions || [])) scan(inner.instructions);
 
-  if (gotFee < BigInt(FEE_LAMPORTS)) return { ok: false, reason: 'fee_short' };
-  if (gotBurn < BigInt(BURN_LAMPORTS)) return { ok: false, reason: 'burn_short' };
-  if (YIELD_LAMPORTS > 0 && gotYield < BigInt(YIELD_LAMPORTS)) return { ok: false, reason: 'yield_short' };
+  if (got < BigInt(PRICE_LAMPORTS)) return { ok: false, reason: 'underpaid' };
   return { ok: true };
 }
 
@@ -185,6 +183,7 @@ module.exports = async (req, res) => {
   if (req.method === 'GET') {
     return send(res, 200, {
       ok: true, paid: PAID, priceSol: PRICE_SOL, priceLamports: PRICE_LAMPORTS,
+      payWallet: FEE_WALLET, payLamports: PRICE_LAMPORTS,   // ONE clean transfer; split settled off-chain
       feeWallet: FEE_WALLET, burnWallet: BURN_WALLET, yieldWallet: YIELD_WALLET,
       feeLamports: FEE_LAMPORTS, burnLamports: BURN_LAMPORTS, yieldLamports: YIELD_LAMPORTS,
       burnBps: BURN_BPS, yieldBps: YIELD_LAMPORTS ? YIELD_BPS : 0,
