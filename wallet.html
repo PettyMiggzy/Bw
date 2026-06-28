@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-<title>👛 Your $CHRONIC Wallet</title>
-<meta name="description" content="No wallet, no seed phrase, no extension. Sign in with email and get a Solana wallet in one tap — then buy $CHRONIC with a card." />
+<title>🌿 The Seedless Wallet — $CHRONIC</title>
+<meta name="description" content="No seed phrase. No seeds. Just like the good stuff. Sign in with email, get a Solana wallet in one tap, and buy $CHRONIC with a card." />
 <link rel="canonical" href="https://www.burnchronic.xyz/wallet" />
-<meta property="og:title" content="👛 Your $CHRONIC Wallet" />
-<meta property="og:description" content="Email in → wallet out. No seed phrase. Buy $CHRONIC with a card, then burn it 🔥" />
+<meta property="og:title" content="🌿 The Seedless Wallet — $CHRONIC" />
+<meta property="og:description" content="No seed phrase, no seeds — just like the good stuff. Email in → wallet out → buy with a card 🌿💀" />
 <meta property="og:image" content="https://www.burnchronic.xyz/assets/og-chronic.jpg" />
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=4" />
@@ -53,12 +53,12 @@ h1{font-family:var(--fh);font-size:clamp(34px,12vw,58px);line-height:.9;text-ali
 </head>
 <body>
 <div class="bar">
-  <a class="brand" href="/"><img src="/assets/logo-chronic.png" alt="$CHRONIC"/>WALLET</a>
+  <a class="brand" href="/"><img src="/assets/logo-chronic.png" alt="$CHRONIC"/>SEEDLESS</a>
   <a class="nav" href="/buy">🪙 buy ›</a>
 </div>
 <div class="wrap">
-  <h1>WALLET</h1>
-  <div class="sub">no seed phrase · <b>email in, wallet out</b> · no extension</div>
+  <h1>SEEDLESS</h1>
+  <div class="sub">no seed phrase, no seeds 🌿 · <b>email in, wallet out</b></div>
   <div id="app"><div class="card"><div class="spin">loading…</div></div></div>
   <div class="note">non-custodial — the keys live with you, secured by Privy.<br/>then go <a href="/buy">🪙 buy</a> · <a href="/burn">🔥 burn</a> · <a href="/grow">🌱 grow</a></div>
 </div>
@@ -98,9 +98,9 @@ function Inner() {
 
   if (!authenticated) {
     return html`<div class="card">
-      <div class="lab">▸ Get your wallet</div>
+      <div class="lab">▸ Get your seedless wallet</div>
       <p style=${{color:'var(--dim)',fontSize:'12px',lineHeight:1.7,marginBottom:'14px'}}>
-        Sign in with your email. We mint you a real Solana wallet — no seed phrase to write down, no extension to install. Buy $CHRONIC with a card right after.
+        No seed phrase. No seeds. Just like the good stuff. 🌿 Sign in with your email and we mint you a real Solana wallet — nothing to write down, no extension. Buy $CHRONIC with a card right after.
       </p>
       <button class="btn go" onClick=${login}>✉️ Sign in with email</button>
     </div>`;
