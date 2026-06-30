@@ -120,6 +120,16 @@ const scene=new THREE.Scene();
 scene.background=new THREE.Color(TOD.bg);
 scene.fog=new THREE.Fog(TOD.fog,TOD.fN,TOD.fF);
 
+// ---- generated PBR-ish textures (Venice flux-2-pro) ----
+const TL=new THREE.TextureLoader();
+function tex(file,rx,ry){ const t=TL.load('/assets/tex/'+file); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(rx,ry); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=4; return t; }
+const GRASS_MAT=new THREE.MeshStandardMaterial({map:tex('grass.png',42,42),roughness:1});
+const SOIL_PATCH_MAT=new THREE.MeshStandardMaterial({map:tex('soil.png',7,7),roughness:1});
+const SOIL_BED_MAT=new THREE.MeshStandardMaterial({map:tex('soil.png',1.4,1.4),roughness:1});
+const WOOD_MAT=new THREE.MeshStandardMaterial({map:tex('wood.png',2,2),roughness:.9});
+const WOOD_POST_MAT=new THREE.MeshStandardMaterial({map:tex('wood.png',1,3),roughness:.9});
+const ROOF_MAT=new THREE.MeshStandardMaterial({map:tex('roof.png',3,2),roughness:1});
+
 const camera=new THREE.PerspectiveCamera(48,1,0.1,300);
 camera.position.set(0,13,19);
 
@@ -155,17 +165,17 @@ if(TOD.star>0)(function stars(){
 })();
 
 // ---- ground + distant terrain ----
-const ground=new THREE.Mesh(new THREE.CircleGeometry(80,64),new THREE.MeshStandardMaterial({color:0x2f4a2a,roughness:1}));
+const ground=new THREE.Mesh(new THREE.CircleGeometry(80,64),GRASS_MAT);
 ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
 // soil patch under the plots
-const soil=new THREE.Mesh(new THREE.CircleGeometry(9.5,48),new THREE.MeshStandardMaterial({color:0x3a2c1a,roughness:1}));
+const soil=new THREE.Mesh(new THREE.CircleGeometry(9.5,48),SOIL_PATCH_MAT);
 soil.rotation.x=-Math.PI/2; soil.position.y=0.01; soil.receiveShadow=true; scene.add(soil);
 const grid=new THREE.GridHelper(60,60,0x163a26,0x0e2018); grid.position.y=0.02; grid.material.transparent=true; grid.material.opacity=.5; scene.add(grid);
 
 // ---- perimeter fence ----
 (function fence(){
-  const postMat=new THREE.MeshStandardMaterial({color:0x2a1d12,roughness:.95});
-  const railMat=new THREE.MeshStandardMaterial({color:0x35261a,roughness:.95});
+  const postMat=WOOD_POST_MAT;
+  const railMat=WOOD_MAT;
   const R=13.5, step=1.55;
   const postG=new THREE.CylinderGeometry(0.07,0.09,1.5,6);
   for(const side of [[1,0],[-1,0],[0,1],[0,-1]]){
@@ -224,14 +234,14 @@ const WELL=new THREE.Vector3(6.9,0,6.0);
 (function well(){
   const g=new THREE.Group(); g.position.copy(WELL); scene.add(g);
   const stone=new THREE.MeshStandardMaterial({color:0x4a4f52,roughness:1});
-  const wood=new THREE.MeshStandardMaterial({color:0x3a2a18,roughness:.9});
+  const wood=WOOD_MAT;
   const ring=new THREE.Mesh(new THREE.CylinderGeometry(0.85,0.92,0.95,18),stone); ring.position.y=0.47; ring.castShadow=true; ring.receiveShadow=true; g.add(ring);
   const shaft=new THREE.Mesh(new THREE.CylinderGeometry(0.62,0.62,0.9,18),new THREE.MeshStandardMaterial({color:0x05100a})); shaft.position.y=0.5; g.add(shaft);
   const water=new THREE.Mesh(new THREE.CircleGeometry(0.6,18),new THREE.MeshStandardMaterial({color:0x1d6fd0,emissive:0x0b3f78,emissiveIntensity:.6,roughness:.15,metalness:.2}));
   water.rotation.x=-Math.PI/2; water.position.y=0.74; g.add(water);
   for(const sx of [-1,1]){ const p=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,1.7,6),wood); p.position.set(sx*0.78,1.3,0); p.castShadow=true; g.add(p); }
   const beam=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,1.85,6),wood); beam.rotation.z=Math.PI/2; beam.position.y=2.05; g.add(beam);
-  const roof=new THREE.Mesh(new THREE.ConeGeometry(1.3,0.75,4),new THREE.MeshStandardMaterial({color:0x5a2b1a,roughness:1})); roof.rotation.y=Math.PI/4; roof.position.y=2.5; roof.castShadow=true; g.add(roof);
+  const roof=new THREE.Mesh(new THREE.ConeGeometry(1.3,0.75,4),ROOF_MAT); roof.rotation.y=Math.PI/4; roof.position.y=2.5; roof.castShadow=true; g.add(roof);
   const bucket=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.13,0.26,10),new THREE.MeshStandardMaterial({color:0x6a4a2a,roughness:.9})); bucket.position.y=1.45; g.add(bucket);
   const rope=new THREE.Mesh(new THREE.CylinderGeometry(0.01,0.01,0.55,4),new THREE.MeshStandardMaterial({color:0x241a12})); rope.position.y=1.78; g.add(rope);
   // a couple barrels + open water tops beside it
@@ -262,8 +272,8 @@ function path(px,pz){ const len=Math.hypot(px,pz);
 function makeBuilding(o){
   const g=new THREE.Group(); g.position.set(o.pos[0],0,o.pos[1]); g.rotation.y=Math.atan2(-o.pos[0],-o.pos[1]); scene.add(g);
   const w=o.w||3.6,d=o.d||3.1,h=o.h||2.9, ac='#'+o.accent.toString(16).padStart(6,'0');
-  const body=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color:o.wall,roughness:.95})); body.position.y=h/2; body.castShadow=true; body.receiveShadow=true; g.add(body);
-  const roof=new THREE.Mesh(new THREE.ConeGeometry(Math.max(w,d)*0.82,h*0.72,4),new THREE.MeshStandardMaterial({color:o.roof,roughness:1})); roof.rotation.y=Math.PI/4; roof.position.y=h+h*0.35; roof.castShadow=true; g.add(roof);
+  const body=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),WOOD_MAT); body.position.y=h/2; body.castShadow=true; body.receiveShadow=true; g.add(body);
+  const roof=new THREE.Mesh(new THREE.ConeGeometry(Math.max(w,d)*0.82,h*0.72,4),ROOF_MAT); roof.rotation.y=Math.PI/4; roof.position.y=h+h*0.35; roof.castShadow=true; g.add(roof);
   // accent awning band over the storefront
   const band=new THREE.Mesh(new THREE.BoxGeometry(w*0.98,0.36,0.14),new THREE.MeshStandardMaterial({color:o.accent,emissive:o.accent,emissiveIntensity:.55,roughness:.5})); band.position.set(0,h*0.74,d/2+0.07); g.add(band);
   // door + glowing windows
@@ -344,8 +354,8 @@ function makePlant(strain){
 
 // ---- plots ----
 const plots=[]; const GRID=4, GAP=2.3;
-const plotMat=new THREE.MeshStandardMaterial({color:0x241a12,roughness:1});
-const plotEdge=new THREE.MeshStandardMaterial({color:0x3a2b1a,roughness:1});
+const plotMat=SOIL_BED_MAT;
+const plotEdge=WOOD_MAT;
 for(let x=0;x<GRID;x++)for(let z=0;z<GRID;z++){
   const px=(x-(GRID-1)/2)*GAP, pz=(z-(GRID-1)/2)*GAP;
   const bed=new THREE.Group(); bed.position.set(px,0,pz);
