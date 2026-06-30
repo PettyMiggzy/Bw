@@ -43,7 +43,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--text);f
 </head>
 <body>
 <canvas id="c"></canvas>
-<div class="load" id="load"><div class="ring"></div>GROWING THE FARM…</div>
+<div class="load" id="load"><div class="ring"></div><span id="loadMsg">GROWING THE FARM…</span></div>
 <div class="hud top">
   <a class="brand" href="/grow"><img src="/assets/logo-chronic.png" alt=""/>3D FARM</a>
   <div class="stats">
@@ -55,9 +55,34 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--text);f
 <div class="seeds" id="seeds"></div>
 <div class="toast" id="toast"></div>
 
+<!-- self-hosted three.js (no third-party CDN at runtime → loads reliably on any network) -->
+<script type="importmap">
+{ "imports": {
+  "three": "/assets/vendor/three.module.js",
+  "three/addons/": "/assets/vendor/addons/"
+} }
+</script>
+<script>
+// If the 3D engine or WebGL fails on this device, show a real message instead of a black screen.
+(function(){
+  function fail(msg){ var l=document.getElementById('load'); if(!l)return;
+    l.innerHTML='<div style="text-align:center;max-width:280px;line-height:1.7;padding:0 20px">'+
+      '<div style="font-size:13px;color:#ff6a2b">'+msg+'</div>'+
+      '<a href="/grow" style="display:inline-block;margin-top:16px;color:#52ff8f;text-decoration:none;border:1px solid #2bd96a;border-radius:12px;padding:10px 16px;font-size:12px">play the 2D grow ›</a></div>';
+    l.classList.remove('gone'); }
+  // no WebGL → bail early with a friendly note
+  try{ var t=document.createElement('canvas'); if(!(t.getContext('webgl')||t.getContext('experimental-webgl'))) return fail("Your browser can't run 3D (WebGL is off). Try Chrome/Safari, or open it on another device."); }catch(e){ return fail("Your browser can't run 3D (WebGL is off)."); }
+  // surface any uncaught error from the 3D module instead of hanging on the loader
+  window.addEventListener('error', function(e){ var l=document.getElementById('load'); if(l && !l.classList.contains('gone')) fail('The 3D farm hit a snag loading. Tap below or refresh.'); });
+  // safety net: if nothing started after 12s, the module never loaded
+  window.__farmStarted=false;
+  setTimeout(function(){ if(!window.__farmStarted){ var l=document.getElementById('load'); if(l && !l.classList.contains('gone')) fail('Still loading — your connection may be blocking it. Refresh, or play the 2D grow.'); } }, 12000);
+})();
+</script>
 <script type="module">
-import * as THREE from 'https://esm.sh/three@0.160.0';
-import { OrbitControls } from 'https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+window.__farmStarted=true; // module parsed & three loaded
 
 const $=(i)=>document.getElementById(i);
 let _th; function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(_th);_th=setTimeout(()=>t.classList.remove('show'),1900);}
@@ -86,8 +111,9 @@ const TOD=TODS[TODKEY];
 
 // ---- three setup ----
 const canvas=$('c');
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const LOWPWR=Math.min(innerWidth,innerHeight)<520 || /Mobi|Android/i.test(navigator.userAgent);
+const renderer=new THREE.WebGLRenderer({canvas,antialias:!LOWPWR,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio,LOWPWR?1.5:2));
 renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.12;
 const scene=new THREE.Scene();
@@ -107,7 +133,7 @@ canvas.addEventListener('pointerdown',()=>{controls.autoRotate=false;});
 scene.add(new THREE.HemisphereLight(TOD.hS,TOD.hG,TOD.hI));
 const moon=new THREE.DirectionalLight(TOD.sun,TOD.sunI);
 moon.position.set(TOD.sunP[0],TOD.sunP[1],TOD.sunP[2]); moon.castShadow=true;
-moon.shadow.mapSize.set(2048,2048);
+moon.shadow.mapSize.set(LOWPWR?1024:2048,LOWPWR?1024:2048);
 const sc=moon.shadow.camera; sc.left=-16;sc.right=16;sc.top=16;sc.bottom=-16; sc.near=1; sc.far=70;
 scene.add(moon);
 const glow=new THREE.PointLight(0x52ff8f,TOD.glow,34,1.6); glow.position.set(0,7,0); scene.add(glow);
