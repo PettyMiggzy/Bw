@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>🏭 Merch Pad — launch your project's merch, pay in crypto · CHRONIC</title>
+<title> Merch Pad — launch your project's merch, pay in crypto · CHRONIC</title>
 <meta name="description" content="Launch a branded merch store for your crypto project with zero inventory and zero upfront cost. Print-on-demand, crypto checkout, we handle the tech — you earn on every sale." />
 <meta name="keywords" content="crypto merch, web3 merch, print on demand crypto, memecoin merch store, launch merch, merch as a service, pay with crypto merch" />
 <meta name="robots" content="index, follow, max-image-preview:large" />
@@ -14,7 +14,7 @@
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="CHRONIC Merch Pad" />
 <meta property="og:url" content="https://burnchronic.store/merchpad" />
-<meta property="og:title" content="🏭 Merch Pad — launch your project's merch, pay in crypto" />
+<meta property="og:title" content=" Merch Pad — launch your project's merch, pay in crypto" />
 <meta property="og:description" content="Zero inventory, zero upfront. Print-on-demand merch store + crypto checkout for your project. You earn on every sale." />
 <meta property="og:image" content="https://www.burnchronic.xyz/assets/og-chronic.jpg" />
 <meta name="twitter:card" content="summary_large_image" />
@@ -41,7 +41,7 @@ h1{font-family:var(--fh);font-size:clamp(30px,9vw,52px);text-align:center;color:
 .card{background:linear-gradient(180deg,rgba(16,26,18,.9),rgba(10,15,11,.92));border:1px solid var(--line);border-radius:16px;padding:16px}
 .perks{list-style:none;display:grid;gap:9px}
 .perks li{font-size:12.5px;line-height:1.5;color:var(--text);padding-left:24px;position:relative}
-.perks li::before{content:"🌿";position:absolute;left:0}
+.perks li::before{content:"";position:absolute;left:0}
 .perks li b{color:var(--gold)}
 .field{display:flex;flex-direction:column;gap:4px;margin-bottom:11px}
 .field label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
@@ -63,12 +63,12 @@ h1{font-family:var(--fh);font-size:clamp(30px,9vw,52px);text-align:center;color:
 </div>
 <div class="wrap">
   <h1>MERCH PAD</h1>
-  <div class="sub">launch your project's merch store — <b>zero inventory, zero upfront.</b><br>print-on-demand + crypto checkout. you earn on every sale. 🏭</div>
+  <div class="sub">launch your project's merch store — <b>zero inventory, zero upfront.</b><br>print-on-demand + crypto checkout. you earn on every sale. </div>
 
   <div class="steps">
-    <div class="s"><div class="e">🎨</div><b>1. Send art</b><span>your logo + what you want on it</span></div>
-    <div class="s"><div class="e">🛒</div><b>2. We build it</b><span>a branded store, crypto checkout</span></div>
-    <div class="s"><div class="e">🪙</div><b>3. You earn</b><span>cut of every sale, paid in crypto</span></div>
+    <div class="s"><div class="e"></div><b>1. Send art</b><span>your logo + what you want on it</span></div>
+    <div class="s"><div class="e"></div><b>2. We build it</b><span>a branded store, crypto checkout</span></div>
+    <div class="s"><div class="e"></div><b>3. You earn</b><span>cut of every sale, paid in crypto</span></div>
   </div>
 
   <div class="sec">Why Merch Pad</div>
@@ -90,10 +90,10 @@ h1{font-family:var(--fh);font-size:clamp(30px,9vw,52px);text-align:center;color:
     <div class="field"><label>Payout wallet (SOL, optional)</label><input id="m_wallet" maxlength="80" placeholder="where you want your cut"/></div>
     <div class="field"><label>Logo / art link (optional)</label><input id="m_art" maxlength="300" placeholder="drive / imgur / ipfs link"/></div>
     <div class="field"><label>What do you want?</label><textarea id="m_details" maxlength="1000" placeholder="tees + hoodies, drop your vibe, any ideas…"></textarea></div>
-    <button class="cta" id="m_submit">🏭 Request my merch store</button>
+    <button class="cta" id="m_submit"> Request my merch store</button>
   </div>
 
-  <div class="foot">🛒 <a href="/shop">shop</a> · 🚀 <a href="https://www.burnchronic.xyz/launch">token launchpad</a> · 📧 <a href="mailto:team@burnchronic.xyz">team@burnchronic.xyz</a></div>
+  <div class="foot"> <a href="/shop">shop</a> ·  <a href="https://www.burnchronic.xyz/launch">token launchpad</a> ·  <a href="mailto:team@burnchronic.xyz">team@burnchronic.xyz</a></div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
@@ -111,7 +111,7 @@ $('m_submit').onclick=async function(){
     })});
     var d=await r.json();
     if(!r.ok){toast(d.error||'something broke, try again',true);btn.disabled=false;btn.textContent=lab;return;}
-    $('formCard').innerHTML='<div class="ok"><div class="big">🏭</div><h3>request in 🌿</h3><div class="note">we got it — the skeleton will reach out at <b style="color:var(--green)">'+contact.replace(/[<>&]/g,'')+'</b> to set up your store. talk soon.</div></div>';
+    $('formCard').innerHTML='<div class="ok"><div class="big"></div><h3>request in </h3><div class="note">we got it — the skeleton will reach out at <b style="color:var(--green)">'+contact.replace(/[<>&]/g,'')+'</b> to set up your store. talk soon.</div></div>';
   }catch(e){toast('network hiccup, try again',true);btn.disabled=false;btn.textContent=lab;}
 };
 </script>

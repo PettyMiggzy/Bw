@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-<title>🔻 Sell $CHRONIC</title>
+<title> Sell $CHRONIC</title>
 <meta name="description" content="Swap $CHRONIC → SOL via Jupiter, no extension. or just burn it." />
-<meta property="og:title" content="🔻 Sell $CHRONIC" />
-<meta property="og:description" content="Take profit — swap $CHRONIC → SOL via Jupiter. or burn it 🔥💀" />
+<meta property="og:title" content=" Sell $CHRONIC" />
+<meta property="og:description" content="Take profit — swap $CHRONIC → SOL via Jupiter. or burn it " />
 <meta property="og:image" content="https://www.burnchronic.xyz/assets/og-chronic.jpg" />
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="canonical" href="https://www.burnchronic.xyz/sell" />
@@ -53,7 +53,7 @@ h1{font-family:var(--fh);font-size:clamp(40px,15vw,68px);line-height:.9;text-ali
 <body>
 <div class="bar">
   <a class="brand" href="/"><img src="/assets/logo-chronic.png" alt="$CHRONIC"/>SELL</a>
-  <a class="nav" href="/buy">🪙 ape in ›</a>
+  <a class="nav" href="/buy"> ape in ›</a>
 </div>
 <div class="wrap">
   <h1>SELL</h1>
@@ -63,12 +63,12 @@ h1{font-family:var(--fh);font-size:clamp(40px,15vw,68px);line-height:.9;text-ali
     <div class="lab">▸ How much $CHRONIC?</div>
     <div class="amts" id="amts"></div>
     <div class="custom"><input id="amt" type="number" inputmode="numeric" placeholder="custom amount" /><span>$CHRONIC</span></div>
-    <button class="btn go" id="sellBtn">🔻 Connect &amp; Sell</button>
-    <button class="btn ghost" id="cashBtn" style="margin-top:10px;background:transparent;border:1px solid var(--green-dim);color:var(--green)">💵 Cash out to bank</button>
+    <button class="btn go" id="sellBtn"> Connect &amp; Sell</button>
+    <button class="btn ghost" id="cashBtn" style="margin-top:10px;background:transparent;border:1px solid var(--green-dim);color:var(--green)"> Cash out to bank</button>
     <div class="meta">routed by Jupiter · ~5% max slippage · you sign in your wallet</div>
     <div class="who" id="who"></div>
   </div>
-  <div class="nudge">paper hands? 😤 <span class="g">the skeleton would <a href="/burn">🔥 burn it</a></span> instead.<br/><a style="color:var(--dim)" href="/grow">🌱 grow</a> · <a style="color:var(--dim)" href="/">home</a></div>
+  <div class="nudge">paper hands?  <span class="g">the skeleton would <a href="/burn"> burn it</a></span> instead.<br/><a style="color:var(--dim)" href="/grow"> grow</a> · <a style="color:var(--dim)" href="/">home</a></div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
@@ -76,9 +76,9 @@ var PRESETS=[100000,500000,1000000], amount=100000, wallet=null;
 var $=function(i){return document.getElementById(i);};
 function fmt(n){n=Math.floor(n);if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return(n/1e3).toFixed(0)+'K';return''+n;}
 var _th;function toast(m,bad){var t=$('toast');t.textContent=m;t.classList.toggle('bad',!!bad);t.classList.add('show');clearTimeout(_th);_th=setTimeout(function(){t.classList.remove('show');},2400);}
-function setAmt(a){amount=a;document.querySelectorAll('.amt').forEach(function(b){b.classList.toggle('on',+b.dataset.a===a);});if(wallet)$('sellBtn').textContent='🔻 Sell '+fmt(a)+' $CHRONIC';}
+function setAmt(a){amount=a;document.querySelectorAll('.amt').forEach(function(b){b.classList.toggle('on',+b.dataset.a===a);});if(wallet)$('sellBtn').textContent=' Sell '+fmt(a)+' $CHRONIC';}
 function buildAmts(){var w=$('amts');w.innerHTML='';PRESETS.forEach(function(a){var d=document.createElement('div');d.className='amt'+(a===amount?' on':'');d.dataset.a=a;d.textContent=fmt(a);d.onclick=function(){$('amt').value='';setAmt(a);};w.appendChild(d);});}
-$('amt').addEventListener('input',function(){var v=Math.floor(Number(this.value));if(v>0){document.querySelectorAll('.amt').forEach(function(b){b.classList.remove('on');});amount=v;if(wallet)$('sellBtn').textContent='🔻 Sell '+fmt(v)+' $CHRONIC';}});
+$('amt').addEventListener('input',function(){var v=Math.floor(Number(this.value));if(v>0){document.querySelectorAll('.amt').forEach(function(b){b.classList.remove('on');});amount=v;if(wallet)$('sellBtn').textContent=' Sell '+fmt(v)+' $CHRONIC';}});
 
 function provider(){var p=(window.phantom&&window.phantom.solana)||window.solana;return(p&&p.isPhantom)?p:null;}
 function isMobile(){var u=navigator.userAgent||'';return /android|iphone|ipad|ipod/i.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1);}
@@ -90,7 +90,7 @@ async function connect(){
   if(!p){ if(isMobile()){ toast('opening in Phantom…'); var t=encodeURIComponent(location.href.replace('://burnchronic.xyz/','://www.burnchronic.xyz/')); location.href='https://phantom.app/ul/browse/'+t+'?ref='+encodeURIComponent('https://www.burnchronic.xyz'); return false; } toast('Phantom not found — install it',true); return false; }
   var resp=await p.connect(); wallet=resp.publicKey.toString();
   $('who').innerHTML='selling as <b>'+wallet.slice(0,4)+'…'+wallet.slice(-4)+'</b>';
-  $('sellBtn').textContent='🔻 Sell '+fmt(amount)+' $CHRONIC';
+  $('sellBtn').textContent=' Sell '+fmt(amount)+' $CHRONIC';
   return true;
 }
 
@@ -103,7 +103,7 @@ async function doSell(){
     var r=await fetch('/api/actions/sell?amt='+amount,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({account:wallet})});
     var j=await r.json();
     if(j.error||!j.transaction){ toast(j.message||j.error||'no route',true); btn.disabled=false; btn.textContent=label; return; }
-    btn.textContent='approve in wallet 🔻';
+    btn.textContent='approve in wallet ';
     var w3=await web3();
     var raw=Uint8Array.from(atob(j.transaction),function(c){return c.charCodeAt(0);});
     var tx=w3.VersionedTransaction.deserialize(raw);
@@ -112,8 +112,8 @@ async function doSell(){
     else { var signed=await p.signTransaction(tx); sig=await conn(w3).sendRawTransaction(signed.serialize()); }
     btn.textContent='swapping… ⛓';
     for(var i=0;i<30;i++){ try{ var st=await conn(w3).getSignatureStatuses([sig]); var v=st&&st.value&&st.value[0]; if(v&&(v.confirmationStatus==='confirmed'||v.confirmationStatus==='finalized')){ if(v.err) throw new Error('swap failed'); break; } }catch(e){ if(/swap failed/.test(e.message)) throw e; } await new Promise(function(r){setTimeout(r,1500);}); }
-    toast('🔻 sold '+fmt(amount)+' $CHRONIC for SOL');
-    btn.disabled=false; btn.textContent='🔻 Sell more';
+    toast(' sold '+fmt(amount)+' $CHRONIC for SOL');
+    btn.disabled=false; btn.textContent=' Sell more';
   }catch(e){ toast(/reject/i.test((e&&e.message)||'')?'cancelled':'sell failed: '+((e&&e.message)||e),true); btn.disabled=false; btn.textContent=label; }
 }
 $('sellBtn').addEventListener('click',doSell);
@@ -127,10 +127,10 @@ async function doCash(){
   try{
     var r=await fetch('/api/moonpay?intent=sell&address='+encodeURIComponent(wallet));
     var j=await r.json();
-    if(j.error==='ramp_unconfigured'){ toast('💵 bank cash-out unlocks soon',true); btn.disabled=false; btn.textContent=label; return; }
+    if(j.error==='ramp_unconfigured'){ toast(' bank cash-out unlocks soon',true); btn.disabled=false; btn.textContent=label; return; }
     if(j.error||!j.url){ toast(j.error||'cash-out unavailable',true); btn.disabled=false; btn.textContent=label; return; }
     window.open(j.url,'_blank','noopener');
-    toast('💵 sell $CHRONIC → SOL first, then cash that SOL out in MoonPay');
+    toast(' sell $CHRONIC → SOL first, then cash that SOL out in MoonPay');
     btn.disabled=false; btn.textContent=label;
   }catch(e){ toast('cash-out failed',true); btn.disabled=false; btn.textContent=label; }
 }

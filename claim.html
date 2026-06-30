@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-<title>🌿 Claim $CHRONIC XP Rewards</title>
+<title> Claim $CHRONIC XP Rewards</title>
 <meta name="description" content="Claim the rewards you earned chatting — your tokens + MON, signed by the pool, you pay gas." />
 <link rel="canonical" href="https://www.burnchronic.xyz/claim" />
 <meta name="robots" content="noindex" />
@@ -51,7 +51,7 @@ h1{font-family:var(--fh);font-size:clamp(34px,12vw,58px);line-height:.9;text-ali
 <body>
 <div class="bar">
   <a class="brand" href="/"><img src="/assets/logo-chronic.png" alt="$CHRONIC"/>CLAIM</a>
-  <a class="nav" href="/grow">🌱 grow ›</a>
+  <a class="nav" href="/grow"> grow ›</a>
 </div>
 <div class="wrap">
   <h1>CLAIM</h1>
@@ -59,10 +59,10 @@ h1{font-family:var(--fh);font-size:clamp(34px,12vw,58px);line-height:.9;text-ali
   <div class="card" id="card">
     <div class="lab">▸ Connect your wallet</div>
     <p style="color:var(--dim);font-size:12px;line-height:1.7;margin-bottom:14px">Earn XP by chatting in the Telegram group. Link your wallet there with <code style="color:var(--green)">/wallet 0x…</code>, then claim what you earned right here.</p>
-    <button class="btn go" id="connectBtn">🦊 Connect Wallet</button>
+    <button class="btn go" id="connectBtn"> Connect Wallet</button>
     <div class="who" id="who"></div>
   </div>
-  <div class="note">on <b style="color:var(--purple)">Monad</b> · rewards are signed by the pool, paid from the pool — we never hold your funds.<br/><a href="/grow">🌱 grow</a> · <a href="/">home</a></div>
+  <div class="note">on <b style="color:var(--purple)">Monad</b> · rewards are signed by the pool, paid from the pool — we never hold your funds.<br/><a href="/grow"> grow</a> · <a href="/">home</a></div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
@@ -110,7 +110,7 @@ async function connect() {
     await loadRewards();
   } catch (e) {
     toast(/reject|denied/i.test((e && e.message) || '') ? 'cancelled' : 'connect failed', true);
-    $('connectBtn').disabled = false; $('connectBtn').textContent = '🦊 Connect Wallet';
+    $('connectBtn').disabled = false; $('connectBtn').textContent = ' Connect Wallet';
   }
 }
 
@@ -118,11 +118,11 @@ async function loadRewards() {
   $('card').innerHTML = '<div class="lab">▸ Your rewards</div><div class="empty">loading…</div>';
   let j;
   try { j = await (await fetch('/api/xpclaim?wallet=' + account)).json(); }
-  catch (e) { $('card').innerHTML = '<div class="empty">couldn’t reach the rewards server — try again 🌿</div>'; return; }
+  catch (e) { $('card').innerHTML = '<div class="empty">couldn’t reach the rewards server — try again </div>'; return; }
 
   if (j.error) { renderEmpty('error: ' + j.error); return; }
   if (!j.found) { renderEmpty('this wallet isn’t linked to any XP yet.<br/>in the Telegram group, run <code>/wallet ' + account.slice(0, 6) + '…</code>'); return; }
-  if (j.payoutsDisabled) { renderEmpty('claims are paused right now — check back soon 🌿<br/>(you’ve got <b>' + (j.xp || 0) + ' XP</b> banked)'); return; }
+  if (j.payoutsDisabled) { renderEmpty('claims are paused right now — check back soon <br/>(you’ve got <b>' + (j.xp || 0) + ' XP</b> banked)'); return; }
 
   const entries = (j.entries || []);
   const pool = j.pool;
@@ -137,14 +137,14 @@ async function loadRewards() {
     const amtShort = Number(amt).toLocaleString(undefined, { maximumFractionDigits: 4 });
     let status = '', disabled = '', label = 'Claim';
     if (e.cooldown) { disabled = 'disabled'; label = e.cooldownDays + 'd'; status = 'cooldown — ' + e.cooldownDays + ' day(s) left'; }
-    else if (e.floorNotMet) { disabled = 'disabled'; label = '🔒'; status = 'earn a bit more XP to unlock MON'; }
+    else if (e.floorNotMet) { disabled = 'disabled'; label = ''; status = 'earn a bit more XP to unlock MON'; }
     else if (!e.signature) { disabled = 'disabled'; label = '—'; status = 'nothing new to claim'; }
     html += '<div class="row"><div class="l"><div class="t">' + (e.symbol || '?') + '</div>' +
             '<div class="s">' + (status || 'ready to claim') + '</div></div>' +
             '<div class="amt">' + amtShort + '</div>' +
             '<button class="cbtn" ' + disabled + ' data-i="' + i + '">' + label + '</button></div>';
   });
-  if (!any) html += '<div class="empty">nothing to claim yet — earn XP by chatting in the group 🌱</div>';
+  if (!any) html += '<div class="empty">nothing to claim yet — earn XP by chatting in the group </div>';
   html += '<div class="who" style="margin-top:8px">pool ' + (pool ? pool.slice(0, 6) + '…' + pool.slice(-4) : '?') + '</div>';
   $('card').innerHTML = html;
 
@@ -166,7 +166,7 @@ async function doClaim(pool, e, btn) {
     const tx = await c.claim(e.token, e.cumulative, e.signature);
     toast('claiming… ⛓');
     await tx.wait();
-    toast('🌿 claimed ' + (e.symbol || '') + ' — nice');
+    toast(' claimed ' + (e.symbol || '') + ' — nice');
     await loadRewards();
   } catch (err) {
     toast(/reject|denied/i.test((err && err.message) || '') ? 'cancelled' : 'claim failed: ' + ((err && err.shortMessage) || (err && err.message) || err), true);

@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>🔍 $CHRONIC Bundle Checker</title>
+<title> $CHRONIC Bundle Checker</title>
 <meta name="description" content="Solana bundle / insider checker — paste a token CA, see holder concentration, launch snipers, and common-funding clusters." />
 <link rel="canonical" href="https://www.burnchronic.xyz/bundle" />
-<meta property="og:title" content="🔍 $CHRONIC Bundle Checker" />
+<meta property="og:title" content=" $CHRONIC Bundle Checker" />
 <meta property="og:description" content="See the bundle before you ape — holder concentration, snipers, funding clusters, rug score. Solana." />
 <meta property="og:image" content="https://www.burnchronic.xyz/assets/og-chronic.jpg" />
 <meta name="twitter:card" content="summary_large_image" />
@@ -72,7 +72,7 @@ h1{font-family:var(--fh);font-size:clamp(32px,10vw,54px);line-height:.92;text-al
     <button id="go">SCAN</button>
   </div>
   <div id="out"></div>
-  <div class="foot">🔍 read-only on-chain · 🔥 <a href="/burn">burn</a> · 🌱 <a href="/grow">grow</a> · <a href="/">home</a> · 📧 <a href="mailto:team@burnchronic.xyz">contact</a></div>
+  <div class="foot"> read-only on-chain ·  <a href="/burn">burn</a> ·  <a href="/grow">grow</a> · <a href="/">home</a> ·  <a href="mailto:team@burnchronic.xyz">contact</a></div>
 </div>
 <script>
 var $=function(i){return document.getElementById(i);};
@@ -82,7 +82,7 @@ function esc(s){return String(s).replace(/[<>&]/g,function(c){return{'<':'&lt;',
 
 async function scan(){
   var ca=$('ca').value.trim(); if(ca.length<32){ $('out').innerHTML='<div class="muted">paste a valid token mint address</div>'; return; }
-  $('go').disabled=true; $('out').innerHTML='<div class="spin">🔍 tracing wallets &amp; funding… (can take ~10–20s)</div>';
+  $('go').disabled=true; $('out').innerHTML='<div class="spin"> tracing wallets &amp; funding… (can take ~10–20s)</div>';
   try{
     var r=await fetch('/api/bundle?ca='+encodeURIComponent(ca)); var d=await r.json();
     if(d.error){ $('out').innerHTML='<div class="muted">'+esc(d.error)+'</div>'; $('go').disabled=false; return; }
@@ -96,8 +96,8 @@ function render(d){
   // score
   if(d.score){ var lv=d.score.level;
     html+='<div class="card scorecard '+lv+'"><div class="scorebig">'+d.score.value+'</div>'
-      +'<div class="scorelbl">'+(lv==='high'?'🚩 high risk / bundled':lv==='med'?'⚠️ some signals':'✅ looks clean-ish')+'</div>';
-    if(d.score.flags&&d.score.flags.length){ html+='<div class="flags">'+d.score.flags.map(function(f){return '<div class="flag bad">🚩 '+esc(f)+'</div>';}).join('')+'</div>'; }
+      +'<div class="scorelbl">'+(lv==='high'?' high risk / bundled':lv==='med'?'⚠ some signals':'✅ looks clean-ish')+'</div>';
+    if(d.score.flags&&d.score.flags.length){ html+='<div class="flags">'+d.score.flags.map(function(f){return '<div class="flag bad"> '+esc(f)+'</div>';}).join('')+'</div>'; }
     html+='</div>';
   }
   // holders
@@ -124,13 +124,13 @@ function render(d){
   if(d.funding){ var f=d.funding;
     html+='<div class="card"><div class="h2">▸ Funding Clusters</div>';
     if(f.clusters&&f.clusters.length){ html+='<div class="muted" style="text-align:left;margin-bottom:6px">wallets funded by the same source = a coordinated bundle:</div>';
-      f.clusters.forEach(function(c){ html+='<div class="cluster"><span class="f">🚩 '+c.size+' wallets ← funder '+sh(c.funder)+'</span>'
+      f.clusters.forEach(function(c){ html+='<div class="cluster"><span class="f"> '+c.size+' wallets ← funder '+sh(c.funder)+'</span>'
         +'<div class="w">'+c.wallets.map(function(w){return '<a href="'+sol(w)+'" target="_blank" rel="noopener">'+sh(w)+'</a>';}).join(' · ')+'</div></div>'; });
     } else { html+='<div class="muted">no shared-funder clusters found among the top wallets ✅<br/><span style="font-size:10px">(traced '+(f.traced||0)+' wallets)</span></div>'; }
     html+='</div>';
   }
-  if(d.notes&&d.notes.length){ html+='<div class="note" style="text-align:center">⚠️ partial: '+d.notes.map(esc).join(' · ')+'</div>'; }
-  html+='<div class="note" style="text-align:center">not financial advice · signals only · DYOR 💀</div>';
+  if(d.notes&&d.notes.length){ html+='<div class="note" style="text-align:center">⚠ partial: '+d.notes.map(esc).join(' · ')+'</div>'; }
+  html+='<div class="note" style="text-align:center">not financial advice · signals only · DYOR </div>';
   $('out').innerHTML=html;
 }
 

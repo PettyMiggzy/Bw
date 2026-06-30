@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>📦 Track Order · CHRONIC Smoke Shop</title>
+<title> Track Order · CHRONIC Smoke Shop</title>
 <meta name="description" content="Track your CHRONIC Smoke Shop order — paste your payment signature to see status." />
 <meta name="robots" content="noindex, follow" />
 <link rel="canonical" href="https://burnchronic.store/track" />
@@ -50,13 +50,13 @@ input:focus{border-color:var(--green-dim)}
     <button class="btn" id="go">Track →</button>
   </div>
   <div id="out"></div>
-  <div class="foot">🛒 <a href="/shop">shop</a> · 📧 <a href="mailto:team@burnchronic.xyz">contact</a></div>
+  <div class="foot"> <a href="/shop">shop</a> ·  <a href="mailto:team@burnchronic.xyz">contact</a></div>
 </div>
 <script>
 var $=function(i){return document.getElementById(i);};
 var STAGES=['new','ordered','shipped','done'];
 var LABEL={new:'Received',ordered:'Ordered',shipped:'Shipped',done:'Delivered'};
-var EMO={new:'🧾',ordered:'📦',shipped:'🚚',done:'✅'};
+var EMO={new:'',ordered:'',shipped:'',done:'✅'};
 function esc(s){return String(s).replace(/[<>&]/g,function(c){return{'<':'&lt;','>':'&gt;','&':'&amp;'}[c];});}
 async function track(){
   var tx=($('tx').value||'').trim(); if(tx.length<32){$('out').innerHTML='<div class="muted">paste a valid payment signature</div>';return;}

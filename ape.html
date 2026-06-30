@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>🦍 $CHRONIC Ape Kit</title>
+<title> $CHRONIC Ape Kit</title>
 <meta name="description" content="Spread $CHRONIC — one-tap buy Blinks + ready-to-post tweets. Bring the apes, feed the fire." />
 <link rel="canonical" href="https://www.burnchronic.xyz/ape" />
-<meta property="og:title" content="🦍 $CHRONIC Ape Kit" />
-<meta property="og:description" content="One-tap buy Blinks + ready-to-post raids. Spread $CHRONIC 🔥" />
+<meta property="og:title" content=" $CHRONIC Ape Kit" />
+<meta property="og:description" content="One-tap buy Blinks + ready-to-post raids. Spread $CHRONIC " />
 <meta property="og:image" content="https://www.burnchronic.xyz/assets/og-chronic.jpg" />
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=4" />
@@ -45,36 +45,36 @@ h1{font-family:var(--fh);font-size:clamp(30px,9vw,48px);text-align:center;color:
 <body>
 <div class="bar">
   <a class="brand" href="/"><img src="/assets/logo-chronic.png" alt="$CHRONIC"/>APE KIT</a>
-  <a class="nav" href="/terminal">🖥️ terminal ›</a>
+  <a class="nav" href="/terminal"> terminal ›</a>
 </div>
 <div class="wrap">
-  <h1>🦍 APE KIT</h1>
-  <div class="sub">spread it · bring the apes · feed the fire 🔥</div>
+  <h1> APE KIT</h1>
+  <div class="sub">spread it · bring the apes · feed the fire </div>
 
   <div class="card">
     <div class="lab">⚡ One-tap buy Blink</div>
     <div class="desc">Post this link on X — on Blink-enabled clients it unfurls into a <b>buy $CHRONIC</b> card people can ape from <b>inside the tweet</b>. No leaving X, no site needed.</div>
     <div class="field"><code id="blink"></code></div>
-    <div class="row"><button class="btn g" id="copyBlink">📋 copy link</button><a class="btn gold" id="openBlink" target="_blank" rel="noopener">↗ preview it</a></div>
+    <div class="row"><button class="btn g" id="copyBlink"> copy link</button><a class="btn gold" id="openBlink" target="_blank" rel="noopener">↗ preview it</a></div>
   </div>
 
   <div class="card">
-    <div class="lab">🐦 Ready-to-post raids</div>
-    <div class="desc">Tap "Tweet" — it opens X with the post + the buy Blink attached. Spam responsibly. 💀</div>
+    <div class="lab"> Ready-to-post raids</div>
+    <div class="desc">Tap "Tweet" — it opens X with the post + the buy Blink attached. Spam responsibly. </div>
     <div id="tweets"></div>
   </div>
 
   <div class="card">
-    <div class="lab">📎 Quick assets</div>
+    <div class="lab"> Quick assets</div>
     <div class="field"><code id="ca">J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump</code><button class="btn x" id="copyCa">copy CA</button></div>
     <div class="quick">
-      <a href="/buy">🪙 Buy page</a>
-      <a href="/terminal?ca=J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump">🖥️ Terminal</a>
-      <a href="https://www.geckoterminal.com/solana/tokens/J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump" target="_blank" rel="nofollow noopener">📊 Chart</a>
+      <a href="/buy"> Buy page</a>
+      <a href="/terminal?ca=J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump"> Terminal</a>
+      <a href="https://www.geckoterminal.com/solana/tokens/J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump" target="_blank" rel="nofollow noopener"> Chart</a>
     </div>
   </div>
 
-  <div class="foot">🔥 <a href="/burn">burn</a> · 🌱 <a href="/grow">grow</a> · 🚀 <a href="/launch">launch</a> · <a href="/">home</a> · 📧 <a href="mailto:team@burnchronic.xyz">contact</a></div>
+  <div class="foot"> <a href="/burn">burn</a> ·  <a href="/grow">grow</a> ·  <a href="/launch">launch</a> · <a href="/">home</a> ·  <a href="mailto:team@burnchronic.xyz">contact</a></div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
@@ -89,13 +89,13 @@ function copy(txt,msg){try{navigator.clipboard.writeText(txt);}catch(e){}toast(m
 
 $('blink').textContent=BLINK;
 $('openBlink').href=BLINK;
-$('copyBlink').onclick=function(){copy(BLINK,'blink link copied 🦍');};
+$('copyBlink').onclick=function(){copy(BLINK,'blink link copied ');};
 $('copyCa').onclick=function(){copy($('ca').textContent,'CA copied');};
 
 var TWEETS=[
-  "aped $CHRONIC 🦍🔥\n\nactual product (terminal + launchpad + on-chain auto buy-&-burn) at a microcap. supply only goes down 💀\n\none-tap buy 👇",
-  "$CHRONIC is different — a buy-&-burn bot runs 24/7 on-chain, every trade fee torches supply forever 🔥\n\nstill tiny mc. you're not late, you're early 💀\n\nape in 👇",
-  "🧻 paperhands get roasted, 🔥 supply only burns, 🖥️ full trench terminal live\n\n$CHRONIC. send it. 👇"
+  "aped $CHRONIC \n\nactual product (terminal + launchpad + on-chain auto buy-&-burn) at a microcap. supply only goes down \n\none-tap buy ",
+  "$CHRONIC is different — a buy-&-burn bot runs 24/7 on-chain, every trade fee torches supply forever \n\nstill tiny mc. you're not late, you're early \n\nape in ",
+  " paperhands get roasted,  supply only burns,  full trench terminal live\n\n$CHRONIC. send it. "
 ];
 var tw=$('tweets');
 TWEETS.forEach(function(t){
@@ -103,8 +103,8 @@ TWEETS.forEach(function(t){
   var p=document.createElement('p');p.textContent=t;d.appendChild(p);
   var row=document.createElement('div');row.className='row';
   var url='https://twitter.com/intent/tweet?text='+encodeURIComponent(t)+'&url='+encodeURIComponent(BLINK);
-  var a=document.createElement('a');a.className='btn x';a.target='_blank';a.rel='noopener';a.href=url;a.textContent='🐦 Tweet this';
-  var c=document.createElement('button');c.className='btn g';c.textContent='📋 copy';c.onclick=function(){copy(t+'\n\n'+BLINK,'tweet copied');};
+  var a=document.createElement('a');a.className='btn x';a.target='_blank';a.rel='noopener';a.href=url;a.textContent=' Tweet this';
+  var c=document.createElement('button');c.className='btn g';c.textContent=' copy';c.onclick=function(){copy(t+'\n\n'+BLINK,'tweet copied');};
   row.appendChild(a);row.appendChild(c);d.appendChild(row);tw.appendChild(d);
 });
 </script>

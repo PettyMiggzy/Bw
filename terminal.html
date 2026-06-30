@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>🖥️ Chronic Trench Terminal</title>
+<title> Chronic Trench Terminal</title>
 <meta name="description" content="The $CHRONIC trench terminal — paste any Solana CA, check the bundle, see the chart, buy & sell. One stop for the trenches." />
 <link rel="canonical" href="https://www.burnchronic.xyz/terminal" />
-<meta property="og:title" content="🖥️ Chronic Trench Terminal" />
-<meta property="og:description" content="Bundle-check, chart, buy & sell any Solana token. Fees feed $CHRONIC 🔥" />
+<meta property="og:title" content=" Chronic Trench Terminal" />
+<meta property="og:description" content="Bundle-check, chart, buy & sell any Solana token. Fees feed $CHRONIC " />
 <meta property="og:image" content="https://www.burnchronic.xyz/assets/og-chronic.jpg" />
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=4" />
@@ -198,15 +198,15 @@ h1{font-family:var(--fh);font-size:clamp(26px,8vw,42px);text-align:center;color:
 </div>
 <div class="wrap">
   <h1>TRENCH TERMINAL</h1>
-  <div class="sub">scan · chart · buy · sell — fees feed the fire 🔥</div>
-  <a class="holderperk" href="/buy">🪙 hold <b>$CHRONIC</b> → <b>50% off</b> trade fees · <b>1M+ = trade FREE</b> · get $CHRONIC ›</a>
+  <div class="sub">scan · chart · buy · sell — fees feed the fire </div>
+  <a class="holderperk" href="/buy"> hold <b>$CHRONIC</b> → <b>50% off</b> trade fees · <b>1M+ = trade FREE</b> · get $CHRONIC ›</a>
   <div class="search">
     <input id="ca" placeholder="paste any Solana token CA" spellcheck="false" />
     <button id="go">LOAD</button>
   </div>
   <div id="out"></div>
-  <a class="padcta" href="/launch">🚀 Launch your own coin — keep 50% of trade fees forever ›</a>
-  <div class="foot">🔥 <a href="/burn">burn</a> · 🌱 <a href="/grow">grow</a> · 🚀 <a href="/launch">launch</a> · 🪙 <a href="/buy">buy $CHRONIC</a> · 🛒 <a href="/shop">shop</a> · 🦍 <a href="/playbook">raid kit</a> · <a href="/">home</a> · 📧 <a href="mailto:team@burnchronic.xyz">contact</a></div>
+  <a class="padcta" href="/launch"> Launch your own coin — keep 50% of trade fees forever ›</a>
+  <div class="foot"> <a href="/burn">burn</a> ·  <a href="/grow">grow</a> ·  <a href="/launch">launch</a> ·  <a href="/buy">buy $CHRONIC</a> ·  <a href="/shop">shop</a> ·  <a href="/playbook">raid kit</a> · <a href="/">home</a> ·  <a href="mailto:team@burnchronic.xyz">contact</a></div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
@@ -250,7 +250,7 @@ function avatar(d){ var raw=imgSrc(d.img), ph='<div class="ph">'+initials(d.symb
 window.termImgErr=function(img){ var alt=img.getAttribute('data-alt'); if(alt&&img.src!==alt){ img.setAttribute('data-alt',''); img.src=alt; return; } img.style.display='none'; var ph=img.nextElementSibling; if(ph)ph.style.display='flex'; };
 function coinCard(d){
   var pad=FEEDPAD[d.ca], grad=isGrad(d), curve=isCurve(d), ch=(d.ch||0);
-  var status=grad?'<span class="cstat grad">🎓 LIVE</span>':curve?'<span class="cstat curve">🔥 '+gradPct(d)+'%</span>':'<span class="cstat new">NEW</span>';
+  var status=grad?'<span class="cstat grad"> LIVE</span>':curve?'<span class="cstat curve"> '+gradPct(d)+'%</span>':'<span class="cstat new">NEW</span>';
   var lp=grad?'<span class="ab ok" title="LP burned on graduation">LP✓</span>':'';
   return '<div class="coin" data-ca="'+d.ca+'">'
     +'<div class="c-name">'+avatar(d)+'<div class="ci"><div class="cn">'+esc(d.symbol||'?')+(pad?' <span class="badge pad">PAD</span>':'')+'</div><div class="cn-sub">'+ageStr(d.created)+' old</div></div></div>'
@@ -266,7 +266,7 @@ function coinCard(d){
 var FEEDCOINS=null, FEEDPAD={}, FEEDFILTER='trending', FSORT='', FOPEN=false;
 var FILTERS={minMc:0,minVol:0,minLiq:0,maxAge:0};
 async function showFeed(){
-  $('out').innerHTML='<div class="spin">loading the trenches… 🔥</div>';
+  $('out').innerHTML='<div class="spin">loading the trenches… </div>';
   var cas=[], pad={}, nmMeta={};
   try{ var pf=await (await fetch('/api/launch',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'feed'})})).json();
     (pf.launches||[]).forEach(function(l){ if(cas.indexOf(l.mint)<0){cas.push(l.mint);pad[l.mint]=1;} }); }catch(e){}
@@ -347,7 +347,7 @@ function auditCoins(){
 function renderFeed(f){ FEEDFILTER=f; if(!FEEDCOINS){ showFeed(); return; }
   var skey=FSORT||defSort(f);
   var nActive=(FILTERS.minMc?1:0)+(FILTERS.minVol?1:0)+(FILTERS.minLiq?1:0)+(FILTERS.maxAge?1:0);
-  var cats=[['trending','🔥 Trending'],['new','🚀 New'],['gainers','📈 Gainers'],['volume','💧 Volume'],['graduating','⏳ Graduating'],['graduated','🎓 Graduated']];
+  var cats=[['trending',' Trending'],['new',' New'],['gainers',' Gainers'],['volume',' Volume'],['graduating','⏳ Graduating'],['graduated',' Graduated']];
   var tabs='<div class="ftabs">'+cats.map(function(c){return '<div class="ftab'+(c[0]===f?' on':'')+'" data-f="'+c[0]+'">'+c[1]+'</div>';}).join('')+'</div>';
   var sorts=[['vol','Volume'],['mc','Market cap'],['age','Newest'],['change','24h %'],['grad','Closest to grad']];
   var bar='<div class="fbar"><div class="fbtn'+(nActive?' on':'')+'" id="fToggle">⚙ Filters'+(nActive?' <b>'+nActive+'</b>':'')+'</div>'
@@ -389,11 +389,11 @@ async function load(){ var ca=$('ca').value.trim(); if(ca.length<32){ toast('pas
 function render(){
   var t=token;
   var soc='';
-  (t.websites||[]).forEach(function(w){ if(w&&w.url) soc+='<a class="soc" href="'+esc(w.url)+'" target="_blank" rel="noopener">🌐 '+esc(w.label||'site')+'</a>'; });
-  (t.socials||[]).forEach(function(s){ if(!s||!s.url)return; var ic=s.type==='twitter'?'𝕏':(s.type==='telegram'?'✈️':(s.type==='discord'?'💬':'🔗')); soc+='<a class="soc" href="'+esc(s.url)+'" target="_blank" rel="noopener">'+ic+' '+esc(s.type||'link')+'</a>'; });
+  (t.websites||[]).forEach(function(w){ if(w&&w.url) soc+='<a class="soc" href="'+esc(w.url)+'" target="_blank" rel="noopener"> '+esc(w.label||'site')+'</a>'; });
+  (t.socials||[]).forEach(function(s){ if(!s||!s.url)return; var ic=s.type==='twitter'?'𝕏':(s.type==='telegram'?'✈':(s.type==='discord'?'':'')); soc+='<a class="soc" href="'+esc(s.url)+'" target="_blank" rel="noopener">'+ic+' '+esc(s.type||'link')+'</a>'; });
   var html='<div class="detail"><div class="backf" id="backFeed">‹ all coins</div><div class="card thead-card"><div class="thead">'
     +(imgSrc(t.img)?'<img src="'+esc(proxyImg(imgSrc(t.img),96))+'" alt="" data-alt="'+esc(imgSrc(t.img))+'" onerror="termImgErr(this)"/><div class="ph" style="display:none;width:46px;height:46px;border-radius:12px;background:var(--green-deep);align-items:center;justify-content:center;font-family:var(--fd);color:var(--green)">'+initials(t.symbol)+'</div>':'<div style="width:46px;height:46px;border-radius:12px;background:var(--green-deep);display:flex;align-items:center;justify-content:center;font-family:var(--fd);color:var(--green)">'+initials(t.symbol)+'</div>')
-    +'<div><div class="nm">'+esc(t.name)+'</div><div class="sy">$'+esc(t.symbol)+' · '+sh(t.ca)+' <span class="dexbadge" id="dexPaid"></span>'+(t.boosts>0?' <span class="dexbadge boost">🚀 x'+t.boosts+'</span>':'')+'</div></div>'
+    +'<div><div class="nm">'+esc(t.name)+'</div><div class="sy">$'+esc(t.symbol)+' · '+sh(t.ca)+' <span class="dexbadge" id="dexPaid"></span>'+(t.boosts>0?' <span class="dexbadge boost"> x'+t.boosts+'</span>':'')+'</div></div>'
     +'<div class="px"><b>$'+(t.price?t.price.toPrecision(4):'—')+'</b><div class="ch '+(t.ch>=0?'up':'down')+'">'+(t.ch>=0?'+':'')+t.ch.toFixed(1)+'% 24h</div></div></div>'
     +'<div class="tstats"><div class="s"><b>$'+fmt(t.mc)+'</b><i>mcap</i></div><div class="s"><b>$'+fmt(t.liq)+'</b><i>liquidity</i></div><div class="s"><b>$'+fmt(t.vol)+'</b><i>vol 24h</i></div></div>'
     +'<div id="holdersLine"></div>'
@@ -405,16 +405,16 @@ function render(){
   html+='</div><div class="dg-side">';
   html+='<div class="card" id="tradeCard"></div>';
   html+='<div id="curveBar"></div>';
-  html+='<div class="card seccard"><div class="sech">🛡️ Data &amp; Security</div>'
+  html+='<div class="card seccard"><div class="sech"> Data &amp; Security</div>'
     +'<div id="secAuth"><div class="secrow"><span>Mint Authority</span><b class="muted">…</b></div><div class="secrow"><span>Freeze Authority</span><b class="muted">…</b></div></div>'
     +'<div class="secrow"><span>Liquidity</span><b>$'+fmt(t.liq)+'</b></div>'
     +'<div class="secrow"><span>24h Volume</span><b>$'+fmt(t.vol)+'</b></div>'
     +'<div class="secrow"><span>24h Change</span><b class="'+(t.ch>=0?'up':'down')+'">'+(t.ch>=0?'+':'')+t.ch.toFixed(1)+'%</b></div>'
-    +(t.boosts>0?'<div class="secrow"><span>Boosts</span><b>🚀 x'+t.boosts+'</b></div>':'')
+    +(t.boosts>0?'<div class="secrow"><span>Boosts</span><b> x'+t.boosts+'</b></div>':'')
     +'</div>';
   html+='</div></div>';
   // bundle (full width)
-  html+='<div class="card"><div class="h2">🔍 Bundle Check<button class="scanbtn" id="scanBtn">SCAN</button></div><div id="bundleOut"><div class="muted">tap SCAN to check holders, snipers &amp; funding clusters</div></div></div>';
+  html+='<div class="card"><div class="h2"> Bundle Check<button class="scanbtn" id="scanBtn">SCAN</button></div><div id="bundleOut"><div class="muted">tap SCAN to check holders, snipers &amp; funding clusters</div></div></div>';
   html+='</div>';
   $('out').innerHTML=html;
   renderTrade(); loadCurve(); loadDexPaid(); loadHolders(); loadSecurity();
@@ -424,8 +424,8 @@ function render(){
 async function loadCurve(){ var el=$('curveBar'); if(!el)return;
   try{ var c=await (await fetch('/api/curve?ca='+encodeURIComponent(token.ca))).json();
     if(!c.onCurve){ el.innerHTML=''; return; }
-    if(c.complete){ el.innerHTML='<div class="cbar"><div class="grad">🎓 graduated — trading on the open market</div></div>'; return; }
-    el.innerHTML='<div class="cbar"><div class="cbarlbl">🔥 bonding curve <b>'+c.progress+'%</b>'+(c.solRaised?' · '+c.solRaised+' SOL raised':'')+'</div><div class="ctrack"><i style="width:'+c.progress+'%"></i></div></div>';
+    if(c.complete){ el.innerHTML='<div class="cbar"><div class="grad"> graduated — trading on the open market</div></div>'; return; }
+    el.innerHTML='<div class="cbar"><div class="cbarlbl"> bonding curve <b>'+c.progress+'%</b>'+(c.solRaised?' · '+c.solRaised+' SOL raised':'')+'</div><div class="ctrack"><i style="width:'+c.progress+'%"></i></div></div>';
   }catch(e){ el.innerHTML=''; } }
 
 /* quick top-10 holder concentration (curve/LP excluded) — at-a-glance rug check */
@@ -435,8 +435,8 @@ async function loadHolders(){ var el=$('holdersLine'); if(!el)return;
     var t10=h.top10Pct, lv=t10<20?'good':(t10<35?'mid':'bad');
     el.className='hline '+lv;
     var bigStr=(h.largestPct||0).toFixed(1)+'%'+(h.devIsBiggest?' <span style="color:var(--green)">(dev ✓)</span>':'');
-    var devStr=(h.devPct>0&&!h.devIsBiggest)?' · 🛠️ dev '+h.devPct.toFixed(1)+'%':'';
-    el.innerHTML='👥 top 10 hold <b>'+t10.toFixed(1)+'%</b> · biggest '+bigStr+devStr+(h.lpExcluded?' <span style="color:var(--dim)">· curve/LP excluded</span>':'');
+    var devStr=(h.devPct>0&&!h.devIsBiggest)?' ·  dev '+h.devPct.toFixed(1)+'%':'';
+    el.innerHTML=' top 10 hold <b>'+t10.toFixed(1)+'%</b> · biggest '+bigStr+devStr+(h.lpExcluded?' <span style="color:var(--dim)">· curve/LP excluded</span>':'');
   }catch(e){ el.innerHTML=''; } }
 
 /* DexScreener "paid" status — did the team pay to verify/enhance their DS page (orders API) */
@@ -445,7 +445,7 @@ async function loadDexPaid(){ var el=$('dexPaid'); if(!el)return; el.textContent
     var arr=(o&&Array.isArray(o.orders))?o.orders:(Array.isArray(o)?o:[]);
     var paid=arr.some(function(x){return x.status==='approved';});
     var pending=arr.some(function(x){return x.status==='processing'||x.status==='on-hold';});
-    if(paid){ el.className='dexbadge paid'; el.textContent='💰 DEX PAID'; }
+    if(paid){ el.className='dexbadge paid'; el.textContent=' DEX PAID'; }
     else if(pending){ el.className='dexbadge pend'; el.textContent='⏳ DEX pending'; }
     else { el.className='dexbadge unpaid'; el.textContent='○ DEX unpaid'; }
   }catch(e){ el.textContent=''; } }
@@ -469,7 +469,7 @@ function renderTrade(){
   html+='<div class="amts">'+presets.map(function(a){return '<div class="amt'+(a===amount?' on':'')+'" data-a="'+a+'">'+(side==='buy'?a+' ◎':a+'%')+'</div>';}).join('')+'</div>';
   if(side==='buy'){ html+='<div class="custom"><input id="amtIn" type="number" step="0.01" placeholder="SOL amount" /><span>SOL</span></div>'; }
   else { html+='<div class="custom" style="justify-content:center"><span style="color:var(--dim)">bag: '+fmt(tokBal)+' $'+esc(token.symbol)+'</span></div>'; }
-  html+='<button class="act '+side+'" id="actBtn">'+(wallet?(side==='buy'?'🪙 Buy $'+esc(token.symbol):'🔻 Sell $'+esc(token.symbol)):'Connect &amp; '+(side==='buy'?'Buy':'Sell'))+'</button>';
+  html+='<button class="act '+side+'" id="actBtn">'+(wallet?(side==='buy'?' Buy $'+esc(token.symbol):' Sell $'+esc(token.symbol)):'Connect &amp; '+(side==='buy'?'Buy':'Sell'))+'</button>';
   c.innerHTML=html;
   c.querySelectorAll('.tab').forEach(function(t){t.addEventListener('click',function(){side=this.dataset.s;amount=side==='buy'?0.5:50;renderTrade();});});
   c.querySelectorAll('.amt').forEach(function(b){b.addEventListener('click',function(){amount=Number(this.dataset.a);var ai=$('amtIn');if(ai)ai.value='';renderTrade();});});
@@ -494,23 +494,23 @@ async function trade(){
     if(p.signAndSendTransaction){ var s=await p.signAndSendTransaction(tx); sig=s.signature||s; } else { var sg=await p.signTransaction(tx); sig=await conn(w3).sendRawTransaction(sg.serialize()); }
     btn.textContent='confirming… ⛓';
     for(var i=0;i<28;i++){ try{ var st=await conn(w3).getSignatureStatuses([sig]); var v=st&&st.value&&st.value[0]; if(v&&(v.confirmationStatus==='confirmed'||v.confirmationStatus==='finalized')){ if(v.err)throw new Error('failed'); break; } }catch(e){ if(/failed/.test(e.message))throw e; } await new Promise(function(r){setTimeout(r,1500);}); }
-    toast((side==='buy'?'🪙 bought ':'🔻 sold ')+'$'+token.symbol+' ✓'); btn.disabled=false; btn.textContent=label;
+    toast((side==='buy'?' bought ':' sold ')+'$'+token.symbol+' ✓'); btn.disabled=false; btn.textContent=label;
     setTimeout(function(){if(wallet)loadBalance();},2500);
   }catch(e){ toast(/reject/i.test((e&&e.message)||'')?'cancelled':'failed',true); btn.disabled=false; btn.textContent=label; }
 }
 
 /* bundle scan (inline) */
-async function scan(){ var o=$('bundleOut'); o.innerHTML='<div class="spin">🔍 tracing funding &amp; holders… (~10–20s)</div>';
+async function scan(){ var o=$('bundleOut'); o.innerHTML='<div class="spin"> tracing funding &amp; holders… (~10–20s)</div>';
   try{ var d=await (await fetch('/api/bundle?ca='+encodeURIComponent(token.ca))).json();
     if(d.error){ o.innerHTML='<div class="muted">'+esc(d.error)+'</div>'; return; }
     var html='';
-    if(d.score){ var lv=d.score.level; html+='<div class="scorebox '+lv+'"><b>'+d.score.value+'</b><i>'+(lv==='high'?'🚩 high / bundled':lv==='med'?'⚠️ some signals':'✅ looks ok-ish')+'</i></div>';
-      (d.score.flags||[]).forEach(function(f){html+='<div class="flag">🚩 '+esc(f)+'</div>';}); }
+    if(d.score){ var lv=d.score.level; html+='<div class="scorebox '+lv+'"><b>'+d.score.value+'</b><i>'+(lv==='high'?' high / bundled':lv==='med'?'⚠ some signals':'✅ looks ok-ish')+'</i></div>';
+      (d.score.flags||[]).forEach(function(f){html+='<div class="flag"> '+esc(f)+'</div>';}); }
     if(d.holders){ html+='<div style="font-size:11px;color:var(--dim);margin-top:10px">top 10: <b style="color:var(--gold)">'+d.holders.top10Pct+'%</b> · biggest: '+d.holders.largestPct+'%</div>'; }
     if(d.launch){ html+='<div style="font-size:11px;color:var(--dim);margin-top:4px">sniped at launch: <b style="color:'+(d.launch.sniperPct>=20?'var(--ember)':'var(--gold)')+'">'+d.launch.sniperPct+'%</b> ('+d.launch.sniperCount+' wallets)</div>'; }
-    if(d.funding&&d.funding.clusters&&d.funding.clusters.length){ html+='<div style="font-size:11px;color:var(--ember);margin-top:6px">🚩 '+d.funding.clusters[0].size+' wallets share one funder ('+sh(d.funding.clusters[0].funder)+')</div>'; }
+    if(d.funding&&d.funding.clusters&&d.funding.clusters.length){ html+='<div style="font-size:11px;color:var(--ember);margin-top:6px"> '+d.funding.clusters[0].size+' wallets share one funder ('+sh(d.funding.clusters[0].funder)+')</div>'; }
     else if(d.funding){ html+='<div style="font-size:11px;color:var(--green);margin-top:6px">✅ no shared-funder bundle in top wallets</div>'; }
-    html+='<div style="font-size:10px;color:var(--dim);margin-top:10px;text-align:center"><a style="color:var(--green);text-decoration:none" href="/bundle?ca='+token.ca+'" target="_blank">full report ›</a> · signals only, DYOR 💀</div>';
+    html+='<div style="font-size:10px;color:var(--dim);margin-top:10px;text-align:center"><a style="color:var(--green);text-decoration:none" href="/bundle?ca='+token.ca+'" target="_blank">full report ›</a> · signals only, DYOR </div>';
     o.innerHTML=html;
   }catch(e){ o.innerHTML='<div class="muted">scan failed</div>'; }
 }

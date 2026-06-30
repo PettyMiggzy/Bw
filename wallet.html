@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-<title>🌿 The Seedless Wallet — $CHRONIC</title>
+<title> The Seedless Wallet — $CHRONIC</title>
 <meta name="description" content="No seed phrase. No seeds. Just like the good stuff. Sign in with email, get a Solana wallet in one tap, and buy $CHRONIC with a card." />
 <link rel="canonical" href="https://www.burnchronic.xyz/wallet" />
-<meta property="og:title" content="🌿 The Seedless Wallet — $CHRONIC" />
-<meta property="og:description" content="No seed phrase, no seeds — just like the good stuff. Email in → wallet out → buy with a card 🌿💀" />
+<meta property="og:title" content=" The Seedless Wallet — $CHRONIC" />
+<meta property="og:description" content="No seed phrase, no seeds — just like the good stuff. Email in → wallet out → buy with a card " />
 <meta property="og:image" content="https://www.burnchronic.xyz/assets/og-chronic.jpg" />
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=4" />
@@ -54,13 +54,13 @@ h1{font-family:var(--fh);font-size:clamp(34px,12vw,58px);line-height:.9;text-ali
 <body>
 <div class="bar">
   <a class="brand" href="/"><img src="/assets/logo-chronic.png" alt="$CHRONIC"/>SEEDLESS</a>
-  <a class="nav" href="/buy">🪙 buy ›</a>
+  <a class="nav" href="/buy"> buy ›</a>
 </div>
 <div class="wrap">
   <h1>SEEDLESS</h1>
-  <div class="sub">no seed phrase, no seeds 🌿 · <b>email in, wallet out</b></div>
+  <div class="sub">no seed phrase, no seeds  · <b>email in, wallet out</b></div>
   <div id="app"><div class="card"><div class="spin">loading…</div></div></div>
-  <div class="note">non-custodial — the keys live with you, secured by Privy.<br/>then go <a href="/buy">🪙 buy</a> · <a href="/burn">🔥 burn</a> · <a href="/grow">🌱 grow</a></div>
+  <div class="note">non-custodial — the keys live with you, secured by Privy.<br/>then go <a href="/buy"> buy</a> · <a href="/burn"> burn</a> · <a href="/grow"> grow</a></div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
@@ -100,9 +100,9 @@ function Inner() {
     return html`<div class="card">
       <div class="lab">▸ Get your seedless wallet</div>
       <p style=${{color:'var(--dim)',fontSize:'12px',lineHeight:1.7,marginBottom:'14px'}}>
-        No seed phrase. No seeds. Just like the good stuff. 🌿 Sign in with your email and we mint you a real Solana wallet — nothing to write down, no extension. Buy $CHRONIC with a card right after.
+        No seed phrase. No seeds. Just like the good stuff.  Sign in with your email and we mint you a real Solana wallet — nothing to write down, no extension. Buy $CHRONIC with a card right after.
       </p>
-      <button class="btn go" onClick=${login}>✉️ Sign in with email</button>
+      <button class="btn go" onClick=${login}>✉ Sign in with email</button>
     </div>`;
   }
 
@@ -111,27 +111,27 @@ function Inner() {
     try {
       const r = await fetch('/api/moonpay?intent=buy&address=' + encodeURIComponent(address));
       const j = await r.json();
-      if (j.error === 'ramp_unconfigured') { toast('💳 card buy unlocks soon', true); return; }
+      if (j.error === 'ramp_unconfigured') { toast(' card buy unlocks soon', true); return; }
       if (j.error || !j.url) { toast(j.error || 'card checkout unavailable', true); return; }
       window.open(j.url, '_blank', 'noopener');
-      toast('💳 finish in MoonPay — SOL lands in this wallet');
+      toast(' finish in MoonPay — SOL lands in this wallet');
     } catch (_) { toast('card checkout failed', true); }
   }
   function copy() {
     if (!address) return;
     navigator.clipboard && navigator.clipboard.writeText(address);
-    toast('📋 address copied');
+    toast(' address copied');
   }
 
   return html`<div class="card">
     <div class="lab">▸ Your Solana wallet</div>
     ${address
-      ? html`<div class="addr" onClick=${copy}><div><code>${short(address)}</code><br/><small>tap to copy</small></div><span>📋</span></div>`
+      ? html`<div class="addr" onClick=${copy}><div><code>${short(address)}</code><br/><small>tap to copy</small></div><span></span></div>`
       : html`<div class="spin">creating your wallet…</div>`}
-    <button class="btn go" onClick=${card}>💳 Buy $CHRONIC with card</button>
+    <button class="btn go" onClick=${card}> Buy $CHRONIC with card</button>
     <div class="row" style=${{marginTop:'10px'}}>
-      <a class="btn ghost" href="/buy">🪙 Buy w/ SOL</a>
-      <a class="btn ember" href="/sell">🔻 Sell</a>
+      <a class="btn ghost" href="/buy"> Buy w/ SOL</a>
+      <a class="btn ember" href="/sell"> Sell</a>
     </div>
     <div class="meta">your card buy delivers SOL here, then swaps to $CHRONIC via Jupiter</div>
     <span class="logout" onClick=${logout}>log out</span>
@@ -141,9 +141,9 @@ function Inner() {
 function App() {
   if (PRIVY_APP_ID === 'PRIVY_APP_ID_HERE') {
     return html`<div class="card"><div class="warn">
-      👛 The seedless wallet needs a Privy App ID.<br/>
+       The seedless wallet needs a Privy App ID.<br/>
       Set <b>PRIVY_APP_ID</b> (Privy dashboard → App settings) to switch this on.<br/>
-      Meanwhile use <a href="/buy" style=${{color:'var(--green)'}}>🪙 Buy with a Solana wallet</a>.
+      Meanwhile use <a href="/buy" style=${{color:'var(--green)'}}> Buy with a Solana wallet</a>.
     </div></div>`;
   }
   return html`<${PrivyProvider} appId=${PRIVY_APP_ID} config=${{
