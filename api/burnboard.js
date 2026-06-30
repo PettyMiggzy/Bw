@@ -16,10 +16,19 @@ const G = require('./_grow.js');
 
 const CHRONIC = process.env.CHRONIC_MINT || 'J5vR9wAwQEx29KNwSnv5hUx9gDyNeRZZE9XDEQeBpump';
 
+// orig = original/launch supply (whole tokens). pump.fun tokens => 1e9. If orig is
+// omitted, we treat the current supply as the baseline (=> 0% burned), so a coin
+// that doesn't burn honestly shows 0 rather than a guessed number.
 const DEFAULT_TOKENS = [
   { mint: CHRONIC, name: 'Chronic', symbol: 'CHRONIC', orig: 1e9, self: true },
   { mint: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263', name: 'Bonk', symbol: 'BONK', orig: 100e12 },
-  // add rivals here — pump.fun tokens: just { mint, name, symbol } (orig defaults to 1e9)
+  { mint: '2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump', name: 'Peanut the Squirrel', symbol: 'PNUT', orig: 1e9 },
+  { mint: 'Df6yfrKC8kZE3KNkrHERKzAetSxbrWeniQfyJY4Jpump', name: 'Just a chill guy', symbol: 'CHILLGUY', orig: 1e9 },
+  { mint: '9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump', name: 'Fartcoin', symbol: 'FARTCOIN', orig: 1e9 },
+  { mint: 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm', name: 'dogwifhat', symbol: 'WIF' },
+  { mint: '7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr', name: 'Popcat', symbol: 'POPCAT' },
+  { mint: 'MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5', name: 'cat in a dogs world', symbol: 'MEW' },
+  { mint: 'ED5nyyWEzpPPiWimP8vYm7sD7TD3LAt3Q3gRTWHzPJBY', name: 'Moo Deng', symbol: 'MOODENG' },
 ];
 
 function tokenList() {
@@ -38,10 +47,10 @@ module.exports = async (req, res) => {
 
   const list = tokenList();
   const rows = await Promise.all(list.map(async (t) => {
-    const orig = Number(t.orig) || 1e9;
     let current = null;
     try { const s = await G.solRpc('getTokenSupply', [t.mint]); current = Number(s.value.uiAmount); } catch (_) {}
     if (!(current >= 0)) return { mint: t.mint, error: true };
+    const orig = (t.orig && Number(t.orig) > 0) ? Number(t.orig) : current; // no orig => baseline = current (0% burned)
     const burned = Math.max(0, orig - current);
     return {
       mint: t.mint, name: t.name, symbol: (t.symbol || '').toUpperCase(), self: !!t.self,
