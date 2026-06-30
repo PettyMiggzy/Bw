@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<title>🔥 Burn Board — where $CHRONIC stacks up</title>
+<meta name="description" content="The Solana burn leaderboard — tokens ranked by % of supply burned forever. Supply only goes down." />
+<link rel="canonical" href="https://www.burnchronic.xyz/burnboard" />
+<meta property="og:title" content="🔥 $CHRONIC Burn Board" />
+<meta property="og:description" content="Solana tokens ranked by % of supply burned forever. see where $CHRONIC stacks up 💀🔥" />
+<meta property="og:image" content="https://www.burnchronic.xyz/assets/og-chronic.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=4" />
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+:root{--void:#070a07;--panel:#101a12;--green:#52ff8f;--green-dim:#2bd96a;--green-deep:#0c3d22;--ember:#ff6a2b;--ember2:#ff3d1f;--gold:#f5cf57;--text:#e9ffe9;--dim:#84a78d;--line:rgba(82,255,143,.16);--fd:'Bungee',sans-serif;--fh:'Bungee Shade',sans-serif;--fm:'Space Mono',monospace;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--void);color:var(--text);font-family:var(--fm);min-height:100%;display:flex;flex-direction:column;
+ background-image:radial-gradient(120% 60% at 50% -10%,rgba(255,106,43,.18),transparent 60%),radial-gradient(80% 50% at 100% 18%,rgba(82,255,143,.1),transparent 55%);}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;background-image:linear-gradient(rgba(82,255,143,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(82,255,143,.045) 1px,transparent 1px);background-size:42px 42px;mask-image:radial-gradient(120% 80% at 50% 0,#000,transparent 75%)}
+.bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;backdrop-filter:blur(12px);background:linear-gradient(180deg,rgba(7,10,7,.92),rgba(7,10,7,.4));border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:9px;font-family:var(--fd);color:var(--gold);font-size:15px;text-decoration:none}
+.brand img{width:26px;height:26px;border-radius:7px}
+.bar a.nav{color:var(--dim);font-size:12px;text-decoration:none}
+.wrap{position:relative;z-index:2;flex:1;max-width:520px;width:100%;margin:0 auto;padding:24px 16px 60px}
+h1{font-family:var(--fh);font-size:clamp(34px,12vw,58px);line-height:.9;text-align:center;color:var(--ember);text-shadow:0 0 34px rgba(255,106,43,.5),4px 4px 0 var(--green-deep)}
+.sub{text-align:center;color:var(--dim);font-size:12px;letter-spacing:.07em;text-transform:uppercase;margin:8px 0 22px}
+.sub b{color:var(--gold)}
+.row{display:flex;align-items:center;gap:12px;background:linear-gradient(180deg,rgba(16,26,18,.9),rgba(10,15,11,.92));border:1px solid var(--line);border-radius:16px;padding:13px 15px;margin-bottom:10px;position:relative;overflow:hidden}
+.row.me{border-color:var(--green);box-shadow:0 0 24px rgba(82,255,143,.25)}
+.rank{font-family:var(--fd);font-size:18px;color:var(--dim);min-width:34px;text-align:center}
+.row.me .rank{color:var(--green)}
+.info{flex:1;min-width:0}
+.sym{font-family:var(--fd);font-size:15px;color:var(--text)}
+.row.me .sym{color:var(--green)}
+.nm{font-size:10px;color:var(--dim);margin-top:1px}
+.barwrap{height:7px;background:rgba(7,10,7,.6);border-radius:5px;margin-top:8px;overflow:hidden}
+.fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--ember2),var(--ember),var(--gold))}
+.row.me .fill{background:linear-gradient(90deg,var(--green-dim),var(--green))}
+.pct{text-align:right;min-width:88px}
+.pct .big{font-family:var(--fd);font-size:17px;color:var(--ember)}
+.row.me .pct .big{color:var(--green)}
+.pct .amt{font-size:9px;color:var(--dim);margin-top:2px}
+.tag{font-family:var(--fd);font-size:9px;color:#04140a;background:var(--green);border-radius:20px;padding:2px 7px;margin-left:6px}
+.foot{text-align:center;font-size:11px;color:var(--dim);margin-top:16px;line-height:1.7}
+.foot a{color:var(--ember);text-decoration:none}
+.load{text-align:center;color:var(--dim);font-size:12px;padding:40px 0}
+</style>
+</head>
+<body>
+<div class="bar">
+  <a class="brand" href="/"><img src="/assets/logo-chronic.png" alt="$CHRONIC"/>BURN BOARD</a>
+  <a class="nav" href="/burn">🔥 burn ›</a>
+</div>
+<div class="wrap">
+  <h1>BURN BOARD</h1>
+  <div class="sub">Solana's most-burned · <b>% of supply gone forever</b> · supply only goes down</div>
+  <div id="board"><div class="load">loading the fire… 🔥</div></div>
+  <div class="foot" id="foot">live on-chain · burn more, climb higher.<br/><a href="/burn">🔥 feed the fire</a> · <a href="/">home</a></div>
+</div>
+<script>
+var $=function(i){return document.getElementById(i);};
+function fmt(n){n=Math.floor(Number(n)||0);if(n>=1e12)return(n/1e12).toFixed(2)+'T';if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return(n/1e3).toFixed(0)+'K';return''+n;}
+var medals=['🥇','🥈','🥉'];
+(async function(){
+  try{
+    var j=await (await fetch('/api/burnboard')).json();
+    var t=(j&&j.tokens)||[];
+    if(!t.length){ $('board').innerHTML='<div class="load">no data — try again 🔥</div>'; return; }
+    var max=Math.max.apply(null,t.map(function(x){return x.burnedPct||0;}))||1;
+    var html='';
+    t.forEach(function(x){
+      var w=Math.max(3,Math.round((x.burnedPct/max)*100));
+      var rk=x.rank<=3?medals[x.rank-1]:('#'+x.rank);
+      html+='<div class="row'+(x.self?' me':'')+'">'
+        +'<div class="rank">'+rk+'</div>'
+        +'<div class="info"><div class="sym">$'+x.symbol+(x.self?'<span class="tag">US</span>':'')+'</div>'
+        +'<div class="nm">'+(x.name||'')+'</div>'
+        +'<div class="barwrap"><div class="fill" style="width:'+w+'%"></div></div></div>'
+        +'<div class="pct"><div class="big">'+(x.burnedPct||0).toFixed(2)+'%</div>'
+        +'<div class="amt">'+fmt(x.burned)+' burned</div></div></div>';
+    });
+    $('board').innerHTML=html;
+  }catch(e){ $('board').innerHTML='<div class="load">couldn’t load the board 🔥</div>'; }
+})();
+</script>
+</body>
+</html>
