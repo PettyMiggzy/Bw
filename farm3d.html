@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<title>$CHRONIC — 3D Grow Farm</title>
+<meta name="description" content="Plant, grow, water and harvest your own weed in a real 3D farm. The $CHRONIC grow, in 3D." />
+<link rel="canonical" href="https://www.burnchronic.xyz/farm3d" />
+<meta property="og:title" content="$CHRONIC — 3D Grow Farm" />
+<meta property="og:description" content="Plant it, water it, watch it grow, harvest the buds. A real 3D weed farm." />
+<meta property="og:image" content="https://www.burnchronic.xyz/assets/og-chronic.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=4" />
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+:root{--void:#060a07;--green:#52ff8f;--green-dim:#2bd96a;--gold:#f5cf57;--purple:#a85cff;--text:#e9ffe9;--dim:#8aa896;--line:rgba(82,255,143,.18);--fd:'Bungee',sans-serif;--fm:'Space Mono',monospace;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html,body{height:100%;overflow:hidden;background:var(--void);color:var(--text);font-family:var(--fm)}
+#c{position:fixed;inset:0;display:block}
+.hud{position:fixed;z-index:5;pointer-events:none}
+.top{top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 13px;background:linear-gradient(180deg,rgba(6,10,7,.85),transparent)}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--fd);color:var(--gold);font-size:14px;text-decoration:none;pointer-events:auto}
+.brand img{width:24px;height:24px;border-radius:6px}
+.stats{display:flex;gap:8px}
+.stat{background:rgba(10,16,11,.8);border:1px solid var(--line);border-radius:11px;padding:6px 11px;text-align:center;backdrop-filter:blur(6px)}
+.stat b{display:block;font-family:var(--fd);font-size:15px;color:var(--green);line-height:1}
+.stat i{font-style:normal;font-size:8px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+.seeds{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;gap:8px;justify-content:center;padding:12px 12px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(0deg,rgba(6,10,7,.9),transparent)}
+.seed{pointer-events:auto;flex:0 0 auto;min-width:76px;background:linear-gradient(180deg,rgba(16,26,18,.92),rgba(10,15,11,.95));border:1px solid var(--line);border-radius:13px;padding:9px 8px 7px;text-align:center;cursor:pointer;transition:.15s}
+.seed.on{border-color:var(--green);box-shadow:0 0 18px rgba(82,255,143,.3);transform:translateY(-3px)}
+.seed .d{width:26px;height:26px;border-radius:50%;margin:0 auto 5px;box-shadow:0 0 12px currentColor}
+.seed b{display:block;font-family:var(--fd);font-size:11px;color:var(--text)}
+.seed i{font-style:normal;font-size:8px;color:var(--dim)}
+.hint{position:fixed;left:50%;top:64px;transform:translateX(-50%);z-index:5;background:rgba(10,16,11,.82);border:1px solid var(--line);border-radius:30px;padding:7px 16px;font-size:11px;color:var(--dim);backdrop-filter:blur(6px);text-align:center;max-width:90vw;transition:opacity .4s}
+.hint b{color:var(--green)}
+.toast{position:fixed;left:50%;bottom:120px;transform:translateX(-50%) translateY(16px);z-index:9;opacity:0;background:var(--green);color:#04140a;font-family:var(--fd);font-size:13px;padding:10px 18px;border-radius:30px;transition:.25s;pointer-events:none;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.load{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:var(--void);font-family:var(--fd);color:var(--green);font-size:14px;letter-spacing:.1em}
+.load.gone{opacity:0;pointer-events:none;transition:.6s}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="load" id="load">GROWING THE FARM…</div>
+<div class="hud top">
+  <a class="brand" href="/grow"><img src="/assets/logo-chronic.png" alt=""/>3D FARM</a>
+  <div class="stats">
+    <div class="stat"><b id="buds">0</b><i>buds</i></div>
+    <div class="stat"><b id="xp">0</b><i>xp</i></div>
+  </div>
+</div>
+<div class="hint" id="hint">tap a <b>plot</b> to plant · tap a plant to <b>water</b> · drag to look</div>
+<div class="seeds" id="seeds"></div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import * as THREE from 'https://esm.sh/three@0.160.0';
+import { OrbitControls } from 'https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+
+const $=(i)=>document.getElementById(i);
+let _th; function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(_th);_th=setTimeout(()=>t.classList.remove('show'),1800);}
+
+// ---- strains (tiers) ----
+const STRAINS={
+  mids:  {nm:'Mids',  col:0x6e9a3a, bud:0x86c24a, xp:5,   grow:30, price:'cheap'},
+  loud:  {nm:'Loud',  col:0x33d06a, bud:0x52ff8f, xp:14,  grow:45, price:'mid'},
+  gas:   {nm:'Gas',   col:0xd07a14, bud:0xffc23b, xp:40,  grow:70, price:'fire'},
+  exotic:{nm:'Exotic',col:0x8a4ad0, bud:0xc06aff, xp:120, grow:100,price:'rare'},
+};
+let SEL='mids';
+let BUDS=0, XP=0;
+
+// ---- three setup ----
+const canvas=$('c');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x070d09);
+scene.fog=new THREE.Fog(0x070d09,16,40);
+
+const camera=new THREE.PerspectiveCamera(48,1,0.1,200);
+camera.position.set(0,9.5,12);
+
+const controls=new OrbitControls(camera,canvas);
+controls.target.set(0,1,0); controls.enableDamping=true; controls.dampingFactor=.08;
+controls.minDistance=7; controls.maxDistance=22; controls.maxPolarAngle=Math.PI*0.46; controls.enablePan=false;
+
+// lights — moody night + neon green
+scene.add(new THREE.HemisphereLight(0x335544,0x0a140c,0.55));
+const moon=new THREE.DirectionalLight(0xbfe9ff,0.8);
+moon.position.set(-8,14,6); moon.castShadow=true;
+moon.shadow.mapSize.set(1024,1024); moon.shadow.camera.left=-12;moon.shadow.camera.right=12;moon.shadow.camera.top=12;moon.shadow.camera.bottom=-12;
+scene.add(moon);
+const glow=new THREE.PointLight(0x52ff8f,0.9,30); glow.position.set(0,6,0); scene.add(glow);
+const glow2=new THREE.PointLight(0xa85cff,0.5,28); glow2.position.set(7,3,-5); scene.add(glow2);
+
+// ground
+const ground=new THREE.Mesh(new THREE.CircleGeometry(26,48),new THREE.MeshStandardMaterial({color:0x0c1610,roughness:1}));
+ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
+// neon grid
+const grid=new THREE.GridHelper(40,40,0x163a26,0x102418); grid.position.y=0.01; scene.add(grid);
+
+// ---- procedural cannabis plant ----
+function leafletGeo(){
+  const s=new THREE.Shape();
+  s.moveTo(0,0);
+  s.bezierCurveTo(0.05,0.05,0.07,0.18,0.045,0.34);
+  s.bezierCurveTo(0.035,0.42,0.012,0.46,0,0.5);
+  s.bezierCurveTo(-0.012,0.46,-0.035,0.42,-0.045,0.34);
+  s.bezierCurveTo(-0.07,0.18,-0.05,0.05,0,0);
+  return new THREE.ShapeGeometry(s,8);
+}
+const LEAFLET=leafletGeo();
+function fanLeaf(color){
+  const g=new THREE.Group();
+  const mat=new THREE.MeshStandardMaterial({color,roughness:.7,side:THREE.DoubleSide});
+  const N=7;
+  for(let i=0;i<N;i++){
+    const m=new THREE.Mesh(LEAFLET,mat);
+    const k=i-(N-1)/2;
+    m.rotation.z=k*0.42;
+    const sc=1-Math.abs(k)*0.16;
+    m.scale.set(sc,sc*(1+Math.abs(k)*0.05),1);
+    m.castShadow=true;
+    g.add(m);
+  }
+  return g;
+}
+function makePlant(strain){
+  const S=STRAINS[strain];
+  const root=new THREE.Group();
+  // soil mound
+  const mound=new THREE.Mesh(new THREE.SphereGeometry(0.42,16,12,0,Math.PI*2,0,Math.PI/2),
+    new THREE.MeshStandardMaterial({color:0x2a1c10,roughness:1}));
+  mound.scale.y=0.4; mound.castShadow=true; root.add(mound);
+
+  const plant=new THREE.Group(); plant.position.y=0.05; root.add(plant);
+  const stemMat=new THREE.MeshStandardMaterial({color:0x3f6a2a,roughness:.8});
+  const stem=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.07,1,7),stemMat);
+  stem.castShadow=true; plant.add(stem);
+
+  // leaf nodes up the stem
+  const nodes=[];
+  const NODES=5;
+  for(let i=0;i<NODES;i++){
+    const h=(i+1)/(NODES+0.5);
+    for(let s=0;s<2;s++){
+      const leaf=fanLeaf(S.col);
+      leaf.position.y=h;
+      leaf.rotation.y=(i*1.1)+(s*Math.PI);
+      leaf.rotation.x=-0.5-h*0.4;
+      leaf.userData.base=leaf.rotation.x;
+      nodes.push(leaf); plant.add(leaf);
+    }
+  }
+  // top cola (buds)
+  const cola=new THREE.Group(); cola.position.y=1; plant.add(cola);
+  const budMat=new THREE.MeshStandardMaterial({color:S.bud,emissive:new THREE.Color(S.bud),emissiveIntensity:0,roughness:.5});
+  for(let i=0;i<14;i++){
+    const b=new THREE.Mesh(new THREE.IcosahedronGeometry(0.07+Math.random()*0.05,0),budMat);
+    b.position.set((Math.random()-.5)*0.18,Math.random()*0.5,(Math.random()-.5)*0.18);
+    b.castShadow=true; cola.add(b);
+  }
+
+  function setGrowth(g){ // 0..1
+    g=Math.max(0,Math.min(1,g));
+    const veg=Math.min(1,g/0.62);
+    const flo=Math.max(0,(g-0.62)/0.38);
+    const H=0.25+veg*2.0;
+    stem.scale.y=H; stem.position.y=H/2;
+    nodes.forEach((lf,idx)=>{ const appear=Math.min(1,Math.max(0,veg*1.2-(idx/nodes.length)*0.8)); lf.scale.setScalar(appear*1.1); lf.position.y=(lf.position.y); });
+    // reposition leaves relative to current stem height
+    nodes.forEach((lf,idx)=>{ const node=Math.floor(idx/2); const h=((node+1)/(NODES+0.5))*H; lf.position.y=h; });
+    cola.position.y=H+0.05; cola.scale.setScalar(0.2+flo*1.1);
+    cola.visible=flo>0.02;
+    budMat.emissiveIntensity=g>=1?0.9:flo*0.25;
+  }
+  setGrowth(0.0);
+  return {root,setGrowth,strain,nodes};
+}
+
+// ---- plots ----
+const plots=[]; const GRID=4, GAP=2.3;
+const plotMat=new THREE.MeshStandardMaterial({color:0x241a12,roughness:1});
+const plotEdge=new THREE.MeshStandardMaterial({color:0x3a2b1a,roughness:1});
+for(let x=0;x<GRID;x++)for(let z=0;z<GRID;z++){
+  const px=(x-(GRID-1)/2)*GAP, pz=(z-(GRID-1)/2)*GAP;
+  const bed=new THREE.Group(); bed.position.set(px,0,pz);
+  const box=new THREE.Mesh(new THREE.BoxGeometry(1.7,0.4,1.7),plotMat); box.position.y=0.2; box.receiveShadow=true; box.castShadow=true; bed.add(box);
+  const rim=new THREE.Mesh(new THREE.BoxGeometry(1.85,0.16,1.85),plotEdge); rim.position.y=0.34; bed.add(rim);
+  scene.add(bed);
+  plots.push({x:px,z:pz,bed,state:'empty',plant:null,t:0,grow:0,strain:null,mesh:box});
+}
+
+// ---- particles ----
+function burst(pos,color,n=14){
+  const g=new THREE.Group(); scene.add(g);
+  const m=new THREE.MeshBasicMaterial({color});
+  const parts=[];
+  for(let i=0;i<n;i++){ const p=new THREE.Mesh(new THREE.SphereGeometry(0.05,6,6),m); p.position.copy(pos);
+    p.userData.v=new THREE.Vector3((Math.random()-.5)*0.12,0.1+Math.random()*0.12,(Math.random()-.5)*0.12); g.add(p); parts.push(p); }
+  let life=0; (function tick(){ life++; parts.forEach(p=>{p.position.add(p.userData.v);p.userData.v.y-=0.006;p.material.opacity=1-life/40;p.material.transparent=true;});
+    if(life<40)requestAnimationFrame(tick); else scene.remove(g); })();
+}
+
+// ---- interaction ----
+const ray=new THREE.Raycaster(); const ptr=new THREE.Vector2();
+let downXY=null;
+function onDown(e){ const t=e.touches?e.touches[0]:e; downXY=[t.clientX,t.clientY]; }
+function onUp(e){
+  if(!downXY)return; const t=e.changedTouches?e.changedTouches[0]:e;
+  const moved=Math.hypot(t.clientX-downXY[0],t.clientY-downXY[1]); downXY=null;
+  if(moved>8)return; // was a drag
+  ptr.x=(t.clientX/innerWidth)*2-1; ptr.y=-(t.clientY/innerHeight)*2+1;
+  ray.setFromCamera(ptr,camera);
+  const hit=ray.intersectObjects(plots.map(p=>p.bed),true)[0];
+  if(!hit)return;
+  let pl=plots.find(p=>{let o=hit.object;while(o){if(o===p.bed)return true;o=o.parent;}return false;});
+  if(!pl)return;
+  tapPlot(pl);
+}
+canvas.addEventListener('pointerdown',onDown); canvas.addEventListener('pointerup',onUp);
+
+function tapPlot(pl){
+  if(pl.state==='empty'){
+    const P=makePlant(SEL); P.root.position.set(pl.x,0.4,pl.z); scene.add(P.root);
+    pl.plant=P; pl.state='growing'; pl.t=0; pl.grow=0; pl.strain=SEL;
+    burst(new THREE.Vector3(pl.x,0.6,pl.z),0x6e4a2a,10);
+    toast('planted '+STRAINS[SEL].nm); hideHint();
+  } else if(pl.state==='growing'){
+    pl.grow=Math.min(1,pl.grow+0.08); // water = speed boost
+    burst(new THREE.Vector3(pl.x,1.2,pl.z),0x6fd0ff,8);
+  } else if(pl.state==='ripe'){
+    const S=STRAINS[pl.strain]; BUDS++; XP+=S.xp;
+    $('buds').textContent=BUDS; $('xp').textContent=XP.toLocaleString();
+    burst(new THREE.Vector3(pl.x,1.6,pl.z),S.bud,22);
+    toast('+'+S.xp+' XP · '+S.nm+' harvested');
+    scene.remove(pl.plant.root); pl.plant=null; pl.state='empty'; pl.grow=0; pl.strain=null;
+  }
+}
+let hinted=true; function hideHint(){ if(hinted){hinted=false;$('hint').style.opacity=0;} }
+
+// ---- seed bar ----
+const sb=$('seeds');
+Object.keys(STRAINS).forEach(k=>{
+  const S=STRAINS[k]; const el=document.createElement('div'); el.className='seed'+(k===SEL?' on':'');
+  el.innerHTML='<div class="d" style="background:#'+S.bud.toString(16).padStart(6,'0')+';color:#'+S.bud.toString(16).padStart(6,'0')+'"></div><b>'+S.nm+'</b><i>+'+S.xp+' xp · '+(S.grow)+'s</i>';
+  el.onclick=()=>{SEL=k;document.querySelectorAll('.seed').forEach(s=>s.classList.remove('on'));el.classList.add('on');};
+  sb.appendChild(el);
+});
+
+// ---- loop ----
+let last=performance.now();
+function resize(){ renderer.setSize(innerWidth,innerHeight); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); }
+addEventListener('resize',resize); resize();
+
+function animate(now){
+  const dt=Math.min(0.05,(now-last)/1000); last=now;
+  controls.update();
+  glow.intensity=0.8+Math.sin(now*0.002)*0.15;
+  plots.forEach(pl=>{
+    if(pl.state==='growing'){
+      pl.grow+=dt/STRAINS[pl.strain].grow;
+      pl.plant.setGrowth(pl.grow);
+      // sway
+      pl.plant.root.rotation.z=Math.sin(now*0.0012+pl.x)*0.02;
+      if(pl.grow>=1){ pl.state='ripe'; toast(STRAINS[pl.strain].nm+' is RIPE — tap to harvest'); }
+    } else if(pl.state==='ripe'){
+      pl.plant.root.position.y=0.4+Math.sin(now*0.004+pl.z)*0.04;
+      pl.plant.root.rotation.z=Math.sin(now*0.0012+pl.x)*0.03;
+    }
+  });
+  renderer.render(scene,camera);
+  requestAnimationFrame(animate);
+}
+$('load').classList.add('gone');
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>
