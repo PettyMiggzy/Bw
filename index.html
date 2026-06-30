@@ -106,10 +106,10 @@ nav{display:flex;align-items:center;justify-content:space-between;gap:12px;paddi
   .navmore-menu{display:flex;position:static;border:0;padding:0;background:none;box-shadow:none;min-width:0}
 }
 @media(max-width:759px){
-  nav{flex-wrap:wrap;padding:12px 14px;gap:10px}
+  nav{flex-wrap:wrap;padding:12px 14px;gap:10px;background:rgba(7,10,7,.98)}
   .navtoggle{display:inline-flex}
   .navlinks{display:none;flex-direction:column;align-items:stretch;width:100%;order:3;gap:8px}
-  .navlinks.open{display:flex;animation:navdrop .25s ease}
+  .navlinks.open{display:flex;animation:navdrop .25s ease;background:#070a07;border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:4px;box-shadow:0 16px 34px rgba(0,0,0,.6)}
   .navlinks .nav-stake,.navlinks .nav-buy{margin-right:0;text-align:center;font-size:14px;padding:13px 16px}
 }
 @keyframes navdrop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
