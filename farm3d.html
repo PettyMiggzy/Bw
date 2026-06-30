@@ -4,10 +4,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
 <title>$CHRONIC — 3D Grow Farm</title>
-<meta name="description" content="Plant, grow, water and harvest your own weed in a real 3D farm. The $CHRONIC grow, in 3D." />
+<meta name="description" content="Step into the $CHRONIC farm — a living 3D grow. Plant, water and harvest your own weed while the night ticks by." />
 <link rel="canonical" href="https://www.burnchronic.xyz/farm3d" />
 <meta property="og:title" content="$CHRONIC — 3D Grow Farm" />
-<meta property="og:description" content="Plant it, water it, watch it grow, harvest the buds. A real 3D weed farm." />
+<meta property="og:description" content="The $CHRONIC metaverse grow. Plant it, water it, watch it grow, harvest the buds — in real 3D." />
 <meta property="og:image" content="https://www.burnchronic.xyz/assets/og-chronic.jpg" />
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=4" />
@@ -25,7 +25,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--text);f
 .stat{background:rgba(10,16,11,.8);border:1px solid var(--line);border-radius:11px;padding:6px 11px;text-align:center;backdrop-filter:blur(6px)}
 .stat b{display:block;font-family:var(--fd);font-size:15px;color:var(--green);line-height:1}
 .stat i{font-style:normal;font-size:8px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
-.seeds{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;gap:8px;justify-content:center;padding:12px 12px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(0deg,rgba(6,10,7,.9),transparent)}
+.seeds{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;gap:8px;justify-content:center;padding:12px 12px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(0deg,rgba(6,10,7,.92),transparent);overflow-x:auto}
 .seed{pointer-events:auto;flex:0 0 auto;min-width:76px;background:linear-gradient(180deg,rgba(16,26,18,.92),rgba(10,15,11,.95));border:1px solid var(--line);border-radius:13px;padding:9px 8px 7px;text-align:center;cursor:pointer;transition:.15s}
 .seed.on{border-color:var(--green);box-shadow:0 0 18px rgba(82,255,143,.3);transform:translateY(-3px)}
 .seed .d{width:26px;height:26px;border-radius:50%;margin:0 auto 5px;box-shadow:0 0 12px currentColor}
@@ -35,13 +35,15 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--text);f
 .hint b{color:var(--green)}
 .toast{position:fixed;left:50%;bottom:120px;transform:translateX(-50%) translateY(16px);z-index:9;opacity:0;background:var(--green);color:#04140a;font-family:var(--fd);font-size:13px;padding:10px 18px;border-radius:30px;transition:.25s;pointer-events:none;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.load{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:var(--void);font-family:var(--fd);color:var(--green);font-size:14px;letter-spacing:.1em}
+.load{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;background:var(--void);font-family:var(--fd);color:var(--green);font-size:14px;letter-spacing:.1em}
+.load .ring{width:42px;height:42px;border:3px solid rgba(82,255,143,.2);border-top-color:var(--green);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 .load.gone{opacity:0;pointer-events:none;transition:.6s}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
-<div class="load" id="load">GROWING THE FARM…</div>
+<div class="load" id="load"><div class="ring"></div>GROWING THE FARM…</div>
 <div class="hud top">
   <a class="brand" href="/grow"><img src="/assets/logo-chronic.png" alt=""/>3D FARM</a>
   <div class="stats">
@@ -49,7 +51,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--text);f
     <div class="stat"><b id="xp">0</b><i>xp</i></div>
   </div>
 </div>
-<div class="hint" id="hint">tap a <b>plot</b> to plant · tap a plant to <b>water</b> · drag to look</div>
+<div class="hint" id="hint">tap a <b>plot</b> to plant · tap a plant to <b>water</b> · drag to look around</div>
 <div class="seeds" id="seeds"></div>
 <div class="toast" id="toast"></div>
 
@@ -58,7 +60,8 @@ import * as THREE from 'https://esm.sh/three@0.160.0';
 import { OrbitControls } from 'https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js';
 
 const $=(i)=>document.getElementById(i);
-let _th; function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(_th);_th=setTimeout(()=>t.classList.remove('show'),1800);}
+let _th; function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(_th);_th=setTimeout(()=>t.classList.remove('show'),1900);}
+const rnd=(a,b)=>a+Math.random()*(b-a);
 
 // ---- strains (tiers) ----
 const STRAINS={
@@ -67,44 +70,148 @@ const STRAINS={
   gas:   {nm:'Gas',   col:0xd07a14, bud:0xffc23b, xp:40,  grow:70, price:'fire'},
   exotic:{nm:'Exotic',col:0x8a4ad0, bud:0xc06aff, xp:120, grow:100,price:'rare'},
 };
+const SKEYS=Object.keys(STRAINS);
 let SEL='mids';
 let BUDS=0, XP=0;
+
+// ---- randomized time of day (night-weighted) ----
+const TODS={
+  night:{bg:0x05090b,fog:0x06100c,fN:18,fF:52,hS:0x2c4a52,hG:0x0a140c,hI:0.5, sun:0xbfe9ff,sunI:0.85,sunP:[-12,18,8], star:0.9,disk:0xdff1ff,halo:0x8fd6ff,glow:1.1,glow2:0.6},
+  dusk: {bg:0x241320,fog:0x2c1a24,fN:16,fF:48,hS:0x5a3a44,hG:0x180e0c,hI:0.8, sun:0xff8a4d,sunI:1.15,sunP:[-17,7,11], star:0.22,disk:0xffb46a,halo:0xff7a3a,glow:0.7,glow2:0.5},
+  dawn: {bg:0x2a2440,fog:0x36304e,fN:18,fF:52,hS:0x6a5a78,hG:0x201828,hI:0.85,sun:0xffc9b0,sunI:1.05,sunP:[15,9,12],  star:0.38,disk:0xffd9c8,halo:0xffb0d0,glow:0.6,glow2:0.5},
+  day:  {bg:0x8fbccd,fog:0xb4d2db,fN:26,fF:74,hS:0x9fd0e0,hG:0x3a4a30,hI:1.15,sun:0xfff4e0,sunI:1.55,sunP:[-14,26,10], star:0,   disk:0xfff6e0,halo:0xfff0c0,glow:0.35,glow2:0.25}
+};
+const TODKEY=['night','night','night','dusk','dawn','day'][Math.floor(Math.random()*6)];
+const TOD=TODS[TODKEY];
 
 // ---- three setup ----
 const canvas=$('c');
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.12;
 const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x070d09);
-scene.fog=new THREE.Fog(0x070d09,16,40);
+scene.background=new THREE.Color(TOD.bg);
+scene.fog=new THREE.Fog(TOD.fog,TOD.fN,TOD.fF);
 
-const camera=new THREE.PerspectiveCamera(48,1,0.1,200);
-camera.position.set(0,9.5,12);
+const camera=new THREE.PerspectiveCamera(46,1,0.1,300);
+camera.position.set(0,9.5,13);
 
 const controls=new OrbitControls(camera,canvas);
-controls.target.set(0,1,0); controls.enableDamping=true; controls.dampingFactor=.08;
-controls.minDistance=7; controls.maxDistance=22; controls.maxPolarAngle=Math.PI*0.46; controls.enablePan=false;
+controls.target.set(0,1.2,0); controls.enableDamping=true; controls.dampingFactor=.08;
+controls.minDistance=6; controls.maxDistance=26; controls.minPolarAngle=0.12; controls.maxPolarAngle=Math.PI*0.495; controls.enablePan=false;
+controls.autoRotate=true; controls.autoRotateSpeed=0.25; // gentle drift until user grabs
+canvas.addEventListener('pointerdown',()=>{controls.autoRotate=false;});
 
-// lights — moody night + neon green
-scene.add(new THREE.HemisphereLight(0x335544,0x0a140c,0.55));
-const moon=new THREE.DirectionalLight(0xbfe9ff,0.8);
-moon.position.set(-8,14,6); moon.castShadow=true;
-moon.shadow.mapSize.set(1024,1024); moon.shadow.camera.left=-12;moon.shadow.camera.right=12;moon.shadow.camera.top=12;moon.shadow.camera.bottom=-12;
+// ---- lighting: moody night + neon grow glow ----
+scene.add(new THREE.HemisphereLight(TOD.hS,TOD.hG,TOD.hI));
+const moon=new THREE.DirectionalLight(TOD.sun,TOD.sunI);
+moon.position.set(TOD.sunP[0],TOD.sunP[1],TOD.sunP[2]); moon.castShadow=true;
+moon.shadow.mapSize.set(2048,2048);
+const sc=moon.shadow.camera; sc.left=-16;sc.right=16;sc.top=16;sc.bottom=-16; sc.near=1; sc.far=70;
 scene.add(moon);
-const glow=new THREE.PointLight(0x52ff8f,0.9,30); glow.position.set(0,6,0); scene.add(glow);
-const glow2=new THREE.PointLight(0xa85cff,0.5,28); glow2.position.set(7,3,-5); scene.add(glow2);
+const glow=new THREE.PointLight(0x52ff8f,TOD.glow,34,1.6); glow.position.set(0,7,0); scene.add(glow);
+const glow2=new THREE.PointLight(0xa85cff,TOD.glow2,30,1.8); glow2.position.set(8,4,-6); scene.add(glow2);
 
-// ground
-const ground=new THREE.Mesh(new THREE.CircleGeometry(26,48),new THREE.MeshStandardMaterial({color:0x0c1610,roughness:1}));
+// ---- sky: moon disk + stars ----
+const sky=new THREE.Group(); scene.add(sky);
+const diskPos=new THREE.Vector3(TOD.sunP[0],TOD.sunP[1],TOD.sunP[2]).normalize().multiplyScalar(58); diskPos.y+=8;
+const moonDisk=new THREE.Mesh(new THREE.CircleGeometry(TODKEY==='day'?2.6:3.4,40),new THREE.MeshBasicMaterial({color:TOD.disk}));
+moonDisk.position.copy(diskPos); moonDisk.lookAt(0,4,0); sky.add(moonDisk);
+const moonHalo=new THREE.Mesh(new THREE.CircleGeometry(TODKEY==='day'?5:6.2,40),new THREE.MeshBasicMaterial({color:TOD.halo,transparent:true,opacity:.2,blending:THREE.AdditiveBlending}));
+moonHalo.position.copy(diskPos); moonHalo.lookAt(0,4,0); moonHalo.translateZ(-0.2); sky.add(moonHalo);
+if(TOD.star>0)(function stars(){
+  const N=520, pos=new Float32Array(N*3);
+  for(let i=0;i<N;i++){ const r=70, th=rnd(0,Math.PI*2), ph=rnd(0.05,1.18);
+    pos[i*3]=r*Math.sin(ph)*Math.cos(th); pos[i*3+1]=Math.abs(r*Math.cos(ph))+6; pos[i*3+2]=r*Math.sin(ph)*Math.sin(th); }
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  sky.add(new THREE.Points(g,new THREE.PointsMaterial({color:0xcfe8ff,size:0.36,sizeAttenuation:true,transparent:true,opacity:TOD.star})));
+})();
+
+// ---- ground + distant terrain ----
+const ground=new THREE.Mesh(new THREE.CircleGeometry(80,64),new THREE.MeshStandardMaterial({color:0x0b1410,roughness:1}));
 ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
-// neon grid
-const grid=new THREE.GridHelper(40,40,0x163a26,0x102418); grid.position.y=0.01; scene.add(grid);
+// soil patch under the plots
+const soil=new THREE.Mesh(new THREE.CircleGeometry(9.5,48),new THREE.MeshStandardMaterial({color:0x14110b,roughness:1}));
+soil.rotation.x=-Math.PI/2; soil.position.y=0.01; soil.receiveShadow=true; scene.add(soil);
+const grid=new THREE.GridHelper(60,60,0x163a26,0x0e2018); grid.position.y=0.02; grid.material.transparent=true; grid.material.opacity=.5; scene.add(grid);
+
+// ---- perimeter fence ----
+(function fence(){
+  const postMat=new THREE.MeshStandardMaterial({color:0x2a1d12,roughness:.95});
+  const railMat=new THREE.MeshStandardMaterial({color:0x35261a,roughness:.95});
+  const R=9.2, step=1.55;
+  const postG=new THREE.CylinderGeometry(0.07,0.09,1.5,6);
+  for(const side of [[1,0],[-1,0],[0,1],[0,-1]]){
+    for(let t=-R;t<=R;t+=step){
+      const p=new THREE.Mesh(postG,postMat);
+      if(side[0]) p.position.set(side[0]*R,0.75,t); else p.position.set(t,0.75,side[1]*R);
+      p.castShadow=true; scene.add(p);
+    }
+    const railG=new THREE.BoxGeometry(side[0]?0.06:R*2,0.07,side[0]?R*2:0.06);
+    for(const h of [0.55,1.05]){
+      const r=new THREE.Mesh(railG,railMat);
+      r.position.set(side[0]*R*(side[0]?1:0),h,side[1]*R*(side[1]?1:0));
+      scene.add(r);
+    }
+  }
+})();
+
+// ---- string lights overhead ----
+const stringBulbs=[];
+(function strings(){
+  const bulbMat=()=>new THREE.MeshBasicMaterial({color:Math.random()<0.25?0x52ff8f:0xffd98a});
+  const lines=[[-9.2,9.2,7.5,-9.2,9.2,-7.5],[-9.2,9.2,-2,9.2,9.2,2]];
+  // simple catenary strands across the plot area
+  for(let s=0;s<3;s++){
+    const z=-6+s*6; const ax=-9.2, bx=9.2, h=6.4, sag=1.1;
+    for(let i=0;i<=18;i++){ const u=i/18, x=ax+(bx-ax)*u, y=h - Math.sin(u*Math.PI)*sag;
+      const b=new THREE.Mesh(new THREE.SphereGeometry(0.085,8,8),bulbMat());
+      b.position.set(x,y,z); scene.add(b); stringBulbs.push(b);
+    }
+  }
+})();
+
+// ---- grow tent (back corner) ----
+(function tent(){
+  const g=new THREE.Group(); g.position.set(-6.5,0,-6.5); scene.add(g);
+  const frame=new THREE.MeshStandardMaterial({color:0x10161a,roughness:.7,metalness:.2});
+  const panel=new THREE.MeshStandardMaterial({color:0x0c2c1c,roughness:.5,transparent:true,opacity:.55,side:THREE.DoubleSide,emissive:0x123,emissiveIntensity:.4});
+  const W=2.6,H=2.8,D=2.6;
+  // posts
+  for(const sx of [-1,1])for(const sz of [-1,1]){
+    const p=new THREE.Mesh(new THREE.BoxGeometry(0.08,H,0.08),frame); p.position.set(sx*W/2,H/2,sz*D/2); p.castShadow=true; g.add(p);
+  }
+  // top
+  const top=new THREE.Mesh(new THREE.BoxGeometry(W,0.08,D),frame); top.position.y=H; g.add(top);
+  // back + side panels
+  const back=new THREE.Mesh(new THREE.PlaneGeometry(W,H),panel); back.position.set(0,H/2,-D/2); g.add(back);
+  const sideL=new THREE.Mesh(new THREE.PlaneGeometry(D,H),panel); sideL.rotation.y=Math.PI/2; sideL.position.set(-W/2,H/2,0); g.add(sideL);
+  // interior grow light
+  const il=new THREE.PointLight(0xc06aff,2.2,5,2); il.position.set(0,H-0.5,0); g.add(il);
+  const bar=new THREE.Mesh(new THREE.BoxGeometry(W*0.7,0.06,0.3),new THREE.MeshBasicMaterial({color:0xc06aff})); bar.position.set(0,H-0.45,0); g.add(bar);
+  // a couple plants inside
+})();
+
+// ---- pine treeline ----
+(function trees(){
+  const trunkMat=new THREE.MeshStandardMaterial({color:0x2a1c10,roughness:1});
+  const folMat=[0x14361f,0x102c1a,0x183d24].map(c=>new THREE.MeshStandardMaterial({color:c,roughness:1}));
+  const N=30;
+  for(let i=0;i<N;i++){
+    const a=(i/N)*Math.PI*2+rnd(-0.08,0.08), r=rnd(13,22);
+    const x=Math.cos(a)*r, z=Math.sin(a)*r, s=rnd(0.8,1.8);
+    const g=new THREE.Group(); g.position.set(x,0,z); g.scale.setScalar(s);
+    const tr=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.18,1.2,6),trunkMat); tr.position.y=0.6; g.add(tr);
+    const fm=folMat[(Math.random()*folMat.length)|0];
+    for(let k=0;k<3;k++){ const c=new THREE.Mesh(new THREE.ConeGeometry(1.05-k*0.26,1.5,7),fm); c.position.y=1.3+k*0.85; g.add(c); }
+    scene.add(g);
+  }
+})();
 
 // ---- procedural cannabis plant ----
 function leafletGeo(){
-  const s=new THREE.Shape();
-  s.moveTo(0,0);
+  const s=new THREE.Shape(); s.moveTo(0,0);
   s.bezierCurveTo(0.05,0.05,0.07,0.18,0.045,0.34);
   s.bezierCurveTo(0.035,0.42,0.012,0.46,0,0.5);
   s.bezierCurveTo(-0.012,0.46,-0.035,0.42,-0.045,0.34);
@@ -112,72 +219,37 @@ function leafletGeo(){
   return new THREE.ShapeGeometry(s,8);
 }
 const LEAFLET=leafletGeo();
-function fanLeaf(color){
-  const g=new THREE.Group();
-  const mat=new THREE.MeshStandardMaterial({color,roughness:.7,side:THREE.DoubleSide});
-  const N=7;
-  for(let i=0;i<N;i++){
-    const m=new THREE.Mesh(LEAFLET,mat);
-    const k=i-(N-1)/2;
-    m.rotation.z=k*0.42;
-    const sc=1-Math.abs(k)*0.16;
-    m.scale.set(sc,sc*(1+Math.abs(k)*0.05),1);
-    m.castShadow=true;
-    g.add(m);
-  }
+const STEM_G=new THREE.CylinderGeometry(0.04,0.07,1,7);
+function fanLeaf(mat){
+  const g=new THREE.Group(); const N=7;
+  for(let i=0;i<N;i++){ const m=new THREE.Mesh(LEAFLET,mat); const k=i-(N-1)/2;
+    m.rotation.z=k*0.42; const sc=1-Math.abs(k)*0.16; m.scale.set(sc,sc*(1+Math.abs(k)*0.05),1); m.castShadow=true; g.add(m); }
   return g;
 }
 function makePlant(strain){
-  const S=STRAINS[strain];
-  const root=new THREE.Group();
-  // soil mound
-  const mound=new THREE.Mesh(new THREE.SphereGeometry(0.42,16,12,0,Math.PI*2,0,Math.PI/2),
+  const S=STRAINS[strain]; const root=new THREE.Group();
+  const mound=new THREE.Mesh(new THREE.SphereGeometry(0.42,14,10,0,Math.PI*2,0,Math.PI/2),
     new THREE.MeshStandardMaterial({color:0x2a1c10,roughness:1}));
   mound.scale.y=0.4; mound.castShadow=true; root.add(mound);
-
   const plant=new THREE.Group(); plant.position.y=0.05; root.add(plant);
-  const stemMat=new THREE.MeshStandardMaterial({color:0x3f6a2a,roughness:.8});
-  const stem=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.07,1,7),stemMat);
+  const stem=new THREE.Mesh(STEM_G,new THREE.MeshStandardMaterial({color:0x3f6a2a,roughness:.8}));
   stem.castShadow=true; plant.add(stem);
-
-  // leaf nodes up the stem
-  const nodes=[];
-  const NODES=5;
-  for(let i=0;i<NODES;i++){
-    const h=(i+1)/(NODES+0.5);
-    for(let s=0;s<2;s++){
-      const leaf=fanLeaf(S.col);
-      leaf.position.y=h;
-      leaf.rotation.y=(i*1.1)+(s*Math.PI);
-      leaf.rotation.x=-0.5-h*0.4;
-      leaf.userData.base=leaf.rotation.x;
-      nodes.push(leaf); plant.add(leaf);
-    }
-  }
-  // top cola (buds)
-  const cola=new THREE.Group(); cola.position.y=1; plant.add(cola);
+  const leafMat=new THREE.MeshStandardMaterial({color:S.col,roughness:.7,side:THREE.DoubleSide});
+  const nodes=[]; const NODES=5;
+  for(let i=0;i<NODES;i++){ for(let s=0;s<2;s++){ const leaf=fanLeaf(leafMat);
+    leaf.rotation.y=(i*1.1)+(s*Math.PI); leaf.rotation.x=-0.5; nodes.push(leaf); plant.add(leaf); } }
+  const cola=new THREE.Group(); plant.add(cola);
   const budMat=new THREE.MeshStandardMaterial({color:S.bud,emissive:new THREE.Color(S.bud),emissiveIntensity:0,roughness:.5});
-  for(let i=0;i<14;i++){
-    const b=new THREE.Mesh(new THREE.IcosahedronGeometry(0.07+Math.random()*0.05,0),budMat);
-    b.position.set((Math.random()-.5)*0.18,Math.random()*0.5,(Math.random()-.5)*0.18);
-    b.castShadow=true; cola.add(b);
-  }
-
-  function setGrowth(g){ // 0..1
-    g=Math.max(0,Math.min(1,g));
-    const veg=Math.min(1,g/0.62);
-    const flo=Math.max(0,(g-0.62)/0.38);
-    const H=0.25+veg*2.0;
+  for(let i=0;i<12;i++){ const b=new THREE.Mesh(new THREE.IcosahedronGeometry(0.07+Math.random()*0.05,0),budMat);
+    b.position.set((Math.random()-.5)*0.18,Math.random()*0.5,(Math.random()-.5)*0.18); b.castShadow=true; cola.add(b); }
+  function setGrowth(g){ g=Math.max(0,Math.min(1,g));
+    const veg=Math.min(1,g/0.62), flo=Math.max(0,(g-0.62)/0.38), H=0.25+veg*2.0;
     stem.scale.y=H; stem.position.y=H/2;
-    nodes.forEach((lf,idx)=>{ const appear=Math.min(1,Math.max(0,veg*1.2-(idx/nodes.length)*0.8)); lf.scale.setScalar(appear*1.1); lf.position.y=(lf.position.y); });
-    // reposition leaves relative to current stem height
-    nodes.forEach((lf,idx)=>{ const node=Math.floor(idx/2); const h=((node+1)/(NODES+0.5))*H; lf.position.y=h; });
-    cola.position.y=H+0.05; cola.scale.setScalar(0.2+flo*1.1);
-    cola.visible=flo>0.02;
-    budMat.emissiveIntensity=g>=1?0.9:flo*0.25;
-  }
-  setGrowth(0.0);
-  return {root,setGrowth,strain,nodes};
+    nodes.forEach((lf,idx)=>{ const node=Math.floor(idx/2); const appear=Math.min(1,Math.max(0,veg*1.2-(node/NODES)*0.8));
+      lf.scale.setScalar(appear*1.1); lf.position.y=((node+1)/(NODES+0.5))*H; lf.rotation.x=-0.5-((node+1)/(NODES+0.5))*0.4; });
+    cola.position.y=H+0.05; cola.scale.setScalar(0.2+flo*1.1); cola.visible=flo>0.02;
+    budMat.emissiveIntensity=g>=1?0.9:flo*0.25; }
+  setGrowth(0); return {root,setGrowth,strain};
 }
 
 // ---- plots ----
@@ -190,46 +262,122 @@ for(let x=0;x<GRID;x++)for(let z=0;z<GRID;z++){
   const box=new THREE.Mesh(new THREE.BoxGeometry(1.7,0.4,1.7),plotMat); box.position.y=0.2; box.receiveShadow=true; box.castShadow=true; bed.add(box);
   const rim=new THREE.Mesh(new THREE.BoxGeometry(1.85,0.16,1.85),plotEdge); rim.position.y=0.34; bed.add(rim);
   scene.add(bed);
-  plots.push({x:px,z:pz,bed,state:'empty',plant:null,t:0,grow:0,strain:null,mesh:box});
+  plots.push({x:px,z:pz,bed,state:'empty',plant:null,grow:0,strain:null});
 }
 
-// ---- particles ----
+// pre-populate ~half the farm so it's alive on arrival
+[[0,'loud',0.8],[2,'mids',0.45],[5,'gas',0.95],[7,'exotic',0.6],[9,'mids',0.7],[11,'loud',0.3],[14,'gas',0.5]].forEach(([i,k,g])=>{
+  const pl=plots[i]; const P=makePlant(k); P.root.position.set(pl.x,0.4,pl.z); scene.add(P.root);
+  pl.plant=P; pl.state=g>=1?'ripe':'growing'; pl.strain=k; pl.grow=g; P.setGrowth(g);
+});
+// a few wild plants scattered outside the grid for life
+[[-7.5,5.5,'mids'],[7.2,-4.5,'loud'],[-5,7.6,'gas'],[6.6,6.2,'mids'],[-7.8,-6,'loud']].forEach(([x,z,k])=>{
+  const P=makePlant(k); P.root.position.set(x,0.35,z); P.root.scale.setScalar(rnd(0.8,1.15)); P.setGrowth(rnd(0.7,1)); scene.add(P.root);
+});
+
+// ---- particle helpers ----
 function burst(pos,color,n=14){
   const g=new THREE.Group(); scene.add(g);
-  const m=new THREE.MeshBasicMaterial({color});
-  const parts=[];
-  for(let i=0;i<n;i++){ const p=new THREE.Mesh(new THREE.SphereGeometry(0.05,6,6),m); p.position.copy(pos);
+  const m=new THREE.MeshBasicMaterial({color,transparent:true}); const parts=[];
+  for(let i=0;i<n;i++){ const p=new THREE.Mesh(new THREE.SphereGeometry(0.05,6,6),m.clone()); p.position.copy(pos);
     p.userData.v=new THREE.Vector3((Math.random()-.5)*0.12,0.1+Math.random()*0.12,(Math.random()-.5)*0.12); g.add(p); parts.push(p); }
-  let life=0; (function tick(){ life++; parts.forEach(p=>{p.position.add(p.userData.v);p.userData.v.y-=0.006;p.material.opacity=1-life/40;p.material.transparent=true;});
+  let life=0;(function tick(){ life++; parts.forEach(p=>{p.position.add(p.userData.v);p.userData.v.y-=0.006;p.material.opacity=1-life/40;});
     if(life<40)requestAnimationFrame(tick); else scene.remove(g); })();
 }
+// smoke puff that drifts up and fades (used by the smoker)
+const smokeMat=new THREE.MeshBasicMaterial({color:0xcfe6d6,transparent:true,opacity:.5,depthWrite:false});
+function puff(pos){
+  const p=new THREE.Mesh(new THREE.SphereGeometry(0.07,7,7),smokeMat.clone()); p.position.copy(pos); scene.add(p);
+  const drift=new THREE.Vector3(rnd(-0.004,0.004),rnd(0.012,0.02),rnd(-0.004,0.004)); let life=0;
+  (function tick(){ life++; p.position.add(drift); const s=1+life*0.05; p.scale.setScalar(s); p.material.opacity=0.5*(1-life/55);
+    if(life<55)requestAnimationFrame(tick); else scene.remove(p); })();
+}
+
+// ---- $CHRONIC skeleton character (walks + smokes) ----
+function makeSkeleton(){
+  const bone=new THREE.MeshStandardMaterial({color:0xe9f6ed,roughness:.55,emissive:0x0c2417,emissiveIntensity:.45});
+  const g=new THREE.Group();
+  const hips=new THREE.Group(); hips.position.y=0.96; g.add(hips);
+  // spine + ribs + skull (torso)
+  const torso=new THREE.Group(); hips.add(torso);
+  const spine=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.06,0.62,6),bone); spine.position.y=0.33; torso.add(spine);
+  for(let i=0;i<4;i++){ const rib=new THREE.Mesh(new THREE.TorusGeometry(0.15-i*0.012,0.013,6,14,Math.PI*1.1),bone);
+    rib.rotation.x=Math.PI/2; rib.rotation.z=-Math.PI*0.05; rib.position.y=0.2+i*0.085; torso.add(rib); }
+  const skull=new THREE.Group(); skull.position.y=0.78; torso.add(skull);
+  skull.add(new THREE.Mesh(new THREE.SphereGeometry(0.16,14,14),bone));
+  const jaw=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.09,0.17),bone); jaw.position.y=-0.13; skull.add(jaw);
+  const eyeMat=new THREE.MeshStandardMaterial({color:0x021006,emissive:0x52ff8f,emissiveIntensity:1.4});
+  [-0.062,0.062].forEach(x=>{ const e=new THREE.Mesh(new THREE.SphereGeometry(0.046,8,8),eyeMat); e.position.set(x,0.015,0.13); skull.add(e); });
+  // pelvis bone
+  const pelvis=new THREE.Mesh(new THREE.BoxGeometry(0.26,0.1,0.14),bone); pelvis.position.y=-0.02; hips.add(pelvis);
+  // legs (pivot at hip)
+  function leg(side){
+    const hip=new THREE.Group(); hip.position.set(0.11*side,-0.05,0); hips.add(hip);
+    const thigh=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.04,0.5,6),bone); thigh.position.y=-0.25; hip.add(thigh);
+    const knee=new THREE.Group(); knee.position.y=-0.5; hip.add(knee);
+    const shin=new THREE.Mesh(new THREE.CylinderGeometry(0.038,0.03,0.5,6),bone); shin.position.y=-0.25; knee.add(shin);
+    const foot=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.05,0.22),bone); foot.position.set(0,-0.5,0.06); knee.add(foot);
+    return {hip,knee};
+  }
+  // arms (pivot at shoulder)
+  function arm(side){
+    const sh=new THREE.Group(); sh.position.set(0.17*side,0.52,0); torso.add(sh);
+    const up=new THREE.Mesh(new THREE.CylinderGeometry(0.036,0.032,0.42,6),bone); up.position.y=-0.21; sh.add(up);
+    const elbow=new THREE.Group(); elbow.position.y=-0.42; sh.add(elbow);
+    const fore=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.026,0.4,6),bone); fore.position.y=-0.2; elbow.add(fore);
+    const hand=new THREE.Group(); hand.position.y=-0.4; elbow.add(hand);
+    return {sh,elbow,hand};
+  }
+  const legL=leg(1), legR=leg(-1), armL=arm(1), armR=arm(-1);
+  // right arm bent up to the mouth, holding a joint
+  armR.sh.rotation.x=-2.5; armR.elbow.rotation.x=1.5;
+  const joint=new THREE.Mesh(new THREE.CylinderGeometry(0.016,0.016,0.2,6),new THREE.MeshStandardMaterial({color:0xf2ead2}));
+  joint.rotation.z=Math.PI/2; joint.position.set(0,-0.02,0.05); armR.hand.add(joint);
+  const ember=new THREE.Mesh(new THREE.SphereGeometry(0.026,8,8),new THREE.MeshBasicMaterial({color:0xff6a2b}));
+  ember.position.set(0.1,-0.02,0.05); armR.hand.add(ember);
+  const tip=new THREE.Object3D(); tip.position.copy(ember.position); armR.hand.add(tip);
+  g.scale.setScalar(0.92);
+  return {group:g,legL,legR,armL,armR,ember,tip,skull};
+}
+
+const walkers=[];
+function addWalker(radius,speed,phase,dir){
+  const sk=makeSkeleton(); scene.add(sk.group);
+  walkers.push({sk,radius,speed,phase:phase||0,dir:dir||1,smoke:rnd(0,2)});
+}
+addWalker(6.3,0.32,0,1);
+addWalker(4.0,-0.22,2.1,-1);
+
+// a chilling skeleton sitting by the tent
+const chill=makeSkeleton(); chill.group.position.set(-5.2,0,-5.0); chill.group.rotation.y=2.3;
+chill.legL.hip.rotation.x=1.5; chill.legR.hip.rotation.x=1.5; chill.legL.knee.rotation.x=-1.6; chill.legR.knee.rotation.x=-1.6;
+chill.group.position.y=-0.45; scene.add(chill.group);
+let chillSmoke=rnd(0,2);
 
 // ---- interaction ----
-const ray=new THREE.Raycaster(); const ptr=new THREE.Vector2();
-let downXY=null;
+const ray=new THREE.Raycaster(); const ptr=new THREE.Vector2(); let downXY=null;
 function onDown(e){ const t=e.touches?e.touches[0]:e; downXY=[t.clientX,t.clientY]; }
 function onUp(e){
   if(!downXY)return; const t=e.changedTouches?e.changedTouches[0]:e;
   const moved=Math.hypot(t.clientX-downXY[0],t.clientY-downXY[1]); downXY=null;
-  if(moved>8)return; // was a drag
+  if(moved>8)return;
   ptr.x=(t.clientX/innerWidth)*2-1; ptr.y=-(t.clientY/innerHeight)*2+1;
   ray.setFromCamera(ptr,camera);
   const hit=ray.intersectObjects(plots.map(p=>p.bed),true)[0];
   if(!hit)return;
-  let pl=plots.find(p=>{let o=hit.object;while(o){if(o===p.bed)return true;o=o.parent;}return false;});
-  if(!pl)return;
-  tapPlot(pl);
+  const pl=plots.find(p=>{let o=hit.object;while(o){if(o===p.bed)return true;o=o.parent;}return false;});
+  if(pl)tapPlot(pl);
 }
 canvas.addEventListener('pointerdown',onDown); canvas.addEventListener('pointerup',onUp);
 
 function tapPlot(pl){
   if(pl.state==='empty'){
     const P=makePlant(SEL); P.root.position.set(pl.x,0.4,pl.z); scene.add(P.root);
-    pl.plant=P; pl.state='growing'; pl.t=0; pl.grow=0; pl.strain=SEL;
+    pl.plant=P; pl.state='growing'; pl.grow=0; pl.strain=SEL;
     burst(new THREE.Vector3(pl.x,0.6,pl.z),0x6e4a2a,10);
     toast('planted '+STRAINS[SEL].nm); hideHint();
   } else if(pl.state==='growing'){
-    pl.grow=Math.min(1,pl.grow+0.08); // water = speed boost
+    pl.grow=Math.min(1,pl.grow+0.08);
     burst(new THREE.Vector3(pl.x,1.2,pl.z),0x6fd0ff,8);
   } else if(pl.state==='ripe'){
     const S=STRAINS[pl.strain]; BUDS++; XP+=S.xp;
@@ -243,34 +391,49 @@ let hinted=true; function hideHint(){ if(hinted){hinted=false;$('hint').style.op
 
 // ---- seed bar ----
 const sb=$('seeds');
-Object.keys(STRAINS).forEach(k=>{
-  const S=STRAINS[k]; const el=document.createElement('div'); el.className='seed'+(k===SEL?' on':'');
-  el.innerHTML='<div class="d" style="background:#'+S.bud.toString(16).padStart(6,'0')+';color:#'+S.bud.toString(16).padStart(6,'0')+'"></div><b>'+S.nm+'</b><i>+'+S.xp+' xp · '+(S.grow)+'s</i>';
+SKEYS.forEach(k=>{ const S=STRAINS[k]; const el=document.createElement('div'); el.className='seed'+(k===SEL?' on':'');
+  el.innerHTML='<div class="d" style="background:#'+S.bud.toString(16).padStart(6,'0')+';color:#'+S.bud.toString(16).padStart(6,'0')+'"></div><b>'+S.nm+'</b><i>+'+S.xp+' xp · '+S.grow+'s</i>';
   el.onclick=()=>{SEL=k;document.querySelectorAll('.seed').forEach(s=>s.classList.remove('on'));el.classList.add('on');};
-  sb.appendChild(el);
-});
+  sb.appendChild(el); });
 
 // ---- loop ----
 let last=performance.now();
 function resize(){ renderer.setSize(innerWidth,innerHeight); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); }
 addEventListener('resize',resize); resize();
 
+const _wp=new THREE.Vector3();
+function animateWalker(w,now,dt){
+  w.phase+=dt*w.speed*1.6;
+  const a=w.phase*w.dir; const R=w.radius;
+  const x=Math.cos(a)*R, z=Math.sin(a)*R;
+  const vx=-Math.sin(a)*w.dir, vz=Math.cos(a)*w.dir;
+  const g=w.sk.group; g.position.set(x,0,z); g.rotation.y=Math.atan2(vx,vz);
+  const step=now*0.005*Math.abs(w.speed)*8;
+  g.children[0].position.y=0.96+Math.abs(Math.sin(step))*0.05; // hips bob
+  w.sk.legL.hip.rotation.x=Math.sin(step)*0.6; w.sk.legR.hip.rotation.x=-Math.sin(step)*0.6;
+  w.sk.legL.knee.rotation.x=-Math.max(0,Math.sin(step))*0.7; w.sk.legR.knee.rotation.x=-Math.max(0,-Math.sin(step))*0.7;
+  w.sk.armL.sh.rotation.x=-Math.sin(step)*0.5;
+  // smoking
+  w.smoke-=dt; if(w.smoke<=0){ w.smoke=rnd(0.18,0.5); w.sk.tip.getWorldPosition(_wp); puff(_wp);
+    w.sk.ember.material.color.setHex(0xff8a3b); setTimeout(()=>w.sk.ember.material.color.setHex(0xff6a2b),140); }
+}
+
 function animate(now){
   const dt=Math.min(0.05,(now-last)/1000); last=now;
   controls.update();
-  glow.intensity=0.8+Math.sin(now*0.002)*0.15;
+  glow.intensity=0.95+Math.sin(now*0.002)*0.18;
+  // string light flicker
+  for(let i=0;i<stringBulbs.length;i++){ stringBulbs[i].material.opacity=1; }
+  // grow plots
   plots.forEach(pl=>{
-    if(pl.state==='growing'){
-      pl.grow+=dt/STRAINS[pl.strain].grow;
-      pl.plant.setGrowth(pl.grow);
-      // sway
+    if(pl.state==='growing'){ pl.grow+=dt/STRAINS[pl.strain].grow; pl.plant.setGrowth(pl.grow);
       pl.plant.root.rotation.z=Math.sin(now*0.0012+pl.x)*0.02;
       if(pl.grow>=1){ pl.state='ripe'; toast(STRAINS[pl.strain].nm+' is RIPE — tap to harvest'); }
-    } else if(pl.state==='ripe'){
-      pl.plant.root.position.y=0.4+Math.sin(now*0.004+pl.z)*0.04;
-      pl.plant.root.rotation.z=Math.sin(now*0.0012+pl.x)*0.03;
-    }
+    } else if(pl.state==='ripe'){ pl.plant.root.rotation.z=Math.sin(now*0.0012+pl.x)*0.03; }
   });
+  walkers.forEach(w=>animateWalker(w,now,dt));
+  // chilling smoker
+  chillSmoke-=dt; if(chillSmoke<=0){ chillSmoke=rnd(0.4,1.0); chill.tip.getWorldPosition(_wp); puff(_wp); }
   renderer.render(scene,camera);
   requestAnimationFrame(animate);
 }
