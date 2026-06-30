@@ -65,7 +65,7 @@ img{max-width:100%;display:block}
 /* ---------- SPLASH ---------- */
 .splash{position:fixed;inset:0;z-index:9999;background:#000;display:flex;align-items:center;justify-content:center;transition:opacity .8s}
 .splash.fade{opacity:0}
-.splash video,.splash img{width:100%;height:100%;object-fit:cover}
+.splash video{width:100%;height:100%;object-fit:cover}
 .splash-skip{position:absolute;top:18px;right:18px;font-family:var(--font-mono);font-size:13px;letter-spacing:.1em;
   background:rgba(0,0,0,.5);border:1px solid var(--line);color:var(--green);padding:8px 16px;border-radius:30px;cursor:pointer}
 .splash-tag{position:absolute;bottom:8%;left:0;right:0;text-align:center;font-family:var(--font-display);
@@ -411,7 +411,9 @@ footer .trib a{color:var(--ember);text-decoration:underline}
 
 <!-- SPLASH -->
 <div class="splash" id="splash">
-  <img id="splashImg" src="/assets/splash-skeleton.jpg" alt="$CHRONIC" />
+  <video id="splashVideo" autoplay muted playsinline poster="/assets/splash-poster-v2.jpg">
+    <source src="/assets/splash-v2.mp4" type="video/mp4" />
+  </video>
   <button class="splash-skip" id="splashSkip">skip ✕</button>
   <div class="splash-tag">$CHRONIC</div>
 </div>
@@ -718,10 +720,10 @@ w.style.animationDuration=(22+Math.random()*16)+'s';w.style.animationDelay=(-Mat
 (function(){const el=document.getElementById('splash'),vid=document.getElementById('splashVideo'),skip=document.getElementById('splashSkip');
 if(!el)return;if(sessionStorage.getItem('bw_splash')){el.remove();return;}
 function close(){sessionStorage.setItem('bw_splash','1');el.classList.add('fade');setTimeout(()=>el.remove(),850);}
-const t=setTimeout(close,2800);
+const t=setTimeout(close,6500);
 if(vid){vid.addEventListener('ended',()=>{clearTimeout(t);close();});vid.play().catch(()=>{});}
 skip.addEventListener('click',()=>{clearTimeout(t);close();});
-el.addEventListener('click',()=>{clearTimeout(t);close();});})();
+el.addEventListener('click',e=>{if(e.target===vid||e.target===el){clearTimeout(t);close();}});})();
 
 /* ===== buy wiring ===== */
 (function(){const url=TOKEN?`/terminal?ca=${TOKEN}`:'https://t.me/burnchronic';
