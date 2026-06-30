@@ -193,6 +193,27 @@ const stringBulbs=[];
   // a couple plants inside
 })();
 
+// ---- water well (the farmhands fetch water here) ----
+const WELL=new THREE.Vector3(6.9,0,6.0);
+(function well(){
+  const g=new THREE.Group(); g.position.copy(WELL); scene.add(g);
+  const stone=new THREE.MeshStandardMaterial({color:0x4a4f52,roughness:1});
+  const wood=new THREE.MeshStandardMaterial({color:0x3a2a18,roughness:.9});
+  const ring=new THREE.Mesh(new THREE.CylinderGeometry(0.85,0.92,0.95,18),stone); ring.position.y=0.47; ring.castShadow=true; ring.receiveShadow=true; g.add(ring);
+  const shaft=new THREE.Mesh(new THREE.CylinderGeometry(0.62,0.62,0.9,18),new THREE.MeshStandardMaterial({color:0x05100a})); shaft.position.y=0.5; g.add(shaft);
+  const water=new THREE.Mesh(new THREE.CircleGeometry(0.6,18),new THREE.MeshStandardMaterial({color:0x1d6fd0,emissive:0x0b3f78,emissiveIntensity:.6,roughness:.15,metalness:.2}));
+  water.rotation.x=-Math.PI/2; water.position.y=0.74; g.add(water);
+  for(const sx of [-1,1]){ const p=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,1.7,6),wood); p.position.set(sx*0.78,1.3,0); p.castShadow=true; g.add(p); }
+  const beam=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,1.85,6),wood); beam.rotation.z=Math.PI/2; beam.position.y=2.05; g.add(beam);
+  const roof=new THREE.Mesh(new THREE.ConeGeometry(1.3,0.75,4),new THREE.MeshStandardMaterial({color:0x5a2b1a,roughness:1})); roof.rotation.y=Math.PI/4; roof.position.y=2.5; roof.castShadow=true; g.add(roof);
+  const bucket=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.13,0.26,10),new THREE.MeshStandardMaterial({color:0x6a4a2a,roughness:.9})); bucket.position.y=1.45; g.add(bucket);
+  const rope=new THREE.Mesh(new THREE.CylinderGeometry(0.01,0.01,0.55,4),new THREE.MeshStandardMaterial({color:0x241a12})); rope.position.y=1.78; g.add(rope);
+  // a couple barrels + open water tops beside it
+  const barrelMat=new THREE.MeshStandardMaterial({color:0x35506a,roughness:.7,metalness:.2});
+  for(const [bx,bz] of [[1.5,0.4],[1.7,-0.6]]){ const b=new THREE.Mesh(new THREE.CylinderGeometry(0.34,0.34,0.8,14),barrelMat); b.position.set(bx,0.4,bz); b.castShadow=true; g.add(b);
+    const top=new THREE.Mesh(new THREE.CircleGeometry(0.3,14),new THREE.MeshStandardMaterial({color:0x2bbfe0,emissive:0x0a3a55,emissiveIntensity:.5})); top.rotation.x=-Math.PI/2; top.position.set(bx,0.81,bz); g.add(top); }
+})();
+
 // ---- pine treeline ----
 (function trees(){
   const trunkMat=new THREE.MeshStandardMaterial({color:0x2a1c10,roughness:1});
@@ -292,61 +313,103 @@ function puff(pos){
   (function tick(){ life++; p.position.add(drift); const s=1+life*0.05; p.scale.setScalar(s); p.material.opacity=0.5*(1-life/55);
     if(life<55)requestAnimationFrame(tick); else scene.remove(p); })();
 }
+// water droplet from the watering can
+function drop(pos){
+  const d=new THREE.Mesh(new THREE.SphereGeometry(0.032,6,6),new THREE.MeshBasicMaterial({color:0x6fd0ff,transparent:true}));
+  d.position.copy(pos); d.position.x+=rnd(-0.06,0.06); d.position.z+=rnd(-0.06,0.06); scene.add(d);
+  let vy=-0.015,life=0;(function t(){ life++; vy-=0.006; d.position.y+=vy; d.material.opacity=1-life/34;
+    if(life<34 && d.position.y>0.12)requestAnimationFrame(t); else scene.remove(d); })();
+}
 
 // ---- $CHRONIC skeleton character (walks + smokes) ----
 function makeSkeleton(){
-  const bone=new THREE.MeshStandardMaterial({color:0xe9f6ed,roughness:.55,emissive:0x0c2417,emissiveIntensity:.45});
+  // matches the $CHRONIC mascot: aged bone, red eyes, green-leaf snapback,
+  // open black leather jacket over an exposed ribcage, gold cuban chain.
+  const bone=new THREE.MeshStandardMaterial({color:0xe8dec2,roughness:.6,emissive:0x1d4429,emissiveIntensity:.55});
+  const leather=new THREE.MeshStandardMaterial({color:0x191c23,roughness:.42,metalness:.2,emissive:0x0a140e,emissiveIntensity:.14});
+  const black=new THREE.MeshStandardMaterial({color:0x16191f,roughness:.7,emissive:0x070d0a,emissiveIntensity:.12});
+  const leafG=new THREE.MeshStandardMaterial({color:0x39e06a,emissive:0x118a3a,emissiveIntensity:.7,roughness:.6,side:THREE.DoubleSide});
+  const gold=new THREE.MeshStandardMaterial({color:0xf5cf57,metalness:.95,roughness:.22,emissive:0x6a4f0c,emissiveIntensity:.55});
+  const shoe=new THREE.MeshStandardMaterial({color:0xeef3ee,roughness:.6});
+  const metal=new THREE.MeshStandardMaterial({color:0x3a8f5a,roughness:.45,metalness:.35});
   const g=new THREE.Group();
   const hips=new THREE.Group(); hips.position.y=0.96; g.add(hips);
-  // spine + ribs + skull (torso)
   const torso=new THREE.Group(); hips.add(torso);
-  const spine=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.06,0.62,6),bone); spine.position.y=0.33; torso.add(spine);
-  for(let i=0;i<4;i++){ const rib=new THREE.Mesh(new THREE.TorusGeometry(0.15-i*0.012,0.013,6,14,Math.PI*1.1),bone);
-    rib.rotation.x=Math.PI/2; rib.rotation.z=-Math.PI*0.05; rib.position.y=0.2+i*0.085; torso.add(rib); }
+  const spine=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.055,0.62,6),bone); spine.position.y=0.33; torso.add(spine);
+  // exposed ribcage (shows through the open jacket)
+  for(let i=0;i<4;i++){ const rib=new THREE.Mesh(new THREE.TorusGeometry(0.15-i*0.012,0.014,6,14,Math.PI*1.15),bone);
+    rib.rotation.x=Math.PI/2; rib.rotation.z=-Math.PI*0.075; rib.position.y=0.18+i*0.085; torso.add(rib); }
+  const sternum=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.34,0.04),bone); sternum.position.set(0,0.34,0.12); torso.add(sternum);
+  // open black leather jacket: back half-shell + two front lapels (chest stays exposed)
+  const back=new THREE.Mesh(new THREE.CylinderGeometry(0.19,0.22,0.72,16,1,true,Math.PI,Math.PI),leather); back.position.y=0.33; back.castShadow=true; torso.add(back);
+  for(const sx of [-1,1]){ const lapel=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.66,0.07),leather);
+    lapel.position.set(sx*0.17,0.33,0.1); lapel.rotation.z=sx*0.1; lapel.rotation.y=sx*-0.35; lapel.castShadow=true; torso.add(lapel); }
+  const collar=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.15,0.15,16,1,true,Math.PI*0.92,Math.PI*1.16),leather); collar.position.y=0.6; collar.rotation.x=-0.15; torso.add(collar);
+  // gold cuban chain draped on the chest
+  const chain1=new THREE.Mesh(new THREE.TorusGeometry(0.15,0.022,8,20),gold); chain1.rotation.x=1.35; chain1.position.y=0.55; torso.add(chain1);
+  const chain2=new THREE.Mesh(new THREE.TorusGeometry(0.11,0.026,8,20,Math.PI),gold); chain2.rotation.z=Math.PI; chain2.position.set(0,0.42,0.12); torso.add(chain2);
+  const pendant=new THREE.Mesh(new THREE.BoxGeometry(0.07,0.07,0.03),gold); pendant.position.set(0,0.31,0.16); torso.add(pendant);
+  // skull
   const skull=new THREE.Group(); skull.position.y=0.78; torso.add(skull);
   skull.add(new THREE.Mesh(new THREE.SphereGeometry(0.16,14,14),bone));
   const jaw=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.09,0.17),bone); jaw.position.y=-0.13; skull.add(jaw);
-  const eyeMat=new THREE.MeshStandardMaterial({color:0x021006,emissive:0x52ff8f,emissiveIntensity:1.4});
-  [-0.062,0.062].forEach(x=>{ const e=new THREE.Mesh(new THREE.SphereGeometry(0.046,8,8),eyeMat); e.position.set(x,0.015,0.13); skull.add(e); });
-  // pelvis bone
-  const pelvis=new THREE.Mesh(new THREE.BoxGeometry(0.26,0.1,0.14),bone); pelvis.position.y=-0.02; hips.add(pelvis);
-  // legs (pivot at hip)
+  // sunken eye sockets + red glow
+  [-0.062,0.062].forEach(x=>{ const sock=new THREE.Mesh(new THREE.SphereGeometry(0.05,10,10),new THREE.MeshStandardMaterial({color:0x080604})); sock.position.set(x,0.02,0.12); skull.add(sock);
+    const e=new THREE.Mesh(new THREE.SphereGeometry(0.04,10,10),new THREE.MeshStandardMaterial({color:0x300,emissive:0xff2333,emissiveIntensity:2.0})); e.position.set(x,0.02,0.135); skull.add(e); });
+  // black green-brim snapback with a green pot-leaf logo
+  const cap=new THREE.Group(); cap.position.y=0.05; cap.rotation.x=-0.12; skull.add(cap);
+  const crown=new THREE.Mesh(new THREE.SphereGeometry(0.185,16,12,0,Math.PI*2,0,Math.PI*0.52),black); crown.scale.set(1,0.92,1.04); crown.position.y=0.02; cap.add(crown);
+  const brim=new THREE.Mesh(new THREE.BoxGeometry(0.4,0.028,0.28),black); brim.position.set(0,0.0,0.2); cap.add(brim);
+  const brimU=new THREE.Mesh(new THREE.BoxGeometry(0.38,0.02,0.26),leafG); brimU.position.set(0,-0.016,0.2); cap.add(brimU);
+  const leaf=fanLeaf(leafG); leaf.scale.setScalar(0.26); leaf.position.set(0,-0.02,0.175); cap.add(leaf); // flat green pot-leaf logo on the front panel
+  // pelvis + black pants
+  const pelvis=new THREE.Mesh(new THREE.BoxGeometry(0.24,0.1,0.13),bone); pelvis.position.y=-0.02; hips.add(pelvis);
+  const waist=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.18,0.26,14),black); waist.position.y=-0.07; waist.castShadow=true; hips.add(waist);
   function leg(side){
-    const hip=new THREE.Group(); hip.position.set(0.11*side,-0.05,0); hips.add(hip);
-    const thigh=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.04,0.5,6),bone); thigh.position.y=-0.25; hip.add(thigh);
+    const hip=new THREE.Group(); hip.position.set(0.1*side,-0.05,0); hips.add(hip);
+    const pant=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.07,1.0,10),black); pant.position.y=-0.5; pant.castShadow=true; hip.add(pant);
     const knee=new THREE.Group(); knee.position.y=-0.5; hip.add(knee);
-    const shin=new THREE.Mesh(new THREE.CylinderGeometry(0.038,0.03,0.5,6),bone); shin.position.y=-0.25; knee.add(shin);
-    const foot=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.05,0.22),bone); foot.position.set(0,-0.5,0.06); knee.add(foot);
+    const foot=new THREE.Mesh(new THREE.BoxGeometry(0.13,0.08,0.27),shoe); foot.position.set(0,-0.52,0.07); foot.castShadow=true; knee.add(foot);
+    const lace=new THREE.Mesh(new THREE.BoxGeometry(0.11,0.04,0.12),leafG); lace.position.set(0,-0.49,0.04); knee.add(lace);
     return {hip,knee};
   }
-  // arms (pivot at shoulder)
   function arm(side){
     const sh=new THREE.Group(); sh.position.set(0.17*side,0.52,0); torso.add(sh);
-    const up=new THREE.Mesh(new THREE.CylinderGeometry(0.036,0.032,0.42,6),bone); up.position.y=-0.21; sh.add(up);
+    const sleeve=new THREE.Mesh(new THREE.CylinderGeometry(0.058,0.046,0.46,10),leather); sleeve.position.y=-0.22; sleeve.castShadow=true; sh.add(sleeve);
     const elbow=new THREE.Group(); elbow.position.y=-0.42; sh.add(elbow);
     const fore=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.026,0.4,6),bone); fore.position.y=-0.2; elbow.add(fore);
     const hand=new THREE.Group(); hand.position.y=-0.4; elbow.add(hand);
     return {sh,elbow,hand};
   }
   const legL=leg(1), legR=leg(-1), armL=arm(1), armR=arm(-1);
-  // right arm bent up to the mouth, holding a joint
+  // right arm up to the mouth holding a lit joint
   armR.sh.rotation.x=-2.5; armR.elbow.rotation.x=1.5;
   const joint=new THREE.Mesh(new THREE.CylinderGeometry(0.016,0.016,0.2,6),new THREE.MeshStandardMaterial({color:0xf2ead2}));
   joint.rotation.z=Math.PI/2; joint.position.set(0,-0.02,0.05); armR.hand.add(joint);
   const ember=new THREE.Mesh(new THREE.SphereGeometry(0.026,8,8),new THREE.MeshBasicMaterial({color:0xff6a2b}));
   ember.position.set(0.1,-0.02,0.05); armR.hand.add(ember);
   const tip=new THREE.Object3D(); tip.position.copy(ember.position); armR.hand.add(tip);
+  // left hand: a watering can
+  armL.sh.rotation.x=0.18;
+  const can=new THREE.Group(); can.position.set(0,-0.04,0.05); armL.hand.add(can);
+  const canBody=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.12,0.18,12),metal); canBody.castShadow=true; can.add(canBody);
+  const spout=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.034,0.26,8),metal); spout.position.set(0.14,0.05,0); spout.rotation.z=-0.95; can.add(spout);
+  const canHandle=new THREE.Mesh(new THREE.TorusGeometry(0.07,0.012,6,12,Math.PI),metal); canHandle.position.y=0.1; can.add(canHandle);
+  const spoutTip=new THREE.Object3D(); spoutTip.position.set(0.26,0.13,0); can.add(spoutTip);
   g.scale.setScalar(0.92);
-  return {group:g,legL,legR,armL,armR,ember,tip,skull};
+  return {group:g,hips,torso,legL,legR,armL,armR,ember,tip,skull,can,spoutTip};
 }
 
+// each farmhand runs a routine: well → fill can → thirsty plant → water → repeat
 const walkers=[];
-function addWalker(radius,speed,phase,dir){
+function addWalker(start){
   const sk=makeSkeleton(); scene.add(sk.group);
-  walkers.push({sk,radius,speed,phase:phase||0,dir:dir||1,smoke:rnd(0,2)});
+  walkers.push({sk,pos:start.clone(),target:WELL.clone(),state:'toWell',timer:0,face:0,step:0,smoke:rnd(0,2),plot:null});
 }
-addWalker(6.3,0.32,0,1);
-addWalker(4.0,-0.22,2.1,-1);
+addWalker(new THREE.Vector3(-3,0,3.5));
+addWalker(new THREE.Vector3(3.5,0,-2));
+function plotStand(pl){ return new THREE.Vector3(pl.x,0,pl.z+1.2); } // stand just south of the bed
+function thirstyPlot(){ const g=plots.filter(p=>p.state==='growing'); return g.length?g[(Math.random()*g.length)|0]:null; }
 
 // a chilling skeleton sitting by the tent
 const chill=makeSkeleton(); chill.group.position.set(-5.2,0,-5.0); chill.group.rotation.y=2.3;
@@ -401,20 +464,49 @@ let last=performance.now();
 function resize(){ renderer.setSize(innerWidth,innerHeight); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); }
 addEventListener('resize',resize); resize();
 
-const _wp=new THREE.Vector3();
+const _wp=new THREE.Vector3(), _wp2=new THREE.Vector3(), _dir=new THREE.Vector3();
+const WSPEED=1.95;
 function animateWalker(w,now,dt){
-  w.phase+=dt*w.speed*1.6;
-  const a=w.phase*w.dir; const R=w.radius;
-  const x=Math.cos(a)*R, z=Math.sin(a)*R;
-  const vx=-Math.sin(a)*w.dir, vz=Math.cos(a)*w.dir;
-  const g=w.sk.group; g.position.set(x,0,z); g.rotation.y=Math.atan2(vx,vz);
-  const step=now*0.005*Math.abs(w.speed)*8;
-  g.children[0].position.y=0.96+Math.abs(Math.sin(step))*0.05; // hips bob
-  w.sk.legL.hip.rotation.x=Math.sin(step)*0.6; w.sk.legR.hip.rotation.x=-Math.sin(step)*0.6;
-  w.sk.legL.knee.rotation.x=-Math.max(0,Math.sin(step))*0.7; w.sk.legR.knee.rotation.x=-Math.max(0,-Math.sin(step))*0.7;
-  w.sk.armL.sh.rotation.x=-Math.sin(step)*0.5;
-  // smoking
-  w.smoke-=dt; if(w.smoke<=0){ w.smoke=rnd(0.18,0.5); w.sk.tip.getWorldPosition(_wp); puff(_wp);
+  const moving=(w.state==='toWell'||w.state==='toPlant'||w.state==='wander');
+  _dir.set(w.target.x-w.pos.x,0,w.target.z-w.pos.z);
+  const dist=_dir.length();
+  if(moving){
+    if(dist>0.04){ _dir.normalize(); const mv=Math.min(dist,WSPEED*dt);
+      w.pos.x+=_dir.x*mv; w.pos.z+=_dir.z*mv; w.face=Math.atan2(_dir.x,_dir.z); w.step+=mv*5.4; }
+    if(dist<0.28){ // arrived at the target
+      if(w.state==='toWell'){ w.state='fill'; w.timer=1.8; }
+      else if(w.state==='toPlant'){ w.state='water'; w.timer=2.4; }
+      else { w.target.copy(WELL); w.state='toWell'; }
+    }
+  } else {
+    w.timer-=dt;
+    if(w.state==='fill'){
+      if(w.timer<=0){ const pl=thirstyPlot();
+        if(pl){ w.plot=pl; w.target.copy(plotStand(pl)); w.state='toPlant'; }
+        else { w.target.set(rnd(-4.5,4.5),0,rnd(-4.5,4.5)); w.state='wander'; } }
+    } else if(w.state==='water'){
+      if(w.plot && w.plot.state==='growing'){ w.plot.grow=Math.min(1,w.plot.grow+dt*0.05); w.plot.plant.setGrowth(w.plot.grow);
+        if(Math.random()<0.5){ w.sk.spoutTip.getWorldPosition(_wp2); drop(_wp2); } }
+      if(w.timer<=0){ w.plot=null; w.target.copy(WELL); w.state='toWell'; }
+    }
+  }
+  const g=w.sk.group; g.position.set(w.pos.x,0,w.pos.z); g.rotation.y=w.face;
+  // walk cycle while moving, settle while acting
+  if(moving && dist>0.04){
+    w.sk.hips.position.y=0.96+Math.abs(Math.sin(w.step))*0.05;
+    w.sk.legL.hip.rotation.x=Math.sin(w.step)*0.6; w.sk.legR.hip.rotation.x=-Math.sin(w.step)*0.6;
+    w.sk.legL.knee.rotation.x=-Math.max(0,Math.sin(w.step))*0.7; w.sk.legR.knee.rotation.x=-Math.max(0,-Math.sin(w.step))*0.7;
+  } else {
+    w.sk.legL.hip.rotation.x*=0.85; w.sk.legR.hip.rotation.x*=0.85;
+    w.sk.hips.position.y+=(0.96-w.sk.hips.position.y)*0.2;
+  }
+  // tip the watering can while filling / pouring
+  const armT=(w.state==='water')?-1.15:(w.state==='fill'?-0.55:0.18);
+  const canT=(w.state==='water')?-1.25:0;
+  w.sk.armL.sh.rotation.x+=(armT-w.sk.armL.sh.rotation.x)*0.12;
+  w.sk.can.rotation.z+=(canT-w.sk.can.rotation.z)*0.12;
+  // keep smoking the whole time
+  w.smoke-=dt; if(w.smoke<=0){ w.smoke=rnd(0.25,0.6); w.sk.tip.getWorldPosition(_wp); puff(_wp);
     w.sk.ember.material.color.setHex(0xff8a3b); setTimeout(()=>w.sk.ember.material.color.setHex(0xff6a2b),140); }
 }
 
