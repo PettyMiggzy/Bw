@@ -650,7 +650,10 @@ function renderShop(){
       +'<div style="margin-top:4px">resets in <b style="color:var(--text)">'+cdText(V.endsAt)+'</b></div>';
     body.appendChild(hd);
     const you=document.createElement('div'); you.className='item'; you.style.borderColor='var(--green-dim)';
-    you.innerHTML='<span class="ic" style="color:#52ff8f"></span><div class="m"><div class="nm">You'+(V.live?'':' · demo')+'</div><div class="ds">'+GrowCore.fmt(myxp)+' XP'+(tot>0?' · '+(100*myxp/Math.max(1,tot)).toFixed(1)+'% of pool':'')+'</div></div><div style="font-family:var(--fd);font-size:12px;color:var(--gold);white-space:nowrap">'+GrowCore.fmt(myShare)+' $C</div>';
+    // only a connected wallet's XP is in the real season — never promise demo XP a payout
+    const canEarn=V.live&&tot>0; const right=V.live?(GrowCore.fmt(myShare)+' $C'):'connect →';
+    const sub=canEarn?(' · '+(100*myxp/Math.max(1,tot)).toFixed(1)+'% of pool'):(V.live?'':' · demo XP won’t pay');
+    you.innerHTML='<span class="ic" style="color:#52ff8f"></span><div class="m"><div class="nm">You'+(V.live?'':' · demo')+'</div><div class="ds">'+GrowCore.fmt(myxp)+' XP'+sub+'</div></div><div style="font-family:var(--fd);font-size:12px;color:'+(V.live?'var(--gold)':'var(--green)')+';white-space:nowrap">'+right+'</div>';
     body.appendChild(you);
     const lbl=document.createElement('div'); lbl.className='ssub'; lbl.style.margin='12px 0 6px'; lbl.textContent='▸ TOP GROWERS'; body.appendChild(lbl);
     const board=V.board||[]; const medal=i=>i===0?'#f5cf57':i===1?'#cfd8d0':i===2?'#c98a4a':'#26332a';
