@@ -47,8 +47,10 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--text);f
 <div class="hud top">
   <a class="brand" href="/grow"><img src="/assets/logo-chronic.png" alt=""/>3D FARM</a>
   <div class="stats">
-    <div class="stat"><b id="buds">0</b><i>buds</i></div>
+    <div class="stat"><b id="bal">0</b><i>$CHRONIC</i></div>
     <div class="stat"><b id="xp">0</b><i>xp</i></div>
+    <div class="stat"><b id="pool">0</b><i>pool</i></div>
+    <button id="connect" style="pointer-events:auto;font-family:var(--fd);font-size:11px;color:#04140a;background:linear-gradient(90deg,var(--green-dim),var(--green));border:0;border-radius:11px;padding:8px 12px;cursor:pointer">Connect</button>
   </div>
 </div>
 <div class="hint" id="hint">your <b>farm world</b> · tap a plot to plant · drag to look around · shops coming online</div>
@@ -79,6 +81,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--text);f
   setTimeout(function(){ if(!window.__farmStarted){ var l=document.getElementById('load'); if(l && !l.classList.contains('gone')) fail('Still loading — your connection may be blocking it. Refresh, or play the 2D grow.'); } }, 12000);
 })();
 </script>
+<script src="/assets/growcore.js"></script>
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -351,21 +354,18 @@ function makePlant(strain){
 const plots=[]; const GRID=4, GAP=2.3;
 const plotMat=SOIL_BED_MAT;
 const plotEdge=WOOD_MAT;
+const LOCK_MAT=new THREE.MeshStandardMaterial({color:0x191510,roughness:1});
+const WILT_ON=true;
+let _bi=0;
 for(let x=0;x<GRID;x++)for(let z=0;z<GRID;z++){
   const px=(x-(GRID-1)/2)*GAP, pz=(z-(GRID-1)/2)*GAP;
   const bed=new THREE.Group(); bed.position.set(px,0,pz);
   const box=new THREE.Mesh(new THREE.BoxGeometry(1.7,0.4,1.7),plotMat); box.position.y=0.2; box.receiveShadow=true; box.castShadow=true; bed.add(box);
   const rim=new THREE.Mesh(new THREE.BoxGeometry(1.85,0.16,1.85),plotEdge); rim.position.y=0.34; bed.add(rim);
   scene.add(bed);
-  plots.push({x:px,z:pz,bed,state:'empty',plant:null,grow:0,strain:null});
+  plots.push({i:_bi++,x:px,z:pz,bed,box,rim,plant:null,ref:null});
 }
-
-// pre-populate ~half the farm so it's alive on arrival
-[[0,'loud',0.8],[2,'mids',0.45],[5,'gas',0.95],[7,'exotic',0.6],[9,'mids',0.7],[11,'loud',0.3],[14,'gas',0.5]].forEach(([i,k,g])=>{
-  const pl=plots[i]; const P=makePlant(k); P.root.position.set(pl.x,0.4,pl.z); scene.add(P.root);
-  pl.plant=P; pl.state=g>=1?'ripe':'growing'; pl.strain=k; pl.grow=g; P.setGrowth(g);
-});
-// a few wild plants scattered outside the grid for life
+// a few wild plants scattered outside the grid for life (decoration only)
 [[-7.5,5.5,'mids'],[7.2,-4.5,'loud'],[-5,7.6,'gas'],[6.6,6.2,'mids'],[-7.8,-6,'loud']].forEach(([x,z,k])=>{
   const P=makePlant(k); P.root.position.set(x,0.35,z); P.root.scale.setScalar(rnd(0.8,1.15)); P.setGrowth(rnd(0.7,1)); scene.add(P.root);
 });
@@ -493,44 +493,52 @@ function onUp(e){
   const hit=ray.intersectObjects(plots.map(p=>p.bed),true)[0];
   if(!hit)return;
   const pl=plots.find(p=>{let o=hit.object;while(o){if(o===p.bed)return true;o=o.parent;}return false;});
-  if(pl)tapPlot(pl);
+  if(pl)tapBed(pl);
 }
 canvas.addEventListener('pointerdown',onDown); canvas.addEventListener('pointerup',onUp);
 
-// a ripe plant left too long wilts and is lost
-function killPlant(pl){
-  if(!pl.plant) return;
-  burst(new THREE.Vector3(pl.x,1.0,pl.z),0x7a5a2a,18);
-  const bi=BILLBOARDS.indexOf(pl.plant.plane); if(bi>=0)BILLBOARDS.splice(bi,1);
-  scene.remove(pl.plant.root);
-  toast(STRAINS[pl.strain].nm+' wilted — harvest faster!');
-  pl.plant=null; pl.state='empty'; pl.grow=0; pl.strain=null; pl.ripe=0;
+// ---- economy ⇄ 3D beds (driven by GrowCore) ----
+const RBW=STAGE_H[5]*PLANT_ASPECT, RBH=STAGE_H[5];
+function clearBedPlant(pl){ if(pl.plant){ const bi=BILLBOARDS.indexOf(pl.plant.plane); if(bi>=0)BILLBOARDS.splice(bi,1); scene.remove(pl.plant.root); pl.plant=null; } pl.ref=null; }
+function syncBeds(){
+  if(!window.GrowCore) return;
+  const V=GrowCore.VM(); const gp=V.plots||[]; const pc=GrowCore.plotCount(V); const now=Date.now();
+  plots.forEach(pl=>{
+    const i=pl.i; const p=(i<gp.length)?gp[i]:null;
+    pl.box.material=(i>=pc)?LOCK_MAT:SOIL_BED_MAT;
+    if(!p){ if(pl.ref) clearBedPlant(pl); return; }
+    if(pl.ref!==p){ clearBedPlant(pl); const P=makePlant(p.strain); P.root.position.set(pl.x,0.4,pl.z); scene.add(P.root); pl.plant=P; pl.ref=p; }
+    const prog=GrowCore.progressOf(p,V.lvl); const pn=pl.plant.plane;
+    if(prog>=1){
+      if(!p._rs) p._rs=now;
+      if(WILT_ON && !p._dead && now-p._rs>RIPE_LIFE*1000){ p._dead=true; toast('a plant wilted — clean it for 100K'); }
+      if(p._dead){ pn.material.color.setHex(0x6f5f42); pn.rotation.z=0.5; pl.plant.setGrowth(1); }
+      else { pn.material.color.setHex(0xffffff); pn.rotation.z=0;
+        const urgent=now-p._rs>(RIPE_LIFE-5)*1000, sp=urgent?0.009:0.0022, amp=urgent?0.11:0.05, pulse=1+Math.sin(now*sp)*amp;
+        pn.scale.set(RBW*pulse,RBH*pulse,1); pn.position.y=RBH*pulse/2; }
+    } else { p._rs=0; p._dead=false; pn.rotation.z=0; pn.material.color.setHex(0xffffff); pl.plant.setGrowth(prog); }
+  });
 }
-function tapPlot(pl){
-  if(pl.state==='empty'){
-    const P=makePlant(SEL); P.root.position.set(pl.x,0.4,pl.z); scene.add(P.root);
-    pl.plant=P; pl.state='growing'; pl.grow=0; pl.strain=SEL;
-    burst(new THREE.Vector3(pl.x,0.6,pl.z),0x6e4a2a,10);
-    toast('planted '+STRAINS[SEL].nm); hideHint();
-  } else if(pl.state==='growing'){
-    pl.grow=Math.min(1,pl.grow+0.08);
-    burst(new THREE.Vector3(pl.x,1.2,pl.z),0x6fd0ff,8);
-  } else if(pl.state==='ripe'){
-    const S=STRAINS[pl.strain]; BUDS++; XP+=S.xp;
-    $('buds').textContent=BUDS; $('xp').textContent=XP.toLocaleString();
-    burst(new THREE.Vector3(pl.x,1.6,pl.z),S.bud,22);
-    toast('+'+S.xp+' XP · '+S.nm+' harvested');
-    const bi=BILLBOARDS.indexOf(pl.plant.plane); if(bi>=0)BILLBOARDS.splice(bi,1);
-    scene.remove(pl.plant.root); pl.plant=null; pl.state='empty'; pl.grow=0; pl.strain=null;
-  }
+function tapBed(pl){
+  const V=GrowCore.VM(); const gp=V.plots||[]; const pc=GrowCore.plotCount(V); const i=pl.i;
+  if(i>=pc){ if(i===pc){ GrowCore.buyUp('plot'); } else { toast('unlock plots in order'); } return; }
+  const p=(i<gp.length)?gp[i]:null;
+  if(!p){ hideHint();
+    const doPlant=()=>GrowCore.plant(SEL).then(ok=>{ if(ok){ burst(new THREE.Vector3(pl.x,0.6,pl.z),0x6e4a2a,10); toast('planted '+GrowCore.SEEDS[SEL].nm); } });
+    if((V.seeds[SEL]||0)>0) doPlant(); else GrowCore.buySeed(SEL).then(ok=>{ if(ok) doPlant(); });
+    return; }
+  if(p._dead){ GrowCore.clean(i).then(ok=>{ if(ok) burst(new THREE.Vector3(pl.x,0.9,pl.z),0x7a5a2a,16); }); return; }
+  if(GrowCore.progressOf(p,V.lvl)>=1){ GrowCore.sell(i).then(res=>{ if(res){ burst(new THREE.Vector3(pl.x,1.6,pl.z),0x86ff9f,22); toast('+'+GrowCore.fmt(res.xp)+' XP · '+(res.quality||'')+' harvest'); } }); }
+  else { GrowCore.water(i).then(ok=>{ if(ok) burst(new THREE.Vector3(pl.x,1.2,pl.z),0x6fd0ff,8); }); }
 }
 let hinted=true; function hideHint(){ if(hinted){hinted=false;$('hint').style.opacity=0;} }
 
-// ---- seed bar ----
+// ---- seed bar (buy/select strain — priced in $CHRONIC) ----
+const SEED_COL={mids:'#86c24a',loud:'#52ff8f',gas:'#ffc23b',exotic:'#c06aff'};
 const sb=$('seeds');
-SKEYS.forEach(k=>{ const S=STRAINS[k]; const el=document.createElement('div'); el.className='seed'+(k===SEL?' on':'');
-  el.innerHTML='<div class="d" style="background:#'+S.bud.toString(16).padStart(6,'0')+';color:#'+S.bud.toString(16).padStart(6,'0')+'"></div><b>'+S.nm+'</b><i>+'+S.xp+' xp · '+S.grow+'s</i>';
-  el.onclick=()=>{SEL=k;document.querySelectorAll('.seed').forEach(s=>s.classList.remove('on'));el.classList.add('on');};
+GrowCore.SEED_ORDER.forEach(k=>{ const S=GrowCore.SEEDS[k]; const col=SEED_COL[k]||'#86c24a'; const el=document.createElement('div'); el.className='seed'+(k===SEL?' on':'');
+  el.innerHTML='<div class="d" style="background:'+col+';color:'+col+'"></div><b>'+S.nm+'</b><i>'+GrowCore.fmt(GrowCore.seedCost(k))+' $C</i>';
+  el.onclick=()=>{SEL=k;document.querySelectorAll('.seed').forEach(s=>s.classList.remove('on'));el.classList.add('on'); toast(S.nm+' — tap a plot to plant');};
   sb.appendChild(el); });
 
 // ---- loop ----
@@ -590,25 +598,20 @@ function animate(now){
   glow.intensity=0.95+Math.sin(now*0.002)*0.18;
   // string light flicker
   for(let i=0;i<stringBulbs.length;i++){ stringBulbs[i].material.opacity=1; }
-  // grow plots + ripe expiry (harvest in time or the plant wilts and dies)
-  const RBW=STAGE_H[5]*PLANT_ASPECT, RBH=STAGE_H[5];
-  plots.forEach(pl=>{
-    if(pl.state==='growing'){ pl.grow+=dt/STRAINS[pl.strain].grow; pl.plant.setGrowth(pl.grow);
-      if(pl.grow>=1){ pl.state='ripe'; pl.ripe=RIPE_LIFE; toast(STRAINS[pl.strain].nm+' is RIPE — harvest before it wilts!'); }
-    } else if(pl.state==='ripe'){
-      pl.ripe-=dt;
-      const urgent=pl.ripe<5, sp=urgent?0.009:0.0022, amp=urgent?0.11:0.05;
-      const pulse=1+Math.sin(now*sp)*amp;
-      pl.plant.plane.scale.set(RBW*pulse,RBH*pulse,1); pl.plant.plane.position.y=RBH*pulse/2;
-      if(pl.ripe<=0) killPlant(pl);
-    }
-  });
+  syncBeds();
   walkers.forEach(w=>animateWalker(w,now,dt));
   // billboards (plants + characters) face the camera
   for(let i=0;i<BILLBOARDS.length;i++) faceCam(BILLBOARDS[i]);
   renderer.render(scene,camera);
   requestAnimationFrame(animate);
 }
+// ---- economy boot ----
+function updateHUD(){ if(!window.GrowCore) return; const V=GrowCore.VM();
+  $('bal').textContent=GrowCore.fmt(V.balance||0); $('xp').textContent=GrowCore.fmt(V.xp||0); $('pool').textContent=GrowCore.fmt(V.poolWhole||0);
+  const c=$('connect'); if(c) c.textContent=V.live?GrowCore.shortW(V.wallet):'Connect'; }
+$('connect').onclick=()=>{ if(GrowCore.isLive()) GrowCore.logout(); else GrowCore.connect(); };
+GrowCore.init({toast:toast,onChange:updateHUD}).then(updateHUD);
+setInterval(updateHUD,1000);
 $('load').classList.add('gone');
 requestAnimationFrame(animate);
 </script>
