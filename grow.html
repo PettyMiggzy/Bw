@@ -65,6 +65,8 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
 .f3dtag{display:inline-block;font-family:var(--fd);font-size:8px;letter-spacing:.18em;color:#04140a;background:var(--green);border-radius:20px;padding:3px 8px;margin-bottom:7px}
 .f3dh{font-family:var(--fh);font-size:clamp(18px,5.4vw,24px);line-height:1;color:var(--green);text-shadow:0 0 18px rgba(82,255,143,.4)}
 .f3ds{font-size:10px;letter-spacing:.04em;color:var(--dim);margin-top:6px;text-transform:uppercase}
+.f3dpool{margin-top:9px;display:inline-block;font-family:var(--fd);font-size:11px;color:#04140a;background:linear-gradient(90deg,var(--green-dim),var(--green));border-radius:9px;padding:6px 10px;letter-spacing:.02em;box-shadow:0 0 18px rgba(82,255,143,.35)}
+.f3dpool b{font-size:13px}
 .f3dgo{position:relative;z-index:1;flex:0 0 auto;font-family:var(--fd);font-size:11px;letter-spacing:.04em;color:var(--green);border:1px solid var(--green-dim);border-radius:12px;padding:11px 12px;text-align:center}
 .poolverify{display:inline-flex;align-items:center;gap:5px;margin-top:14px;font-size:10px;letter-spacing:.06em;color:var(--green);text-decoration:none;border:1px solid var(--line);border-radius:20px;padding:7px 13px}
 .poolverify:active{transform:scale(.97)}
@@ -262,7 +264,8 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
     <div class="f3dl">
       <div class="f3dtag">NEW · WebGL</div>
       <div class="f3dh">Enter the 3D Farm</div>
-      <div class="f3ds">plant · water · watch it grow · harvest the buds — in real 3D</div>
+      <div class="f3ds">plant · water · harvest — top XP wins the pool</div>
+      <div class="f3dpool">PRIZE POOL · <b class="poolBadge">—</b> $CHRONIC</div>
     </div>
     <div class="f3dgo">GROW IN 3D ›</div>
   </a>
@@ -307,7 +310,8 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
       <div class="f3dl">
         <div class="f3dtag">NEW · 3D</div>
         <div class="f3dh">Grow in your 3D Farm</div>
-        <div class="f3ds">plant · water · harvest in a real 3D weed world — with your $CHRONIC crew</div>
+        <div class="f3ds">plant · water · harvest — top XP wins the pool</div>
+        <div class="f3dpool">PRIZE POOL · <b class="poolBadge">—</b> $CHRONIC</div>
       </div>
       <div class="f3dgo">ENTER ›</div>
     </a>
@@ -814,7 +818,8 @@ function renderHud(){ var V=VM(); $('balN').textContent=(V.balance==null)?'—':
   var mp=$('modePill'); if(MODE==='live'){ mp.className='modepill live'; mp.innerHTML='◆ <b>live</b> · '+shortW(V.wallet)+' · burns are real'; }
   else { mp.className='modepill'; mp.innerHTML='◆ <b>demo mode</b> — connect a wallet to play for real'; } }
 var _poolShown=0;
-function renderPool(){ var V=VM(); animateNum($('poolN'),V.poolWhole); }
+function renderPool(){ var V=VM(); animateNum($('poolN'),V.poolWhole);
+  var pb=fmt(V.poolWhole); document.querySelectorAll('.poolBadge').forEach(function(e){ e.textContent=pb; }); }
 function solFmt(n){ n=n||0; return n>=100?Math.floor(n).toLocaleString():n>=1?n.toFixed(2):n.toFixed(4); }
 function renderYield(){ var V=VM(); var row=$('yieldRow'); if(!row)return;
   var sp=V.solPool||0, spRow=$('solPoolRow'); if(spRow){ spRow.style.display=sp>0?'block':'none'; var spn=$('solPoolN'); if(spn) spn.textContent=solFmt(sp); }
