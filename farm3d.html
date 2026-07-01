@@ -360,6 +360,45 @@ makeBuilding({pos:[11,3.5],  wall:0x2a4a38, roof:0x16301f, accent:0x52ff8f, sign
 makeBuilding({pos:[0.5,-11.5],wall:0x46365a,roof:0x241836, accent:0xc06aff, sign:'SEED BANK', shop:'seeds'});
 [[-9,6],[9.5,-6],[-11,-3.5],[11,3.5],[0.5,-11.5],[6.9,6.0]].forEach(([px,pz])=>path(px,pz));
 
+// ---- ad billboards: rentable space (DM @kingpetty317) + $CHRONIC roast ads ----
+const billboards=[]; const TG='https://t.me/kingpetty317';
+function adTexture(lines,accent,sub){
+  const c=document.createElement('canvas'); c.width=1024; c.height=560; const x=c.getContext('2d');
+  const g=x.createLinearGradient(0,0,0,560); g.addColorStop(0,'#0c1a10'); g.addColorStop(1,'#07110a'); x.fillStyle=g; x.fillRect(0,0,1024,560);
+  x.strokeStyle=accent; x.lineWidth=16; x.strokeRect(14,14,996,532);
+  x.fillStyle=accent; x.textAlign='center'; x.textBaseline='middle'; x.font='900 96px Arial';
+  const arr=Array.isArray(lines)?lines:[lines]; const lh=104, sy=250-(arr.length-1)*lh/2;
+  arr.forEach((ln,i)=>x.fillText(ln,512,sy+i*lh));
+  if(sub){ x.fillStyle='#eaffea'; x.font='bold 42px Arial'; x.fillText(sub,512,486); }
+  const t=new THREE.CanvasTexture(c); t.anisotropy=8; t.colorSpace=THREE.SRGBColorSpace; return t;
+}
+// each billboard rotates through a set of messages
+const AD_SETS={
+  ad:[['ADVERTISE','HERE','DM @kingpetty317 on Telegram'],['YOUR AD','HERE','tap · DM @kingpetty317'],['PROMOTE','YOUR PROJECT','DM @kingpetty317']],
+  chronic:[['$CHRONIC','GROW · BURN · EARN','burnchronic.xyz'],['BURN TO','GROW','60% burns forever'],['PLANT.','HARVEST. EARN.','play at burnchronic.xyz'],['WEEKLY','$CHRONIC POOL','top XP gets paid']]
+};
+function makeBillboard(o){
+  const g=new THREE.Group(); g.position.set(o.pos[0],0,o.pos[1]); g.rotation.y=Math.atan2(-o.pos[0],-o.pos[1]); scene.add(g);
+  for(const sx of [-1,1]){ const p=new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.13,3.6,7),WOOD_POST_MAT); p.position.set(sx*1.75,1.8,0); p.castShadow=true; g.add(p); }
+  const frame=new THREE.Mesh(new THREE.BoxGeometry(4.15,2.45,0.2),new THREE.MeshStandardMaterial({color:0x140d07,roughness:.9})); frame.position.set(0,3.2,0); frame.castShadow=true; g.add(frame);
+  const accent=o.type==='ad'?'#f5cf57':'#52ff8f';
+  const texes=AD_SETS[o.type].map(m=>adTexture([m[0],m[1]],accent,m[2]));
+  const idx0=billboards.length%texes.length; // stagger so neighbours differ
+  const mat=new THREE.MeshBasicMaterial({map:texes[idx0]});
+  const face=new THREE.Mesh(new THREE.PlaneGeometry(3.85,2.15),mat); face.position.set(0,3.2,0.11); g.add(face);
+  const back=new THREE.Mesh(new THREE.PlaneGeometry(3.85,2.15),mat); back.position.set(0,3.2,-0.11); back.rotation.y=Math.PI; g.add(back); // readable from both sides
+  const lamp=new THREE.PointLight(o.type==='ad'?0xf5cf57:0x52ff8f,0.6,7,2); lamp.position.set(0,4.8,0.7); g.add(lamp);
+  billboards.push({group:g,type:o.type,mat,texes,idx:idx0}); return g;
+}
+makeBillboard({pos:[0,12.9],   type:'ad'});
+makeBillboard({pos:[12.6,8.5], type:'chronic'});
+makeBillboard({pos:[-12.8,3.5],type:'ad'});
+makeBillboard({pos:[8.5,12.4], type:'chronic'});
+function clickBillboard(bb){
+  if(bb.type==='ad'){ toast('DM @kingpetty317 on Telegram to rent this billboard'); window.open(TG,'_blank','noopener'); }
+  else { toast('paper hands get burned — buy $CHRONIC'); window.open('/buy','_blank','noopener'); }
+}
+
 // ---- pine treeline ----
 (function trees(){
   const trunkMat=new THREE.MeshStandardMaterial({color:0x2a1c10,roughness:1});
@@ -548,7 +587,10 @@ function onUp(e){
   if(moved>8)return;
   ptr.x=(t.clientX/innerWidth)*2-1; ptr.y=-(t.clientY/innerHeight)*2+1;
   ray.setFromCamera(ptr,camera);
-  // buildings first — tap a shop to open it
+  // billboards + buildings first
+  const bbHit=ray.intersectObjects(billboards.map(b=>b.group),true)[0];
+  if(bbHit){ const bb=billboards.find(b=>{let o=bbHit.object;while(o){if(o===b.group)return true;o=o.parent;}return false;});
+    if(bb){ clickBillboard(bb); return; } }
   const shopHit=ray.intersectObjects(shops.map(s=>s.group),true)[0];
   if(shopHit){ const sh=shops.find(s=>{let o=shopHit.object;while(o){if(o===s.group)return true;o=o.parent;}return false;});
     if(sh){ openShop(sh.type); return; } }
@@ -672,7 +714,7 @@ function renderShop(){
 }
 
 // ---- loop ----
-let last=performance.now();
+let last=performance.now(); let _bbLast=0;
 function resize(){ renderer.setSize(innerWidth,innerHeight); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); }
 addEventListener('resize',resize); resize();
 
@@ -730,6 +772,8 @@ function animate(now){
   for(let i=0;i<stringBulbs.length;i++){ stringBulbs[i].material.opacity=1; }
   syncBeds();
   walkers.forEach(w=>animateWalker(w,now,dt));
+  // rotate billboard ad messages
+  if(now-_bbLast>4500){ _bbLast=now; for(let i=0;i<billboards.length;i++){ const b=billboards[i]; b.idx=(b.idx+1)%b.texes.length; b.mat.map=b.texes[b.idx]; b.mat.needsUpdate=true; } }
   // billboards (plants + characters) face the camera
   for(let i=0;i<BILLBOARDS.length;i++) faceCam(BILLBOARDS[i]);
   renderer.render(scene,camera);

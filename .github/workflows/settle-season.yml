@@ -1,16 +1,23 @@
 name: Settle $CHRONIC GROW season
 
-# Pays the top-3 their XP-weighted share of the pool, then opens the next
-# season. Runs weekly; can also be triggered by hand (with an optional dry run).
+# Pays the top growers (PAYOUT_SLOTS, default 50) their XP-weighted share of the
+# $CHRONIC pool + SOL yield, then opens the next season. Idempotent: only acts on
+# a season that has actually ended, so it's safe to run daily.
 #
-# Required repo secrets (Settings -> Secrets and variables -> Actions):
-#   SUPABASE_URL, SUPABASE_SERVICE_KEY, SOLANA_RPC, POOL_SECRET_KEY
-# Optional: CHRONIC_MINT, CHRONIC_DECIMALS
+# ⚠️ REQUIRED repo secrets — settlement FAILS (no payout) until these are set:
+#   Settings -> Secrets and variables -> Actions -> New repository secret
+#     SUPABASE_URL            your Supabase project URL
+#     SUPABASE_SERVICE_KEY    Supabase service_role key
+#     SOLANA_RPC              your Alchemy (or other) mainnet RPC URL
+#     POOL_SECRET_KEY         the pool wallet keypair (base58 or JSON array) —
+#                             signs the payouts. NEVER commit or share this.
+#   Optional: CHRONIC_MINT, CHRONIC_DECIMALS, PAYOUT_SLOTS, YIELD_RESERVE_SOL, POOL_WALLET
+# Verify safely first: Actions -> this workflow -> Run workflow -> Dry run = true.
 
 on:
   schedule:
-    # 00:05 UTC every Sunday — settles any season that has ended.
-    - cron: '5 0 * * 0'
+    # 00:05 UTC daily — settles promptly whenever a 7-day season has ended.
+    - cron: '5 0 * * *'
   workflow_dispatch:
     inputs:
       dry:
@@ -42,4 +49,7 @@ jobs:
           POOL_SECRET_KEY: ${{ secrets.POOL_SECRET_KEY }}
           CHRONIC_MINT: ${{ secrets.CHRONIC_MINT }}
           CHRONIC_DECIMALS: ${{ secrets.CHRONIC_DECIMALS }}
+          PAYOUT_SLOTS: ${{ secrets.PAYOUT_SLOTS }}
+          YIELD_RESERVE_SOL: ${{ secrets.YIELD_RESERVE_SOL }}
+          POOL_WALLET: ${{ secrets.POOL_WALLET }}
         run: node settle-season.js ${{ (github.event_name == 'workflow_dispatch' && inputs.dry) && '--dry' || '' }}
