@@ -119,11 +119,13 @@ async function sbSelect(path) {
 }
 async function sbUpsert(table, row, onConflict) {
   const q = onConflict ? `?on_conflict=${onConflict}` : '';
-  await fetch(`${SB_URL}/rest/v1/${table}${q}`, {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}${q}`, {
     method: 'POST',
     headers: sbHeaders({ prefer: 'resolution=merge-duplicates,return=minimal' }),
     body: JSON.stringify(row),
   });
+  // surface failures — a silently-failed nonce rotation would reopen the replay window
+  if (!r.ok) throw new Error(`supabase upsert ${table}: ${r.status} ${(await r.text()).slice(0, 200)}`);
 }
 
 // ---------------------------------------------------------------------------
