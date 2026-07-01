@@ -104,6 +104,9 @@ async function sbRpc(fn, args) {
   // SOL yield: the "earn SOL by farming" stream. Distribute the pool wallet's
   // SOL (the routed fee/volume SOL) minus a gas reserve, pro-rata by the SAME
   // XP weights — on top of the $CHRONIC pool.
+  // SOL yield is OFF by default so the pool wallet's SOL (gas + any stray SOL)
+  // is never swept to growers. Turn it on only by setting SOL_YIELD=on.
+  const SOL_YIELD = process.env.SOL_YIELD === 'on';
   const RESERVE_SOL = parseFloat(process.env.YIELD_RESERVE_SOL || '0.1');
   const conn = new Connection(RPC, 'confirmed');
   let payer = null;
@@ -111,7 +114,7 @@ async function sbRpc(fn, args) {
   const poolPub = process.env.POOL_WALLET ? new PublicKey(process.env.POOL_WALLET) : payerKey().publicKey;
   const balLamports = BigInt(await conn.getBalance(poolPub));
   const reserveLamports = BigInt(Math.floor(RESERVE_SOL * 1e9));
-  const solPot = balLamports > reserveLamports ? balLamports - reserveLamports : 0n;
+  const solPot = (SOL_YIELD && balLamports > reserveLamports) ? balLamports - reserveLamports : 0n;
   let solAlloc = xps.map((x) => (solPot * x) / sum);
   let solLeft = solPot - solAlloc.reduce((a, b) => a + b, 0n);
   for (let i = 0; solLeft > 0n && i < solAlloc.length; i++) { solAlloc[i] += 1n; solLeft -= 1n; }
