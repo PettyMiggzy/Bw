@@ -38,7 +38,7 @@ Load with `<script src="/assets/wallet.js"></script>`.
   burns are SPL Burn on the user's own ATA. No approve/delegate/setAuthority.
 
 ## Economics
-- Game: 60% burn / 40% weekly pool, no dev cut.
+- Game: 50% burn / 40% weekly pool / 10% treasury. (Buy tx burns 50% + sends 50% to the pool wallet as ONE transfer; server credits 40% to the prize pool, the 10% accrues in the pool wallet as treasury.)
 - Terminal/swaps: flat 1% fee in SOL. Pad-launched tokens split that 1% so the
   dev earns 50% of trade fees forever.
 

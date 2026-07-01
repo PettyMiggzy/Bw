@@ -1,6 +1,6 @@
 # $CHRONIC GROW — backend
 
-Burn-to-grow, grow-to-win. Spend $CHRONIC on seeds/upgrades → **60% burned, 40% into the weekly pool** → grow & sell for **XP** → at week's end the **top 3 split the pool by XP share**. No dev cut.
+Burn-to-grow, grow-to-win. Spend $CHRONIC on seeds/upgrades → **50% burned, 40% into the weekly pool, 10% to treasury** → grow & sell for **XP** → at week's end the **top growers split the pool by XP share**. 10% of each buy goes to treasury.
 
 ## Architecture (no custom on-chain program)
 
@@ -10,7 +10,7 @@ Runs entirely on what the site already uses: **Vercel serverless + Supabase + So
 browser (Phantom)                 Vercel /api                     Solana / Supabase
 ─────────────────                 ───────────                     ─────────────────
 connect + sign nonce  ───────────▶ /api/grow?action=login  ──────▶ verify ed25519 sig
-build burn tx (60/40) ──Phantom──▶ Solana (via /api/solrpc) ─────▶ on-chain: burn + pool
+build burn tx (50 burn / 50 to pool) ──Phantom──▶ Solana (via /api/solrpc) ─────▶ on-chain: burn + pool
 send tx signature     ───────────▶ /api/grow?action=buy    ──────▶ verifyBuyTx (getTransaction)
                                                                     └▶ grant seed/upgrade, +pool
 plant / sell          ───────────▶ /api/grow plant|sell    ──────▶ credit XP (from real burns)
@@ -18,7 +18,7 @@ leaderboard           ───────────▶ /api/grow?action=lead
 weekly                            tools/settle-season.js   ──────▶ pay top-3, open next season
 ```
 
-**Why the burn is trustworthy without a program:** a buy is ONE atomic Solana transaction the player signs — it *burns 60%* and *transfers 40%* to the pool account in the same tx. The server then re-reads that exact tx on-chain (`getTransaction`) and only grants the item if the burn + pool amounts and the mint and the signer all check out. You can't get credit without the burn actually happening, and XP only ever comes from verified buys — so the leaderboard can't be farmed for free.
+**Why the burn is trustworthy without a program:** a buy is ONE atomic Solana transaction the player signs — it *burns 50%* and *transfers 50%* to the pool wallet in the same tx (server credits 40% to the pool, 10% treasury). The server then re-reads that exact tx on-chain (`getTransaction`) and only grants the item if the burn + pool amounts and the mint and the signer all check out. You can't get credit without the burn actually happening, and XP only ever comes from verified buys — so the leaderboard can't be farmed for free.
 
 **Custody / ownership:** the 40% pool collects in the pool wallet's token account (set `POOL_WALLET` to the plain wallet address) and payouts are signed by that wallet's key (`POOL_SECRET_KEY`, used only by the settle script, never on Vercel). This is the "deploy with a burner, transfer to my wallet" flow — see handover below.
 

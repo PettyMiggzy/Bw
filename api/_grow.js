@@ -43,8 +43,9 @@ const UPGRADES = {
   plot:  { base: 400000,  mul: 2.1,  max: 8 },
   auto:  { base: 3000000, mul: 1,    max: 1 },
 };
-const BURN_BPS = 6000; // 60.00%
-const POOL_BPS = 4000; // 40.00%
+const BURN_BPS = 5000; // 50.00% burned
+const POOL_BPS = 5000; // 50.00% sent to the pool wallet (burn+pool = 100% of the buy, kept as ONE transfer)
+const POOL_CREDIT_BPS = 4000; // of the buy, 40% is credited to the prize pool (paid to winners); the remaining 10% accrues in the pool wallet as treasury (owner moves it out as needed)
 const MARKET_FEE_BPS = 500; // 5.00% of each P2P sale is burned; 95% to seller
 
 // watering: each water shaves WATER_PCT of grow time, up to MAX_WATERS, with a
@@ -80,8 +81,11 @@ const base = (whole) => BigInt(Math.round(whole)) * (10n ** BigInt(DECIMALS));
 const splitOf = (totalBase) => {
   const t = BigInt(totalBase);
   const burn = (t * BigInt(BURN_BPS)) / 10000n;
-  return { burn, pool: t - burn }; // pool gets the remainder so burn+pool === total exactly
+  return { burn, pool: t - burn }; // pool gets the remainder so burn+pool === total exactly (this is what the buy tx must burn + transfer)
 };
+// how much of a buy is credited to the prize pool (winners). The gap between
+// this and splitOf().pool (10% of the buy) stays in the pool wallet as treasury.
+const poolCreditOf = (totalBase) => (BigInt(totalBase) * BigInt(POOL_CREDIT_BPS)) / 10000n;
 // cost of the next level of an upgrade given the current owned level
 const upgradeCost = (key, lvl) => {
   const u = UPGRADES[key]; if (!u) return null;
@@ -266,10 +270,10 @@ async function verifyBuyTx(sig, wallet, expectedTotalBase) {
 
 module.exports = {
   SOLANA_RPC, MINT, DECIMALS, POOL_WALLET,
-  SEEDS, UPGRADES, BURN_BPS, POOL_BPS, MARKET_FEE_BPS,
+  SEEDS, UPGRADES, BURN_BPS, POOL_BPS, POOL_CREDIT_BPS, MARKET_FEE_BPS,
   MAX_WATERS, WATER_PCT, WATER_COOLDOWN_MS, plotState,
   QUALITY, rollQuality,
-  base, splitOf, upgradeCost,
+  base, splitOf, poolCreditOf, upgradeCost,
   sbEnabled, sbHeaders, sbRpc, sbSelect, sbUpsert,
   b58decode, isPubkey, verifySignature, solRpc, verifyBuyTx, verifyMarketTx,
 };

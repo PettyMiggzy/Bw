@@ -4,10 +4,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
 <title>$CHRONIC GROW — burn to grow, grow to win</title>
-<meta name="description" content="A yield farm you actually play. Burn $CHRONIC to grow — 60% burned forever, 40% into the weekly yield pool. Every grower earns a pro-rata share by XP. Resets every 7 days." />
+<meta name="description" content="A yield farm you actually play. Burn $CHRONIC to grow — 50% burned forever, 40% into the weekly yield pool, 10% to treasury. Every grower earns a pro-rata share by XP. Resets every 7 days." />
 <link rel="canonical" href="https://www.burnchronic.xyz/grow" />
 <meta property="og:title" content="$CHRONIC GROW — burn to grow, grow to win" />
-<meta property="og:description" content="A yield farm you actually play. Burn $CHRONIC, stack XP, earn your pro-rata share. 60% burned · 40% to the weekly yield pool. Every grower earns." />
+<meta property="og:description" content="A yield farm you actually play. Burn $CHRONIC, stack XP, earn your pro-rata share. 50% burned · 40% to the weekly yield pool · 10% treasury. Every grower earns." />
 <meta property="og:image" content="https://www.burnchronic.xyz/assets/og-chronic.jpg" />
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=4" />
@@ -290,8 +290,9 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
       </div>
     </div>
     <div class="split">
-      <div class="s burn"><div class="p"> 60%</div><div class="d">burned forever</div></div>
+      <div class="s burn"><div class="p"> 50%</div><div class="d">burned forever</div></div>
       <div class="s pool"><div class="p"> 40%</div><div class="d">into the pool</div></div>
+      <div class="s"><div class="p"> 10%</div><div class="d">to treasury</div></div>
     </div>
     <a id="poolVerify" class="poolverify" target="_blank" rel="noopener" href="#" style="display:none"> verify the pool on-chain ↗</a>
   </div>
@@ -349,13 +350,13 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
   <div class="view" id="v-how">
     <div class="how">
       <h3>The loop</h3>
-      <div class="step"><div class="n">1</div><div class="t"><b>Burn to buy.</b> Spend <span class="g">$CHRONIC</span> on seeds &amp; gear. <span class="o">60% is burned forever</span>, <span class="y">40% drops into this week's pool.</span></div></div>
+      <div class="step"><div class="n">1</div><div class="t"><b>Burn to buy.</b> Spend <span class="g">$CHRONIC</span> on seeds &amp; gear. <span class="o">50% is burned forever</span>, <span class="y">40% drops into this week's pool</span>, 10% to treasury.</div></div>
       <div class="step"><div class="n">2</div><div class="t"><b>Grow, water &amp; sell.</b> Plant a seed, <span class="g">tap it to water</span> (each splash speeds growth), then sell the ripe buds. Every sale earns <span class="g">XP</span> — fancier strains pay more, and each harvest rolls a quality: <span class="o"> Fire</span> or <span class="y"> Exotic</span> multiply your XP.</div></div>
       <div class="step"><div class="n">3</div><div class="t"><b>Climb.</b> XP ranks you on the <span class="y">weekly leaderboard.</span> Burn more, grow more, climb higher.</div></div>
       <div class="step"><div class="n">4</div><div class="t"><b>Everyone earns.</b> When the 7-day season ends, <span class="y">every grower claims a pro-rata share of the whole pool</span> proportional to their XP — more XP, bigger cut. Then it resets and the next yield round starts.</div></div>
       <div class="disc">
         No dev cut — 100% of every spend goes to the burn or the players' pool. Prize is paid in $CHRONIC.
-        <br><br><b>Live mode</b> uses your Solana wallet: each buy is one transaction that burns 60% and sends 40% to the pool, verified on-chain. <b>Demo mode</b> simulates it locally so you can feel the loop first.
+        <br><br><b>Live mode</b> uses your Solana wallet: each buy is one transaction that burns 50% and sends the rest to the pool wallet (40% funds the pool, 10% treasury), verified on-chain. <b>Demo mode</b> simulates it locally so you can feel the loop first.
       </div>
     </div>
   </div>
@@ -386,7 +387,7 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
    $CHRONIC GROW — demo + live.
    DEMO: simulated locally (browse the loop without a wallet).
    LIVE: Phantom connect + signed login; buys are one Solana tx that
-         burns 60% & pools 40% (verified server-side); XP + leaderboard
+         burns 50% & pools 40% (10% treasury; verified server-side); XP + leaderboard
          live on the backend. Solana RPC is proxied via /api/solrpc so
          the Alchemy key stays server-side.
 ============================================================ */
@@ -517,7 +518,7 @@ async function confirmSig(c,sig){
   return false;
 }
 
-/* build + send the burn(60%)+pool(40%) tx, then have the server verify it */
+/* build + send the burn(50%)+pool(50%) tx (server credits 40% to the pool, 10% treasury), then have the server verify it */
 async function buyOnChain(costWhole,kind,item){
   if(!CFG.ready||!CFG.poolOwner){ toast('on-chain buys not live yet',true); return false; }
   var prov=getProvider();
@@ -530,7 +531,7 @@ async function buyOnChain(costWhole,kind,item){
     var fromAta=c.spl.getAssociatedTokenAddressSync(mint,owner,false,T22);
     var poolAta=c.spl.getAssociatedTokenAddressSync(mint,poolOwner,false,T22);
     var total=BigInt(Math.round(costWhole))*(10n**BigInt(CFG.decimals));
-    var burn=total*60n/100n, poolAmt=total-burn;
+    var burn=total*50n/100n, poolAmt=total-burn; // 50% burned, 50% to the pool wallet
     // create the pool's token account if it doesn't exist yet (idempotent, payer = player)
     var ixC=c.spl.createAssociatedTokenAccountIdempotentInstruction(owner,poolAta,poolOwner,mint,T22);
     var ixB=c.spl.createBurnCheckedInstruction(fromAta,mint,owner,burn,CFG.decimals,[],T22);

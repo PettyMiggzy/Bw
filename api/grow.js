@@ -239,10 +239,11 @@ module.exports = async (req, res) => {
       const v = await G.verifyBuyTx(sig, wallet, totalBase);
       if (!v.ok) return json(res, 400, { error: 'tx invalid', reason: v.reason });
 
-      const { burn, pool } = G.splitOf(totalBase);
+      const { burn } = G.splitOf(totalBase);
+      const poolCredit = G.poolCreditOf(totalBase); // 40% to the prize pool (winners); the other 10% stays in the pool wallet as treasury
       const r = await G.sbRpc('grow_record_buy', {
         p_wallet: wallet, p_sig: sig, p_kind: kind, p_item: item,
-        p_amount: totalBase.toString(), p_burn: burn.toString(), p_pool: pool.toString(),
+        p_amount: totalBase.toString(), p_burn: burn.toString(), p_pool: poolCredit.toString(),
       });
       if (!r || r.ok === false) return json(res, 400, { error: 'record failed', reason: r && r.reason });
       const player = await loadPlayer();

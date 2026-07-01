@@ -134,7 +134,7 @@
       var fromAta = c.spl.getAssociatedTokenAddressSync(mint, owner, false, T22);
       var poolAta = c.spl.getAssociatedTokenAddressSync(mint, poolOwner, false, T22);
       var total = BigInt(Math.round(costWhole)) * (10n ** BigInt(CFG.decimals));
-      var burn = total * 60n / 100n, poolAmt = total - burn;
+      var burn = total * 50n / 100n, poolAmt = total - burn; // 50% burned, 50% to the pool wallet (server credits 40% to winners, keeps 10% as treasury)
       var ixC = c.spl.createAssociatedTokenAccountIdempotentInstruction(owner, poolAta, poolOwner, mint, T22);
       var ixB = c.spl.createBurnCheckedInstruction(fromAta, mint, owner, burn, CFG.decimals, [], T22);
       var ixT = c.spl.createTransferCheckedInstruction(fromAta, mint, poolAta, owner, poolAmt, CFG.decimals, [], T22);
