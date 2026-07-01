@@ -39,6 +39,25 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--text);f
 .load .ring{width:42px;height:42px;border:3px solid rgba(82,255,143,.2);border-top-color:var(--green);border-radius:50%;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .load.gone{opacity:0;pointer-events:none;transition:.6s}
+/* shop modal */
+.modal{position:fixed;inset:0;z-index:30;display:none;align-items:flex-end;justify-content:center;background:rgba(4,8,5,.55);backdrop-filter:blur(3px)}
+.modal.on{display:flex}
+.sheet{width:100%;max-width:520px;background:linear-gradient(180deg,#0e1a12,#0a120c);border:1px solid var(--line);border-bottom:0;border-radius:20px 20px 0 0;padding:16px 15px calc(20px + env(safe-area-inset-bottom));max-height:82vh;overflow-y:auto}
+.shead{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.shead b{font-family:var(--fd);font-size:16px;color:var(--green)}
+.shead .x{background:transparent;border:0;color:var(--dim);font-size:20px;cursor:pointer;padding:2px 8px}
+.ssub{font-size:10px;color:var(--dim);letter-spacing:.06em;margin-bottom:12px}
+.item{display:flex;align-items:center;gap:12px;background:rgba(16,26,18,.7);border:1px solid var(--line);border-radius:14px;padding:11px 12px;margin-bottom:9px}
+.item .ic{width:34px;height:34px;border-radius:9px;flex:0 0 auto;box-shadow:0 0 12px currentColor;background:currentColor}
+.item .m{flex:1;min-width:0}
+.item .nm{font-family:var(--fd);font-size:12px;color:var(--text)}
+.item .ds{font-size:10px;color:var(--dim);margin-top:2px}
+.item .buy{flex:0 0 auto;font-family:var(--fd);font-size:11px;border:0;border-radius:11px;padding:9px 12px;cursor:pointer;background:linear-gradient(90deg,var(--green-dim),var(--green));color:#04140a;white-space:nowrap}
+.item .buy.off{background:#1a231b;color:var(--dim);cursor:not-allowed}
+.item .buy.own{background:transparent;border:1px solid var(--green-dim);color:var(--green)}
+.item .tag{font-size:9px;color:var(--gold);margin-top:2px;letter-spacing:.05em}
+.sbig{display:block;width:100%;font-family:var(--fd);font-size:14px;border:0;border-radius:14px;padding:15px;margin-top:6px;cursor:pointer;text-align:center;text-decoration:none;background:linear-gradient(90deg,var(--green-dim),var(--green));color:#04140a}
+.snote{font-size:11px;color:var(--dim);line-height:1.7;text-align:center;padding:8px 6px}
 </style>
 </head>
 <body>
@@ -53,9 +72,15 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--text);f
     <button id="connect" style="pointer-events:auto;font-family:var(--fd);font-size:11px;color:#04140a;background:linear-gradient(90deg,var(--green-dim),var(--green));border:0;border-radius:11px;padding:8px 12px;cursor:pointer">Connect</button>
   </div>
 </div>
-<div class="hint" id="hint">your <b>farm world</b> · tap a plot to plant · drag to look around · shops coming online</div>
+<div class="hint" id="hint">tap a <b>plot</b> to plant · a <b>shop</b> to buy · water &amp; harvest for XP · drag to look</div>
 <div class="seeds" id="seeds"></div>
 <div class="toast" id="toast"></div>
+
+<div class="modal" id="modal"><div class="sheet">
+  <div class="shead"><b id="shopTitle">SHOP</b><button class="x" id="shopX">✕</button></div>
+  <div class="ssub" id="shopSub"></div>
+  <div id="shopBody"></div>
+</div></div>
 
 <!-- self-hosted three.js (no third-party CDN at runtime → loads reliably on any network) -->
 <script type="importmap">
@@ -278,8 +303,10 @@ function makeLabel(text,accent){
 function path(px,pz){ const len=Math.hypot(px,pz);
   const p=new THREE.Mesh(new THREE.BoxGeometry(1.35,0.05,len-2.8),new THREE.MeshStandardMaterial({color:0x4a3826,roughness:1}));
   p.position.set(px*0.5,0.04,pz*0.5); p.rotation.y=Math.atan2(px,pz); p.receiveShadow=true; scene.add(p); }
+const shops=[];
 function makeBuilding(o){
   const g=new THREE.Group(); g.position.set(o.pos[0],0,o.pos[1]); g.rotation.y=Math.atan2(-o.pos[0],-o.pos[1]); scene.add(g);
+  if(o.shop) shops.push({group:g,type:o.shop,x:o.pos[0],z:o.pos[1]});
   const w=o.w||3.6,d=o.d||3.1,h=o.h||2.9, ac='#'+o.accent.toString(16).padStart(6,'0');
   const body=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),WOOD_MAT); body.position.y=h/2; body.castShadow=true; body.receiveShadow=true; g.add(body);
   const roof=new THREE.Mesh(new THREE.ConeGeometry(Math.max(w,d)*0.82,h*0.72,4),ROOF_MAT); roof.rotation.y=Math.PI/4; roof.position.y=h+h*0.35; roof.castShadow=true; g.add(roof);
@@ -295,11 +322,11 @@ function makeBuilding(o){
   return g;
 }
 // place the world (house = where you start; shops = where you spend $CHRONIC)
-makeBuilding({pos:[-9,6],    wall:0x7a674a, roof:0x4a2c1a, accent:0xf5cf57, sign:'HOME', chimney:true});
-makeBuilding({pos:[9.5,-6],  wall:0x163a22, roof:0x0c2416, accent:0x39e06a, sign:'$CHRONIC'});
-makeBuilding({pos:[-11,-3.5],wall:0x5a4636, roof:0x3a2a1a, accent:0xff8a3b, sign:'TOOLS'});
-makeBuilding({pos:[11,3.5],  wall:0x2a4a38, roof:0x16301f, accent:0x52ff8f, sign:'GROW SHOP'});
-makeBuilding({pos:[0.5,-11.5],wall:0x46365a,roof:0x241836, accent:0xc06aff, sign:'SEED BANK'});
+makeBuilding({pos:[-9,6],    wall:0x7a674a, roof:0x4a2c1a, accent:0xf5cf57, sign:'HOME', chimney:true, shop:'home'});
+makeBuilding({pos:[9.5,-6],  wall:0x163a22, roof:0x0c2416, accent:0x39e06a, sign:'$CHRONIC', shop:'chronic'});
+makeBuilding({pos:[-11,-3.5],wall:0x5a4636, roof:0x3a2a1a, accent:0xff8a3b, sign:'TOOLS', shop:'tools'});
+makeBuilding({pos:[11,3.5],  wall:0x2a4a38, roof:0x16301f, accent:0x52ff8f, sign:'GROW SHOP', shop:'grow'});
+makeBuilding({pos:[0.5,-11.5],wall:0x46365a,roof:0x241836, accent:0xc06aff, sign:'SEED BANK', shop:'seeds'});
 [[-9,6],[9.5,-6],[-11,-3.5],[11,3.5],[0.5,-11.5],[6.9,6.0]].forEach(([px,pz])=>path(px,pz));
 
 // ---- pine treeline ----
@@ -490,6 +517,10 @@ function onUp(e){
   if(moved>8)return;
   ptr.x=(t.clientX/innerWidth)*2-1; ptr.y=-(t.clientY/innerHeight)*2+1;
   ray.setFromCamera(ptr,camera);
+  // buildings first — tap a shop to open it
+  const shopHit=ray.intersectObjects(shops.map(s=>s.group),true)[0];
+  if(shopHit){ const sh=shops.find(s=>{let o=shopHit.object;while(o){if(o===s.group)return true;o=o.parent;}return false;});
+    if(sh){ openShop(sh.type); return; } }
   const hit=ray.intersectObjects(plots.map(p=>p.bed),true)[0];
   if(!hit)return;
   const pl=plots.find(p=>{let o=hit.object;while(o){if(o===p.bed)return true;o=o.parent;}return false;});
@@ -540,6 +571,46 @@ GrowCore.SEED_ORDER.forEach(k=>{ const S=GrowCore.SEEDS[k]; const col=SEED_COL[k
   el.innerHTML='<div class="d" style="background:'+col+';color:'+col+'"></div><b>'+S.nm+'</b><i>'+GrowCore.fmt(GrowCore.seedCost(k))+' $C</i>';
   el.onclick=()=>{SEL=k;document.querySelectorAll('.seed').forEach(s=>s.classList.remove('on'));el.classList.add('on'); toast(S.nm+' — tap a plot to plant');};
   sb.appendChild(el); });
+
+// ---- shops (tap a building) ----
+let _shopType=null;
+const SEED_COLS={mids:'#86c24a',loud:'#52ff8f',gas:'#ffc23b',exotic:'#c06aff'};
+const UP_COL={light:'#ffd98a',nutes:'#52ff8f',plot:'#8fd0ff',auto:'#c06aff'};
+function itemRow(icColor,nm,ds,label,cls,onClick,tag){
+  const el=document.createElement('div'); el.className='item';
+  el.innerHTML='<span class="ic" style="color:'+icColor+'"></span><div class="m"><div class="nm">'+nm+'</div><div class="ds">'+ds+'</div>'+(tag?'<div class="tag">'+tag+'</div>':'')+'</div>';
+  const b=document.createElement('button'); b.className='buy '+(cls||''); b.textContent=label;
+  if(cls!=='off'&&cls!=='own') b.onclick=onClick; el.appendChild(b); return el;
+}
+function openShop(type){ _shopType=type; renderShop(); $('modal').classList.add('on'); hideHint(); }
+function closeShop(){ _shopType=null; $('modal').classList.remove('on'); }
+$('shopX').onclick=closeShop;
+$('modal').addEventListener('click',e=>{ if(e.target===$('modal')) closeShop(); });
+function renderShop(){
+  if(!_shopType) return; const V=GrowCore.VM(); const body=$('shopBody'); const bal=(V.balance==null)?Infinity:V.balance;
+  const T={seeds:['SEED BANK','buy seeds — then plant them on your plots'],grow:['GROW SHOP','speed up growth & juice your XP'],tools:['TOOLS','more plots & auto-harvest'],chronic:['$CHRONIC','top up your bag'],home:['HOME','your farm at a glance']};
+  const t=T[_shopType]||['SHOP','']; $('shopTitle').textContent=t[0]; $('shopSub').textContent=t[1]; body.innerHTML='';
+  const buy=(fn)=>()=>{ fn().then(()=>renderShop()); };
+  if(_shopType==='seeds'){
+    GrowCore.SEED_ORDER.forEach(k=>{ const S=GrowCore.SEEDS[k]; const c=GrowCore.seedCost(k); const own=V.seeds[k]||0; const ok=bal>=c;
+      body.appendChild(itemRow(SEED_COLS[k],S.nm,S.ds+' · +'+GrowCore.fmt(S.xp)+' XP',ok?('BUY '+GrowCore.fmt(c)):(GrowCore.fmt(c)+' $C'),ok?'':'off',buy(()=>GrowCore.buySeed(k)),own>0?('owned ×'+own):'')); });
+  } else if(_shopType==='grow'||_shopType==='tools'){
+    (_shopType==='grow'?['light','nutes']:['plot','auto']).forEach(k=>{ const u=GrowCore.UPS.filter(x=>x.k===k)[0]; const lvl=(V.lvl&&V.lvl[k])||0; const maxed=lvl>=u.max; const c=GrowCore.upCost(k,lvl); const ok=bal>=c;
+      const label=maxed?'MAXED':(ok?('BUY '+GrowCore.fmt(c)):(GrowCore.fmt(c)+' $C')); const cls=maxed?'own':(ok?'':'off');
+      body.appendChild(itemRow(UP_COL[k],u.nm,u.ds,label,cls,buy(()=>GrowCore.buyUp(k)),u.max>1?('level '+lvl+'/'+u.max):(lvl?'owned':''))); });
+  } else if(_shopType==='chronic'){
+    const d=document.createElement('div'); d.innerHTML='<div class="snote">Balance: <b style="color:var(--green)">'+GrowCore.fmt(V.balance||0)+' $CHRONIC</b><br/>Grab more to buy seeds, plots & upgrades. Every in-game buy <b style="color:var(--ember)">burns 60%</b> and feeds <b style="color:var(--gold)">40% to the weekly pool</b>.</div>'; body.appendChild(d);
+    const a=document.createElement('a'); a.className='sbig'; a.href='/buy'; a.textContent='Buy $CHRONIC ›'; body.appendChild(a);
+  } else if(_shopType==='home'){
+    const seeds=GrowCore.SEED_ORDER.map(k=>((V.seeds[k]||0)>0?GrowCore.SEEDS[k].nm+' ×'+V.seeds[k]:null)).filter(Boolean).join(' · ')||'none yet';
+    const d=document.createElement('div'); d.innerHTML='<div class="snote" style="text-align:left;line-height:2">'
+      +'<b style="color:var(--green)">'+GrowCore.fmt(V.balance||0)+'</b> $CHRONIC<br/>'
+      +'<b style="color:var(--gold)">'+GrowCore.fmt(V.xp||0)+'</b> XP this season<br/>'
+      +'Weekly pool: <b>'+GrowCore.fmt(V.poolWhole||0)+'</b> $CHRONIC<br/>'
+      +'Seeds: '+seeds+'<br/><br/>'
+      +(V.live?'Connected — your burns are real.':'Demo mode — connect a wallet for real burns & the live pool.')+'</div>'; body.appendChild(d);
+  }
+}
 
 // ---- loop ----
 let last=performance.now();
@@ -608,7 +679,8 @@ function animate(now){
 // ---- economy boot ----
 function updateHUD(){ if(!window.GrowCore) return; const V=GrowCore.VM();
   $('bal').textContent=GrowCore.fmt(V.balance||0); $('xp').textContent=GrowCore.fmt(V.xp||0); $('pool').textContent=GrowCore.fmt(V.poolWhole||0);
-  const c=$('connect'); if(c) c.textContent=V.live?GrowCore.shortW(V.wallet):'Connect'; }
+  const c=$('connect'); if(c) c.textContent=V.live?GrowCore.shortW(V.wallet):'Connect';
+  if(_shopType) renderShop(); }
 $('connect').onclick=()=>{ if(GrowCore.isLive()) GrowCore.logout(); else GrowCore.connect(); };
 GrowCore.init({toast:toast,onChange:updateHUD}).then(updateHUD);
 setInterval(updateHUD,1000);
