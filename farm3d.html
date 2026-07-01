@@ -576,7 +576,9 @@ const walkers=[];
 function addWalker(start){ const sk=makeSkeleton(); scene.add(sk.group); walkers.push({sk,pos:start.clone(),target:WELL.clone(),state:'toWell',timer:0,face:0,step:0,smoke:rnd(0,2),plot:null}); }
 addWalker(new THREE.Vector3(-3,0,3.5));
 function plotStand(pl){ return new THREE.Vector3(pl.x,0,pl.z+1.2); }
-function thirstyPlot(){ const g=plots.filter(p=>p.state==='growing'); return g.length?g[(Math.random()*g.length)|0]:null; }
+function thirstyPlot(){ const V=GrowCore.VM(), gp=V.plots||[];
+  const g=plots.filter(pl=>{ const p=(pl.i<gp.length)?gp[pl.i]:null; return p && !p._dead && GrowCore.progressOf(p,V.lvl)<1; });
+  return g.length?g[(Math.random()*g.length)|0]:null; }
 
 // ---- interaction ----
 const ray=new THREE.Raycaster(); const ptr=new THREE.Vector2(); let downXY=null;
@@ -614,13 +616,19 @@ function syncBeds(){
     if(pl.ref!==p){ clearBedPlant(pl); const P=makePlant(p.strain); P.root.position.set(pl.x,0.4,pl.z); scene.add(P.root); pl.plant=P; pl.ref=p; }
     const prog=GrowCore.progressOf(p,V.lvl); const pn=pl.plant.plane;
     if(prog>=1){
-      if(!p._rs) p._rs=now;
-      if(WILT_ON && !p._dead && now-p._rs>RIPE_LIFE*1000){ p._dead=true; sfx('wilt'); toast('a plant wilted — clean it for 100K'); }
-      if(p._dead){ pn.material.color.setHex(0x6f5f42); pn.rotation.z=0.5; pl.plant.setGrowth(1); }
-      else { pn.material.color.setHex(0xffffff); pn.rotation.z=0;
-        const urgent=now-p._rs>(RIPE_LIFE-5)*1000, sp=urgent?0.009:0.0022, amp=urgent?0.11:0.05, pulse=1+Math.sin(now*sp)*amp;
-        pn.scale.set(RBW*pulse,RBH*pulse,1); pn.position.y=RBH*pulse/2; }
-    } else { p._rs=0; p._dead=false; pn.rotation.z=0; pn.material.color.setHex(0xffffff); pl.plant.setGrowth(prog); }
+      // wilt timing derived from the plant's own ripe moment (p.at is persisted &
+      // survives reloads / live refreshes) — never from a stored wall-clock stamp
+      const ripeAt=p.at+GrowCore.growMsOf(p.strain,V.lvl), sinceRipe=now-ripeAt;
+      const dead=WILT_ON && sinceRipe>RIPE_LIFE*1000;
+      if(dead){
+        if(!p._deadToast){ p._deadToast=1; sfx('wilt'); toast('a plant wilted — clean it for 100K'); }
+        p._dead=true; pn.material.color.setHex(0x6f5f42); pn.rotation.z=0.5; pl.plant.setGrowth(1);
+      } else {
+        p._dead=false; pn.material.color.setHex(0xffffff); pn.rotation.z=0;
+        const urgent=sinceRipe>(RIPE_LIFE-5)*1000, sp=urgent?0.009:0.0022, amp=urgent?0.11:0.05, pulse=1+Math.sin(now*sp)*amp;
+        pn.scale.set(RBW*pulse,RBH*pulse,1); pn.position.y=RBH*pulse/2;
+      }
+    } else { p._dead=false; p._deadToast=0; pn.rotation.z=0; pn.material.color.setHex(0xffffff); pl.plant.setGrowth(prog); }
   });
 }
 function tapBed(pl){
@@ -739,8 +747,7 @@ function animateWalker(w,now,dt){
         if(pl){ w.plot=pl; w.target.copy(plotStand(pl)); w.state='toPlant'; }
         else { w.target.set(rnd(-4.5,4.5),0,rnd(-4.5,4.5)); w.state='wander'; } }
     } else if(w.state==='water'){
-      if(w.plot && w.plot.state==='growing'){ w.plot.grow=Math.min(1,w.plot.grow+dt*0.05); w.plot.plant.setGrowth(w.plot.grow);
-        if(Math.random()<0.5){ w.sk.spoutTip.getWorldPosition(_wp2); drop(_wp2); } }
+      if(w.plot && Math.random()<0.5){ w.sk.spoutTip.getWorldPosition(_wp2); drop(_wp2); } // visual pour (growth is GrowCore-driven)
       if(w.timer<=0){ w.plot=null; w.target.copy(WELL); w.state='toWell'; }
     }
   }

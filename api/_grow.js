@@ -29,7 +29,7 @@ const SB_KEY = process.env.SUPABASE_SERVICE_KEY || '';
 
 // ---------------------------------------------------------------------------
 // product catalog — MUST stay in sync with grow.html. Prices in whole $CHRONIC.
-// burn = 60%, pool = 40%. xp is awarded on sell (seeds only).
+// burn = 50%, 50% to the pool wallet (40% credited to the prize pool, 10% treasury). xp is awarded on sell (seeds only).
 // ---------------------------------------------------------------------------
 const SEEDS = {
   mids:   { cost: 50000,   grow: 30000,  xp: 50   },
@@ -228,7 +228,7 @@ async function verifyMarketTx(sig, buyer, sellerWallet, priceBase) {
 }
 
 /*
- * Verify a buy tx actually burned 60% and pooled 40% of `expectedTotalBase`,
+ * Verify a buy tx actually burned 50% and moved 50% to the pool wallet of `expectedTotalBase`,
  * signed by `wallet`. The pool credit is checked via the pool WALLET's
  * token-balance gain (pre->post), so POOL_WALLET is a plain wallet address.
  * Returns { ok, reason?, burn, pool }.
@@ -261,7 +261,7 @@ async function verifyBuyTx(sig, wallet, expectedTotalBase) {
   }
   if (gotBurn < needBurn) return { ok: false, reason: 'burn_short' };
 
-  // pool: the pool wallet's $CHRONIC balance must rise by >= the 40% share
+  // pool: the pool wallet's $CHRONIC balance must rise by >= the 50% share (40% credited to winners, 10% treasury)
   const gotPool = poolBalance(tx.meta.postTokenBalances) - poolBalance(tx.meta.preTokenBalances);
   if (gotPool < needPool) return { ok: false, reason: 'pool_short' };
 

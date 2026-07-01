@@ -1,3 +1,15 @@
-contracts/node_modules/
+# secrets & keys — NEVER commit
+.env
+.env.*
+!.env.example
+*.pem
+*keypair*.json
+id.json
+wallet.json
+*secret*.json
+
+# deps / build
 node_modules/
-*.log
+tools/node_modules/
+.vercel/
+.DS_Store

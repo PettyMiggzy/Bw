@@ -25,7 +25,7 @@ create table if not exists grow_seasons (
   id          bigint generated always as identity primary key,
   starts_at   timestamptz not null default now(),
   ends_at     timestamptz not null,
-  pool_base   numeric not null default 0,             -- accumulated 40% pool, in token base units
+  pool_base   numeric not null default 0,             -- accumulated prize pool (40% of buys credited here), in token base units
   settled     boolean not null default false,
   winners     jsonb,                                  -- [{wallet,xp,amount_base,sig}] after settle
   settled_at  timestamptz
@@ -48,8 +48,8 @@ create table if not exists grow_purchases (
   kind        text not null,                          -- 'seed' | 'upgrade'
   item        text not null,                          -- strain key or upgrade key
   amount_base numeric not null,                       -- total $CHRONIC spent (base units)
-  burn_base   numeric not null,                       -- 60% burned
-  pool_base   numeric not null,                       -- 40% to pool
+  burn_base   numeric not null,                       -- 50% burned
+  pool_base   numeric not null,                       -- 40% credited to prize pool (of the 50% moved to the pool wallet; 10% treasury)
   season_id   bigint not null references grow_seasons(id),
   created_at  timestamptz not null default now()
 );
@@ -105,17 +105,20 @@ create or replace function grow_record_buy(
 language plpgsql security definer set search_path = public as $$
 declare s grow_seasons%rowtype; pl grow_players%rowtype; cur int;
 begin
-  if exists (select 1 from grow_purchases where sig = p_sig) then
-    return json_build_object('ok', true, 'dupe', true);
-  end if;
   s := grow_current_season();
-
   insert into grow_players (wallet) values (p_wallet) on conflict (wallet) do nothing;
-  select * into pl from grow_players where wallet = p_wallet for update;
 
+  -- atomic idempotency via the sig PK: if this sig was already recorded, no row
+  -- is inserted and we return dupe WITHOUT re-crediting the pool or re-granting
+  -- the item. Fixes the old check-then-insert race (two concurrent identical
+  -- buys could both pass the exists-check) and the exception that masked a
+  -- duplicate as a generic failure.
   insert into grow_purchases (sig, wallet, kind, item, amount_base, burn_base, pool_base, season_id)
-  values (p_sig, p_wallet, p_kind, p_item, p_amount, p_burn, p_pool, s.id);
+  values (p_sig, p_wallet, p_kind, p_item, p_amount, p_burn, p_pool, s.id)
+  on conflict (sig) do nothing;
+  if not found then return json_build_object('ok', true, 'dupe', true); end if;
 
+  select * into pl from grow_players where wallet = p_wallet for update;
   update grow_seasons set pool_base = pool_base + p_pool where id = s.id;
 
   if p_kind = 'seed' then

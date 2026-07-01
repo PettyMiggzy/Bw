@@ -731,16 +731,16 @@ function renderBoard(){ var V=VM(); var list;
   // pro-rata over EVERY grower (not just the top 3): your share = your XP / total XP
   var denom=(V.totalXp&&V.totalXp>0)?V.totalXp:(list.reduce(function(a,b){return a+b.xp;},0)||1);
   var medals=['','',''], order=[1,0,2];
-  order.forEach(function(idx){ var p=top3[idx]; if(!p)return; var share=Math.round(P*(p.xp/denom));
+  order.forEach(function(idx){ var p=top3[idx]; if(!p)return; var demoYou=p.you&&!V.live; var share=Math.round(P*(p.xp/denom));
     var d=document.createElement('div'); d.className='pod g'+(idx+1)+(p.you?' you':'');
     d.innerHTML='<div class="rk">'+medals[idx]+'</div><div class="who">'+p.who+'</div><div class="xp">'+fmt(p.xp)+' XP</div>'
-      +'<div class="win">'+fmt(share)+'<i>$CHRONIC</i></div>'; pod.appendChild(d); });
+      +'<div class="win">'+(demoYou?'—':fmt(share))+'<i>'+(demoYou?'connect to earn':'$CHRONIC')+'</i></div>'; pod.appendChild(d); });
   var rows=$('rows'); rows.innerHTML='';
-  list.forEach(function(p,i){ var d=document.createElement('div'); d.className='row'+(p.you?' you':'')+(i<3?' top':'');
+  list.forEach(function(p,i){ var demoYou=p.you&&!V.live; var d=document.createElement('div'); d.className='row'+(p.you?' you':'')+(i<3?' top':'');
     d.innerHTML='<div class="rk">'+(i+1)+'</div><div class="who">'+p.who+(p.addr?'<small>'+p.addr+'</small>':'')+'</div>'
-      +'<div class="xp">'+fmt(p.xp)+'<i>XP · '+fmt(Math.round(P*(p.xp/denom)))+' $C</i></div>'; rows.appendChild(d); });
+      +'<div class="xp">'+fmt(p.xp)+'<i>XP'+(demoYou?" · demo won't pay":' · '+fmt(Math.round(P*(p.xp/denom)))+' $C')+'</i></div>'; rows.appendChild(d); });
   var sb=$('boardShare'); if(sb){ var youI=-1; for(var k=0;k<list.length;k++){ if(list[k].you){youI=k;break;} }
-    var rank=youI>=0?(youI+1):null; var youYield=fmt(Math.round(P*((V.xp||0)/denom)));
+    var rank=(V.live&&youI>=0)?(youI+1):null; var youYield=fmt(Math.round(P*((V.xp||0)/denom)));
     var sp=V.solPool||0; var youSol=solFmt(sp*((V.xp||0)/denom));
     var txt=rank?('I’m rank #'+rank+' on $CHRONIC GROW  — '+fmt(V.xp)+' XP earning ~'+youSol+' SOL + '+youYield+' $CHRONIC from the yield pool. every grower earns. catch up ')
                 :('$CHRONIC GROW  a yield farm you actually play — burn $CHRONIC to grow, every grower earns real SOL'+(sp>0?(' (~'+solFmt(sp)+' SOL pool this week)'):'')+' + $CHRONIC weekly ');

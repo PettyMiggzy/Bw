@@ -249,8 +249,9 @@
   }
   // pay to clean a wilted plot (removes the dead plant at index i)
   function clean(i) {
-    if (MODE === 'live') return buyOnChain(CLEAN_COST, 'clean', String(i)).then(function (ok) {
-      if (ok) { apiPost('clean', { idx: i }).then(function (r) { if (r && r.player) applyPlayer(r.player); emit(); }); } return ok; });
+    // live: one on-chain 100K burn+pool tx; the server 'buy' handler (kind:clean)
+    // charges it and removes the dead plot. No second call, no lost funds.
+    if (MODE === 'live') return buyOnChain(CLEAN_COST, 'clean', String(i));
     if (D.bal < CLEAN_COST) { D.bal = DEMO_BANK; toast('demo wallet topped up'); }
     D.bal -= CLEAN_COST; if (D.plots[i]) D.plots.splice(i, 1); saveDemo(); emit(); toast('plot cleaned'); return Promise.resolve(true);
   }

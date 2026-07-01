@@ -13,7 +13,7 @@
  *   GET  season                       -> public current-season info
  *
  * Money integrity is on-chain: `buy` only grants after verifyBuyTx confirms the
- * tx burned 60% + pooled 40% of the item price, signed by the wallet. XP can
+ * tx burned 50% + moved 50% to the pool wallet (40% credited, 10% treasury) of the item price, signed by the wallet. XP can
  * therefore only ever derive from real burns.
  */
 const crypto = require('crypto');
@@ -23,7 +23,13 @@ const OK_ORIGINS = ['burnchronic.xyz', 'localhost', 'vercel.app'];
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 
 // ── tiny HMAC session token: base64url(wallet|exp).hex(hmac) ──
-function secret() { return process.env.SUPABASE_SERVICE_KEY || 'dev-secret'; }
+function secret() {
+  // dedicated session secret preferred; fall back to the service key. Never a
+  // hardcoded default — throw instead, so tokens can't be signed with a public string.
+  const s = process.env.GROW_SESSION_SECRET || process.env.SUPABASE_SERVICE_KEY;
+  if (!s) throw new Error('GROW_SESSION_SECRET or SUPABASE_SERVICE_KEY required for session tokens');
+  return s;
+}
 function signToken(wallet) {
   const body = `${wallet}|${Date.now() + TOKEN_TTL_MS}`;
   const mac = crypto.createHmac('sha256', secret()).update(body).digest('hex');
@@ -184,6 +190,8 @@ module.exports = async (req, res) => {
         return json(res, 400, { error: 'nonce expired' });
       const message = `Sign in to $CHRONIC GROW\nwallet: ${wallet}\nnonce: ${rows[0].nonce}`;
       if (!G.verifySignature(wallet, message, signature)) return json(res, 401, { error: 'bad signature' });
+      // single-use: rotate the nonce so this signed message can never be replayed
+      await G.sbUpsert('grow_nonces', { wallet, nonce: crypto.randomBytes(16).toString('hex'), created_at: new Date().toISOString() }, 'wallet');
       await G.sbUpsert('grow_players', { wallet }, 'wallet'); // ensure row exists
       return json(res, 200, { token: signToken(wallet) });
     }
@@ -233,6 +241,9 @@ module.exports = async (req, res) => {
         const lvl = (player.lvl && player.lvl[item]) || 0;
         if (lvl >= u.max) return json(res, 400, { error: 'upgrade maxed' });
         costWhole = G.upgradeCost(item, lvl);
+      } else if (kind === 'clean') {
+        // clean a wilted plot: fixed 100K, same 50/40/10 split as a buy; `item` is the plot index
+        costWhole = 100000;
       } else return json(res, 400, { error: 'bad kind' });
 
       const totalBase = G.base(costWhole);
@@ -246,6 +257,8 @@ module.exports = async (req, res) => {
         p_amount: totalBase.toString(), p_burn: burn.toString(), p_pool: poolCredit.toString(),
       });
       if (!r || r.ok === false) return json(res, 400, { error: 'record failed', reason: r && r.reason });
+      // clean: after charging, remove the dead plot (no XP, no nug)
+      if (kind === 'clean' && !r.dupe) { await G.sbRpc('grow_sell', { p_wallet: wallet, p_idx: Number(item), p_xp: 0 }); }
       const player = await loadPlayer();
       return json(res, 200, { ok: true, dupe: !!r.dupe, player: decorate(player) });
     }
