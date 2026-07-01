@@ -58,6 +58,18 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--text);f
 .item .tag{font-size:9px;color:var(--gold);margin-top:2px;letter-spacing:.05em}
 .sbig{display:block;width:100%;font-family:var(--fd);font-size:14px;border:0;border-radius:14px;padding:15px;margin-top:6px;cursor:pointer;text-align:center;text-decoration:none;background:linear-gradient(90deg,var(--green-dim),var(--green));color:#04140a}
 .snote{font-size:11px;color:var(--dim);line-height:1.7;text-align:center;padding:8px 6px}
+/* how-to-play intro */
+.intro{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;padding:18px;background:radial-gradient(120% 80% at 50% 0,rgba(12,61,34,.6),rgba(4,8,5,.93))}
+.intro.on{display:flex}
+.introcard{width:100%;max-width:420px;background:linear-gradient(180deg,#0f1c13,#0a120c);border:1px solid var(--line);border-radius:22px;padding:22px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 22px 64px rgba(0,0,0,.55)}
+.introcard h2{font-family:var(--fd);font-size:22px;color:var(--green);text-align:center;text-shadow:0 0 20px rgba(82,255,143,.4)}
+.introcard .sub{text-align:center;font-size:10px;color:var(--dim);letter-spacing:.16em;text-transform:uppercase;margin:6px 0 18px}
+.istep{display:flex;gap:12px;align-items:flex-start;margin-bottom:13px}
+.istep .n{flex:0 0 auto;width:28px;height:28px;border-radius:9px;background:linear-gradient(180deg,var(--green-dim),var(--green));color:#04140a;font-family:var(--fd);font-size:13px;display:flex;align-items:center;justify-content:center}
+.istep .tx{font-size:12.5px;color:var(--text);line-height:1.55}
+.istep .tx b{color:var(--green)}
+.introcard .go{display:block;width:100%;font-family:var(--fd);font-size:15px;border:0;border-radius:14px;padding:15px;margin-top:10px;cursor:pointer;background:linear-gradient(90deg,var(--green-dim),var(--green));color:#04140a}
+.helpbtn{pointer-events:auto;width:30px;height:30px;border-radius:9px;border:1px solid var(--line);background:rgba(10,16,11,.8);color:var(--green);font-family:var(--fd);font-size:13px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -69,12 +81,23 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--text);f
     <div class="stat"><b id="bal">0</b><i>$CHRONIC</i></div>
     <div class="stat"><b id="xp">0</b><i>xp</i></div>
     <div class="stat"><b id="pool">0</b><i>pool</i></div>
+    <button class="helpbtn" id="help" title="how to play">?</button>
     <button id="connect" style="pointer-events:auto;font-family:var(--fd);font-size:11px;color:#04140a;background:linear-gradient(90deg,var(--green-dim),var(--green));border:0;border-radius:11px;padding:8px 12px;cursor:pointer">Connect</button>
   </div>
 </div>
 <div class="hint" id="hint">tap a <b>plot</b> to plant · a <b>shop</b> to buy · water &amp; harvest for XP · drag to look</div>
 <div class="seeds" id="seeds"></div>
 <div class="toast" id="toast"></div>
+
+<div class="intro" id="intro"><div class="introcard">
+  <h2>WELCOME TO YOUR FARM</h2>
+  <div class="sub">grow · burn · earn</div>
+  <div class="istep"><div class="n">1</div><div class="tx">Tap the <b>SEED BANK</b> (or the bar below) and <b>buy a seed</b> with $CHRONIC.</div></div>
+  <div class="istep"><div class="n">2</div><div class="tx">Tap your <b>plot</b> to plant it, then <b>tap again to water</b> — plants grow slow, so keep watering.</div></div>
+  <div class="istep"><div class="n">3</div><div class="tx">Hit the <b>GROW SHOP</b> for <b>nutrients &amp; grow-light</b> to speed it up and boost XP.</div></div>
+  <div class="istep"><div class="n">4</div><div class="tx"><b>Harvest when ripe</b> for XP — but don't let it <b>wilt</b> (a dead plot costs 100K to clean). Top XP shares the weekly pool.</div></div>
+  <button class="go" id="introGo">Start growing ›</button>
+</div></div>
 
 <div class="modal" id="modal"><div class="sheet">
   <div class="shead"><b id="shopTitle">SHOP</b><button class="x" id="shopX">✕</button></div>
@@ -684,6 +707,13 @@ function updateHUD(){ if(!window.GrowCore) return; const V=GrowCore.VM();
 $('connect').onclick=()=>{ if(GrowCore.isLive()) GrowCore.logout(); else GrowCore.connect(); };
 GrowCore.init({toast:toast,onChange:updateHUD}).then(updateHUD);
 setInterval(updateHUD,1000);
+// ---- first-time how-to-play ----
+function showIntro(){ $('intro').classList.add('on'); }
+function hideIntro(){ $('intro').classList.remove('on'); try{localStorage.setItem('cg3d_intro','1');}catch(e){} }
+$('introGo').onclick=hideIntro;
+$('intro').addEventListener('click',e=>{ if(e.target===$('intro')) hideIntro(); });
+$('help').onclick=showIntro;
+try{ if(!localStorage.getItem('cg3d_intro')) showIntro(); }catch(e){}
 $('load').classList.add('gone');
 requestAnimationFrame(animate);
 </script>
