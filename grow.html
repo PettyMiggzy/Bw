@@ -301,15 +301,21 @@ h1.title{font-family:var(--fh);font-size:clamp(38px,12vw,76px);line-height:.9;te
     <div class="tab" data-v="how">❔ How</div>
   </div>
 
-  <!-- GROW VIEW -->
+  <!-- GROW VIEW — the grow is now the 3D farm -->
   <div class="view on" id="v-grow">
-    <div class="garden" id="garden"></div>
-    <div class="shop">
-      <h2>▸ The Seed Plug</h2>
-      <p class="hh">Buy seeds with $CHRONIC. Every buy: <b style="color:var(--ember)">60% burned</b> · <b style="color:var(--gold)">40% to the pool</b>. Then tap an empty plot to plant. Better strains = more XP.</p>
+    <a href="/farm3d" class="farm3dcta" style="margin:2px 0 4px">
+      <div class="f3dl">
+        <div class="f3dtag">NEW · 3D</div>
+        <div class="f3dh">Grow in your 3D Farm</div>
+        <div class="f3ds">plant · water · harvest in a real 3D weed world — with your $CHRONIC crew</div>
+      </div>
+      <div class="f3dgo">ENTER ›</div>
+    </a>
+    <p class="hh" style="text-align:center;margin-top:14px;line-height:1.7">The grow moved to <b style="color:var(--green)">3D</b>. Your yield pool, XP and season claims below still run exactly the same.</p>
+    <!-- legacy 2D garden retained hidden so the season/pool scripts keep their hooks -->
+    <div style="display:none" aria-hidden="true">
+      <div class="garden" id="garden"></div>
       <div class="ups" id="seeds"></div>
-      <h2 style="margin-top:24px">▸ The Supply Run</h2>
-      <p class="hh">Upgrades grow faster &amp; juice your XP. Same split — it all feeds the burn + pool.</p>
       <div class="ups" id="ups"></div>
     </div>
   </div>
