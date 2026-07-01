@@ -80,7 +80,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--text);f
   <div class="stats">
     <div class="stat"><b id="bal">0</b><i>$CHRONIC</i></div>
     <div class="stat"><b id="xp">0</b><i>xp</i></div>
-    <div class="stat"><b id="pool">0</b><i>pool</i></div>
+    <div class="stat" id="poolStat" style="pointer-events:auto;cursor:pointer"><b id="pool">0</b><i>pool ›</i></div>
     <button class="helpbtn" id="help" title="how to play">?</button>
     <button id="connect" style="pointer-events:auto;font-family:var(--fd);font-size:11px;color:#04140a;background:linear-gradient(90deg,var(--green-dim),var(--green));border:0;border-radius:11px;padding:8px 12px;cursor:pointer">Connect</button>
   </div>
@@ -138,6 +138,13 @@ window.__farmStarted=true; // module parsed & three loaded
 const $=(i)=>document.getElementById(i);
 let _th; function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(_th);_th=setTimeout(()=>t.classList.remove('show'),1900);}
 const rnd=(a,b)=>a+Math.random()*(b-a);
+// ---- procedural sound fx ----
+let _ac=null; function AC(){ if(!_ac){ try{_ac=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} } return _ac; }
+const SFX={plant:[220,360,.13,'triangle'],water:[520,760,.10,'sine'],coin:[660,1040,.16,'square'],buy:[330,520,.12,'triangle'],wilt:[240,80,.28,'sawtooth'],open:[420,600,.07,'sine']};
+function sfx(t){ const ac=AC(); if(!ac||ac.state==='suspended')return; const p=SFX[t]||SFX.open; const n=ac.currentTime;
+  const o=ac.createOscillator(),g=ac.createGain(); o.connect(g); g.connect(ac.destination); o.type=p[3];
+  o.frequency.setValueAtTime(p[0],n); o.frequency.exponentialRampToValueAtTime(Math.max(40,p[1]),n+p[2]);
+  g.gain.setValueAtTime(0.0001,n); g.gain.exponentialRampToValueAtTime(0.16,n+0.008); g.gain.exponentialRampToValueAtTime(0.0001,n+p[2]); o.start(n); o.stop(n+p[2]+0.03); }
 
 // ---- strains (tiers) ----
 const STRAINS={
@@ -183,6 +190,7 @@ const ROOF_MAT=new THREE.MeshStandardMaterial({map:tex('roof.png',3,2),roughness
 // sprite (cutout) textures — real photoreal plant stages + the $CHRONIC mascot
 function spriteTex(file){ const t=TL.load('/assets/tex/'+file); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t; }
 const PLANT_TEX=[0,1,2,3,4,5].map(i=>spriteTex('plant'+i+'.png'));
+const STRAIN_RIPE={mids:spriteTex('ripe_mids.png'),loud:spriteTex('ripe_loud.png'),gas:spriteTex('ripe_gas.png'),exotic:spriteTex('ripe_exotic.png')};
 // everything in BILLBOARDS turns to face the camera around Y each frame
 const BILLBOARDS=[]; const _bv=new THREE.Vector3();
 function faceCam(m){ m.getWorldPosition(_bv); m.rotation.y=Math.atan2(camera.position.x-_bv.x,camera.position.z-_bv.z); }
@@ -194,7 +202,7 @@ const controls=new OrbitControls(camera,canvas);
 controls.target.set(0,1.2,0); controls.enableDamping=true; controls.dampingFactor=.08;
 controls.minDistance=6; controls.maxDistance=42; controls.minPolarAngle=0.12; controls.maxPolarAngle=Math.PI*0.495; controls.enablePan=false;
 controls.autoRotate=true; controls.autoRotateSpeed=0.25; // gentle drift until user grabs
-canvas.addEventListener('pointerdown',()=>{controls.autoRotate=false;});
+canvas.addEventListener('pointerdown',()=>{controls.autoRotate=false; const ac=AC(); if(ac&&ac.state==='suspended')ac.resume();});
 
 // ---- lighting: moody night + neon grow glow ----
 scene.add(new THREE.HemisphereLight(TOD.hS,TOD.hG,TOD.hI));
@@ -396,7 +404,7 @@ function makePlant(strain){
   let stage=-1;
   function setGrowth(g){ g=Math.max(0,Math.min(1,g)); const st=Math.min(5,Math.floor(g*5.999));
     const h=STAGE_H[st]; plane.scale.set(h*PLANT_ASPECT,h,1); plane.position.y=h/2;
-    if(st!==stage){ stage=st; mat.map=PLANT_TEX[st]; mat.needsUpdate=true; } }
+    if(st!==stage){ stage=st; mat.map=(st>=4&&STRAIN_RIPE[strain])?STRAIN_RIPE[strain]:PLANT_TEX[st]; mat.needsUpdate=true; } }
   setGrowth(0); return {root,setGrowth,strain,plane};
 }
 
@@ -565,7 +573,7 @@ function syncBeds(){
     const prog=GrowCore.progressOf(p,V.lvl); const pn=pl.plant.plane;
     if(prog>=1){
       if(!p._rs) p._rs=now;
-      if(WILT_ON && !p._dead && now-p._rs>RIPE_LIFE*1000){ p._dead=true; toast('a plant wilted — clean it for 100K'); }
+      if(WILT_ON && !p._dead && now-p._rs>RIPE_LIFE*1000){ p._dead=true; sfx('wilt'); toast('a plant wilted — clean it for 100K'); }
       if(p._dead){ pn.material.color.setHex(0x6f5f42); pn.rotation.z=0.5; pl.plant.setGrowth(1); }
       else { pn.material.color.setHex(0xffffff); pn.rotation.z=0;
         const urgent=now-p._rs>(RIPE_LIFE-5)*1000, sp=urgent?0.009:0.0022, amp=urgent?0.11:0.05, pulse=1+Math.sin(now*sp)*amp;
@@ -578,12 +586,12 @@ function tapBed(pl){
   if(i>=pc){ if(i===pc){ GrowCore.buyUp('plot'); } else { toast('unlock plots in order'); } return; }
   const p=(i<gp.length)?gp[i]:null;
   if(!p){ hideHint();
-    const doPlant=()=>GrowCore.plant(SEL).then(ok=>{ if(ok){ burst(new THREE.Vector3(pl.x,0.6,pl.z),0x6e4a2a,10); toast('planted '+GrowCore.SEEDS[SEL].nm); } });
+    const doPlant=()=>GrowCore.plant(SEL).then(ok=>{ if(ok){ burst(new THREE.Vector3(pl.x,0.6,pl.z),0x6e4a2a,10); sfx('plant'); toast('planted '+GrowCore.SEEDS[SEL].nm); } });
     if((V.seeds[SEL]||0)>0) doPlant(); else GrowCore.buySeed(SEL).then(ok=>{ if(ok) doPlant(); });
     return; }
-  if(p._dead){ GrowCore.clean(i).then(ok=>{ if(ok) burst(new THREE.Vector3(pl.x,0.9,pl.z),0x7a5a2a,16); }); return; }
-  if(GrowCore.progressOf(p,V.lvl)>=1){ GrowCore.sell(i).then(res=>{ if(res){ burst(new THREE.Vector3(pl.x,1.6,pl.z),0x86ff9f,22); toast('+'+GrowCore.fmt(res.xp)+' XP · '+(res.quality||'')+' harvest'); } }); }
-  else { GrowCore.water(i).then(ok=>{ if(ok) burst(new THREE.Vector3(pl.x,1.2,pl.z),0x6fd0ff,8); }); }
+  if(p._dead){ GrowCore.clean(i).then(ok=>{ if(ok){ sfx('buy'); burst(new THREE.Vector3(pl.x,0.9,pl.z),0x7a5a2a,16); } }); return; }
+  if(GrowCore.progressOf(p,V.lvl)>=1){ GrowCore.sell(i).then(res=>{ if(res){ sfx('coin'); burst(new THREE.Vector3(pl.x,1.6,pl.z),0x86ff9f,22); toast('+'+GrowCore.fmt(res.xp)+' XP · '+(res.quality||'')+' harvest'); } }); }
+  else { GrowCore.water(i).then(ok=>{ if(ok){ sfx('water'); burst(new THREE.Vector3(pl.x,1.2,pl.z),0x6fd0ff,8); } }); }
 }
 let hinted=true; function hideHint(){ if(hinted){hinted=false;$('hint').style.opacity=0;} }
 
@@ -605,15 +613,16 @@ function itemRow(icColor,nm,ds,label,cls,onClick,tag){
   const b=document.createElement('button'); b.className='buy '+(cls||''); b.textContent=label;
   if(cls!=='off'&&cls!=='own') b.onclick=onClick; el.appendChild(b); return el;
 }
-function openShop(type){ _shopType=type; renderShop(); $('modal').classList.add('on'); hideHint(); }
+function openShop(type){ _shopType=type; renderShop(); $('modal').classList.add('on'); hideHint(); sfx('open'); }
 function closeShop(){ _shopType=null; $('modal').classList.remove('on'); }
 $('shopX').onclick=closeShop;
 $('modal').addEventListener('click',e=>{ if(e.target===$('modal')) closeShop(); });
+function cdText(e){ const ms=Math.max(0,(e||0)-Date.now()); const d=Math.floor(ms/864e5),h=Math.floor(ms/36e5)%24,m=Math.floor(ms/6e4)%60; return (d>0?d+'d ':'')+h+'h '+m+'m'; }
 function renderShop(){
   if(!_shopType) return; const V=GrowCore.VM(); const body=$('shopBody'); const bal=(V.balance==null)?Infinity:V.balance;
-  const T={seeds:['SEED BANK','buy seeds — then plant them on your plots'],grow:['GROW SHOP','speed up growth & juice your XP'],tools:['TOOLS','more plots & auto-harvest'],chronic:['$CHRONIC','top up your bag'],home:['HOME','your farm at a glance']};
+  const T={seeds:['SEED BANK','buy seeds — then plant them on your plots'],grow:['GROW SHOP','speed up growth & juice your XP'],tools:['TOOLS','more plots & auto-harvest'],chronic:['$CHRONIC','top up your bag'],home:['HOME','your farm at a glance'],board:['WEEKLY POOL','top XP shares the pool — auto-paid']};
   const t=T[_shopType]||['SHOP','']; $('shopTitle').textContent=t[0]; $('shopSub').textContent=t[1]; body.innerHTML='';
-  const buy=(fn)=>()=>{ fn().then(()=>renderShop()); };
+  const buy=(fn)=>()=>{ fn().then(()=>{ sfx('coin'); renderShop(); }); };
   if(_shopType==='seeds'){
     GrowCore.SEED_ORDER.forEach(k=>{ const S=GrowCore.SEEDS[k]; const c=GrowCore.seedCost(k); const own=V.seeds[k]||0; const ok=bal>=c;
       body.appendChild(itemRow(SEED_COLS[k],S.nm,S.ds+' · +'+GrowCore.fmt(S.xp)+' XP',ok?('BUY '+GrowCore.fmt(c)):(GrowCore.fmt(c)+' $C'),ok?'':'off',buy(()=>GrowCore.buySeed(k)),own>0?('owned ×'+own):'')); });
@@ -632,6 +641,30 @@ function renderShop(){
       +'Weekly pool: <b>'+GrowCore.fmt(V.poolWhole||0)+'</b> $CHRONIC<br/>'
       +'Seeds: '+seeds+'<br/><br/>'
       +(V.live?'Connected — your burns are real.':'Demo mode — connect a wallet for real burns & the live pool.')+'</div>'; body.appendChild(d);
+    const bb=document.createElement('button'); bb.className='sbig'; bb.textContent='View leaderboard ›'; bb.onclick=()=>openShop('board'); body.appendChild(bb);
+  } else if(_shopType==='board'){
+    const pool=V.poolWhole||0, sol=V.solPool||0, tot=V.totalXp||0, myxp=V.xp||0; const myShare=tot>0?Math.floor(pool*myxp/tot):0;
+    const hd=document.createElement('div'); hd.className='snote'; hd.style.textAlign='center';
+    hd.innerHTML='<div style="font-family:var(--fd);font-size:26px;color:var(--green);line-height:1.1">'+GrowCore.fmt(pool)+' <span style="font-size:12px">$C</span></div>'
+      +(sol>0?'<div style="color:var(--gold);font-size:12px">+ '+(sol/1e9).toFixed(3)+' SOL yield</div>':'')
+      +'<div style="margin-top:4px">resets in <b style="color:var(--text)">'+cdText(V.endsAt)+'</b></div>';
+    body.appendChild(hd);
+    const you=document.createElement('div'); you.className='item'; you.style.borderColor='var(--green-dim)';
+    you.innerHTML='<span class="ic" style="color:#52ff8f"></span><div class="m"><div class="nm">You'+(V.live?'':' · demo')+'</div><div class="ds">'+GrowCore.fmt(myxp)+' XP'+(tot>0?' · '+(100*myxp/Math.max(1,tot)).toFixed(1)+'% of pool':'')+'</div></div><div style="font-family:var(--fd);font-size:12px;color:var(--gold);white-space:nowrap">'+GrowCore.fmt(myShare)+' $C</div>';
+    body.appendChild(you);
+    const lbl=document.createElement('div'); lbl.className='ssub'; lbl.style.margin='12px 0 6px'; lbl.textContent='▸ TOP GROWERS'; body.appendChild(lbl);
+    const board=V.board||[]; const medal=i=>i===0?'#f5cf57':i===1?'#cfd8d0':i===2?'#c98a4a':'#26332a';
+    if(!board.length){ const e=document.createElement('div'); e.className='snote'; e.textContent='no growers yet — be the first to climb.'; body.appendChild(e); }
+    board.slice(0,15).forEach((b,i)=>{ const cut=tot>0?Math.floor(pool*b.xp/tot):0; const row=document.createElement('div'); row.className='item'; if(b.you) row.style.borderColor='var(--green-dim)';
+      row.innerHTML='<span style="flex:0 0 auto;width:26px;height:26px;border-radius:8px;background:'+medal(i)+';display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:12px;color:#04140a">'+(i+1)+'</span>'
+        +'<div class="m"><div class="nm">'+(b.you?'You':b.who)+'</div><div class="ds">'+GrowCore.fmt(b.xp)+' XP</div></div>'
+        +'<div style="font-family:var(--fd);font-size:11px;color:var(--gold);white-space:nowrap">'+GrowCore.fmt(cut)+' $C</div>'; body.appendChild(row); });
+    const lw=V.lastWinners;
+    if(lw&&lw.length){ const l2=document.createElement('div'); l2.className='ssub'; l2.style.margin='14px 0 6px'; l2.textContent='▸ LAST WEEK — PAID OUT'; body.appendChild(l2);
+      lw.slice(0,5).forEach((w,i)=>{ const row=document.createElement('div'); row.className='item';
+        row.innerHTML='<span style="flex:0 0 auto;width:26px;height:26px;border-radius:8px;background:#f5cf57;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:11px;color:#04140a">'+(i+1)+'</span><div class="m"><div class="nm">'+GrowCore.shortW(w.wallet)+'</div><div class="ds">'+GrowCore.fmt(w.xp||0)+' XP</div></div><div style="font-family:var(--fd);font-size:11px;color:var(--green);white-space:nowrap">'+GrowCore.fmt(w.whole||0)+' $C</div>'; body.appendChild(row); }); }
+    const note=document.createElement('div'); note.className='snote'; note.style.marginTop='10px'; note.innerHTML='Top 50 growers get paid <b style="color:var(--green)">automatically</b> to their wallet every week — your cut = your XP ÷ total XP. Connect a wallet so your XP counts.';
+    body.appendChild(note);
   }
 }
 
@@ -713,6 +746,7 @@ function hideIntro(){ $('intro').classList.remove('on'); try{localStorage.setIte
 $('introGo').onclick=hideIntro;
 $('intro').addEventListener('click',e=>{ if(e.target===$('intro')) hideIntro(); });
 $('help').onclick=showIntro;
+$('poolStat').onclick=()=>openShop('board');
 try{ if(!localStorage.getItem('cg3d_intro')) showIntro(); }catch(e){}
 $('load').classList.add('gone');
 requestAnimationFrame(animate);

@@ -77,11 +77,11 @@
       return { live: true, connected: true, wallet: LIVE.wallet, balance: LIVE.balance, xp: LIVE.xp,
         poolWhole: LIVE.poolWhole, totalXp: LIVE.totalXp || 0, solPool: LIVE.solPool || 0,
         endsAt: LIVE.endsAt ? new Date(LIVE.endsAt).getTime() : Date.now() + SEASON_MS,
-        lvl: LIVE.lvl || {}, seeds: LIVE.seeds || {}, plots: LIVE.plots || [], board: LIVE.board };
+        lvl: LIVE.lvl || {}, seeds: LIVE.seeds || {}, plots: LIVE.plots || [], board: LIVE.board, lastWinners: LIVE.lastWinners };
     }
     return { live: false, connected: true, wallet: null, balance: D.bal, xp: D.xp,
       poolWhole: PUB.poolWhole, totalXp: PUB.totalXp || 0, solPool: PUB.solPool || 0, endsAt: PUB.endsAt,
-      lvl: D.lvl, seeds: D.seeds, plots: D.plots, board: PUB.board };
+      lvl: D.lvl, seeds: D.seeds, plots: D.plots, board: PUB.board, lastWinners: PUB.lastWinners };
   }
 
   // ---- API ----
